@@ -1,0 +1,22 @@
+server:
+  port: 8083
+spring:
+  application:
+    name: ich-omnitrix
+
+# Dubbo provider config (使用本地 Zookeeper 3.4.11，默认 2181)
+dubbo:
+  application:
+    name: ich-omnitrix
+  registry:
+    address: zookeeper://127.0.0.1:2181
+  protocol:
+    name: dubbo
+    port: 20883
+  scan:
+    base-packages: com.hyang.ich.omnitrix
+
+logging:
+  level:
+    root: info
+

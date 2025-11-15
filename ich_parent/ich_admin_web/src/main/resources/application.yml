@@ -1,0 +1,19 @@
+server:
+  port: 8091
+spring:
+  application:
+    name: ich-admin-web
+
+dubbo:
+  application:
+    name: ich-admin-web
+  registry:
+    address: zookeeper://127.0.0.1:2181
+  consumer:
+    check: false
+
+logging:
+  level:
+    root: info
+
+

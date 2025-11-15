@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/ich_parent/ich_admin_web/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ich_parent/ich_admin_web/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ich_parent/ich_common/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ich_parent/ich_common/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ich_parent/ich_content_provider/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ich_parent/ich_content_provider/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ich_parent/ich_interface/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ich_parent/ich_interface/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ich_parent/ich_omnitrix/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ich_parent/ich_omnitrix/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ich_parent/ich_user_provider/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ich_parent/ich_user_provider/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ich_parent/ich_user_web/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ich_parent/ich_user_web/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ich_parent/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ich_parent/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+  </component>
+</project>
