@@ -6,14 +6,25 @@
           <router-link to="/system/admin" class="ag-sub-pill" :class="{ active: $route.path === '/system/admin' }">{{ t('system.tabs.admin') }}</router-link>
           <router-link to="/system/role" class="ag-sub-pill" :class="{ active: $route.path === '/system/role' }">{{ t('system.tabs.role') }}</router-link>
         </nav>
-        <button class="ag-btn" @click="openDialog()">
-          <el-icon :size="14"><Plus /></el-icon>
-          <span>{{ t('common.add') }}</span>
-        </button>
+        <div class="toolbar-actions">
+          <button v-if="selectedIds.length" class="ag-btn-danger" @click="handleBatchDelete">
+            <el-icon :size="14"><Delete /></el-icon>
+            <span>批量删除 ({{ selectedIds.length }})</span>
+          </button>
+          <button class="ag-btn-secondary" @click="handleExport">
+            <el-icon :size="14"><Download /></el-icon>
+            <span>导出</span>
+          </button>
+          <button class="ag-btn" @click="openDialog()">
+            <el-icon :size="14"><Plus /></el-icon>
+            <span>{{ t('common.add') }}</span>
+          </button>
+        </div>
       </div>
 
       <div class="ag-card">
-        <el-table :data="tableData" v-loading="loading">
+        <el-table :data="tableData" v-loading="loading" @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="45" align="center" />
         <el-table-column prop="id" :label="t('common.id')" width="70" align="center" />
         <el-table-column prop="name" :label="t('system.role.roleName')" align="center" />
         <el-table-column prop="code" :label="t('system.role.roleCode')" align="center" />
@@ -59,7 +70,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getRoleList, addRole, updateRole, deleteRole } from '@/api/system'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { exportToCSV } from '@/utils/export'
 
 const { t } = useI18n()
 
@@ -108,6 +120,29 @@ async function handleDelete(id) {
   await deleteRole(id)
   ElMessage.success(t('common.deleted'))
   loadData()
+}
+
+const selectedIds = ref([])
+function handleSelectionChange(rows) { selectedIds.value = rows.map(r => r.id) }
+
+async function handleBatchDelete() {
+  try {
+    await ElMessageBox.confirm(`确定删除选中的 ${selectedIds.value.length} 条记录吗？`, '批量删除', { type: 'warning' })
+    await Promise.all(selectedIds.value.map(id => deleteRole(id)))
+    ElMessage.success(t('common.deleted'))
+    selectedIds.value = []
+    loadData()
+  } catch { /* cancelled */ }
+}
+
+function handleExport() {
+  exportToCSV(tableData.value, [
+    { label: 'ID', key: 'id' },
+    { label: '角色名称', key: 'name' },
+    { label: '角色编码', key: 'code' },
+    { label: '描述', key: 'description' },
+    { label: '状态', key: 'status', formatter: v => v === 1 ? '启用' : '禁用' },
+  ], '角色')
 }
 
 onMounted(loadData)

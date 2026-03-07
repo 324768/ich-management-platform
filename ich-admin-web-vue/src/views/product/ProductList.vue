@@ -6,25 +6,70 @@
           <router-link to="/product/category" class="ag-sub-pill" :class="{ active: $route.path === '/product/category' }">{{ t('product.tabs.category') }}</router-link>
           <router-link to="/product/list" class="ag-sub-pill" :class="{ active: $route.path === '/product/list' }">{{ t('product.tabs.list') }}</router-link>
         </nav>
-        <button class="ag-btn" @click="openDialog()">
-          <el-icon :size="14"><Plus /></el-icon>
-          <span>{{ t('common.add') }}</span>
-        </button>
+        <div class="toolbar-actions">
+          <button v-if="selectedIds.length" class="ag-btn-danger" @click="handleBatchDelete">
+            <el-icon :size="14"><Delete /></el-icon>
+            <span>批量删除 ({{ selectedIds.length }})</span>
+          </button>
+          <button class="ag-btn-secondary" @click="handleExport">
+            <el-icon :size="14"><Download /></el-icon>
+            <span>导出</span>
+          </button>
+          <button class="ag-btn" @click="openDialog()">
+            <el-icon :size="14"><Plus /></el-icon>
+            <span>{{ t('common.add') }}</span>
+          </button>
+        </div>
       </div>
 
       <div class="ag-card">
         <div class="table-toolbar">
-          <el-input v-model="keyword" :placeholder="t('product.item.searchPlaceholder')" clearable style="width: 240px" @clear="loadData" @keyup.enter="loadData">
-            <template #prefix><el-icon><Search /></el-icon></template>
-          </el-input>
-          <el-select v-model="statusFilter" :placeholder="t('common.status')" clearable style="width: 140px; margin-left: 8px" @change="loadData">
-            <el-option :label="t('product.item.onSale')" :value="1" />
-            <el-option :label="t('product.item.offShelf')" :value="0" />
-          </el-select>
+          <div class="toolbar-left">
+            <el-input v-model="keyword" :placeholder="t('product.item.searchPlaceholder')" clearable style="width: 240px" @clear="loadData" @keyup.enter="loadData">
+              <template #prefix><el-icon><Search /></el-icon></template>
+            </el-input>
+            <el-select v-model="statusFilter" :placeholder="t('common.status')" clearable style="width: 140px" @change="loadData">
+              <el-option :label="t('product.item.onSale')" :value="1" />
+              <el-option :label="t('product.item.offShelf')" :value="0" />
+            </el-select>
+            <button class="ag-btn-secondary" @click="showAdvanced = !showAdvanced">
+              <el-icon :size="14"><Filter /></el-icon>
+              <span>高级筛选</span>
+            </button>
+          </div>
         </div>
-        <el-table :data="tableData" v-loading="loading" @row-click="handleRowClick" style="cursor: pointer;">
+        <transition name="slide">
+          <div v-show="showAdvanced" class="advanced-filter">
+            <el-form :inline="true" size="small">
+              <el-form-item :label="t('common.belongCategory')">
+                <el-select v-model="categoryFilter" :placeholder="t('common.selectCategory')" clearable style="width: 180px" @change="loadData">
+                  <el-option v-for="c in categoryOptions" :key="c.id" :label="c.name" :value="c.id" />
+                </el-select>
+              </el-form-item>
+              <el-form-item label="价格范围">
+                <el-input-number v-model="priceMin" :min="0" :precision="2" :controls="false" placeholder="最低" style="width: 100px" />
+                <span style="margin: 0 4px; color: #9ca3af;">-</span>
+                <el-input-number v-model="priceMax" :min="0" :precision="2" :controls="false" placeholder="最高" style="width: 100px" />
+              </el-form-item>
+              <el-form-item label="库存范围">
+                <el-input-number v-model="stockMin" :min="0" :controls="false" placeholder="最低" style="width: 80px" />
+                <span style="margin: 0 4px; color: #9ca3af;">-</span>
+                <el-input-number v-model="stockMax" :min="0" :controls="false" placeholder="最高" style="width: 80px" />
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" size="small" @click="loadData">查询</el-button>
+                <el-button size="small" @click="resetFilters">重置</el-button>
+              </el-form-item>
+            </el-form>
+          </div>
+        </transition>
+        <el-table :data="tableData" v-loading="loading" @row-click="handleRowClick" @selection-change="handleSelectionChange" style="cursor: pointer;">
+        <el-table-column type="selection" width="45" align="center" />
         <el-table-column prop="id" :label="t('common.id')" width="80" align="center" />
         <el-table-column prop="name" :label="t('product.item.productName')" show-overflow-tooltip align="center" />
+        <el-table-column :label="t('common.belongCategory')" align="center" show-overflow-tooltip>
+          <template #default="{ row }">{{ getCategoryName(row.categoryId) }}</template>
+        </el-table-column>
         <el-table-column prop="price" :label="t('product.item.price')" align="center">
           <template #default="{ row }">¥{{ row.price }}</template>
         </el-table-column>
@@ -57,6 +102,22 @@
       <el-form :model="form" :rules="rules" ref="formRef" label-width="120px">
         <el-form-item :label="t('common.name')" prop="name"><el-input v-model="form.name" /></el-form-item>
         <el-form-item :label="t('product.item.subtitle')"><el-input v-model="form.subTitle" /></el-form-item>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item :label="t('common.belongCategory')">
+              <el-select v-model="form.categoryId" :placeholder="t('common.selectCategory')" clearable style="width: 100%">
+                <el-option v-for="c in categoryOptions" :key="c.id" :label="c.name" :value="c.id" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item :label="t('common.linkedHeritage')">
+              <el-select v-model="form.heritageManId" :placeholder="t('common.selectHeritage')" clearable filterable style="width: 100%">
+                <el-option v-for="h in heritageManOptions" :key="h.id" :label="h.name" :value="h.id" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item :label="t('product.item.price')" prop="price"><el-input-number v-model="form.price" :min="0" :precision="2" style="width: 100%" /></el-form-item>
@@ -111,8 +172,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { getProductList, getProduct, addProduct, updateProduct, deleteProduct, updateProductStatus } from '@/api/product'
-import { ElMessage } from 'element-plus'
+import { getProductList, getProduct, addProduct, updateProduct, deleteProduct, updateProductStatus, getProductCategoryTree } from '@/api/product'
+import { getHeritageManList } from '@/api/content'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { exportToCSV } from '@/utils/export'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -121,6 +184,12 @@ const tableData = ref([])
 const loading = ref(false)
 const keyword = ref('')
 const statusFilter = ref(null)
+const categoryFilter = ref(null)
+const showAdvanced = ref(false)
+const priceMin = ref(null)
+const priceMax = ref(null)
+const stockMin = ref(null)
+const stockMax = ref(null)
 const pageNum = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
@@ -129,7 +198,9 @@ const isEdit = ref(false)
 const submitting = ref(false)
 const formRef = ref(null)
 
-const defaultForm = { name: '', subTitle: '', price: 0, stock: 0, mainImage: '', subImages: '', detailDesc: '', status: 0 }
+const categoryOptions = ref([])
+const heritageManOptions = ref([])
+const defaultForm = { name: '', subTitle: '', categoryId: null, heritageManId: null, price: 0, stock: 0, mainImage: '', subImages: '', detailDesc: '', status: 0 }
 const form = ref({ ...defaultForm })
 const mainImageFileList = ref([])
 const subImagesFileList = ref([])
@@ -144,11 +215,6 @@ function fileToBase64(file) {
 
 async function handleMainImageChange(uploadFile) {
   if (uploadFile.raw) {
-    if (uploadFile.raw.size > 5 * 1024 * 1024) {
-      ElMessage.warning(t('common.fileTooLarge'))
-      mainImageFileList.value = []
-      return
-    }
     form.value.mainImage = await fileToBase64(uploadFile.raw)
   }
 }
@@ -159,11 +225,6 @@ function handleMainImageRemove() {
 
 async function handleSubImageChange(uploadFile) {
   if (uploadFile.raw) {
-    if (uploadFile.raw.size > 5 * 1024 * 1024) {
-      ElMessage.warning(t('common.fileTooLarge'))
-      subImagesFileList.value = subImagesFileList.value.filter(f => f.uid !== uploadFile.uid)
-      return
-    }
     uploadFile._base64 = await fileToBase64(uploadFile.raw)
     syncSubImages()
   }
@@ -186,10 +247,35 @@ const rules = {
   stock: [{ required: true, message: () => t('common.required'), trigger: 'blur' }],
 }
 
+function getCategoryName(id) {
+  if (!id) return '-'
+  const found = categoryOptions.value.find(c => c.id === id)
+  return found ? found.name : id
+}
+
+function flattenCategoryTree(nodes, result = [], prefix = '') {
+  nodes.forEach(n => {
+    result.push({ id: n.id, name: prefix + n.name })
+    if (n.children?.length) flattenCategoryTree(n.children, result, prefix + n.name + ' / ')
+  })
+  return result
+}
+
+async function loadRelationOptions() {
+  try {
+    const [catRes, hRes] = await Promise.all([
+      getProductCategoryTree(),
+      getHeritageManList({ pageNum: 1, pageSize: 999 })
+    ])
+    categoryOptions.value = flattenCategoryTree(catRes.data || [])
+    heritageManOptions.value = (hRes.data?.list || []).map(h => ({ id: h.id, name: h.name }))
+  } catch { /* ignore */ }
+}
+
 async function loadData() {
   loading.value = true
   try {
-    const res = await getProductList({ pageNum: pageNum.value, pageSize: pageSize.value, keyword: keyword.value || undefined, status: statusFilter.value ?? undefined })
+    const res = await getProductList({ pageNum: pageNum.value, pageSize: pageSize.value, keyword: keyword.value || undefined, status: statusFilter.value ?? undefined, categoryId: categoryFilter.value ?? undefined })
     tableData.value = res.data?.list || []
     total.value = res.data?.total || 0
   } finally { loading.value = false }
@@ -242,12 +328,50 @@ async function handleDelete(id) {
   loadData()
 }
 
+const selectedIds = ref([])
+function handleSelectionChange(rows) { selectedIds.value = rows.map(r => r.id) }
+
+async function handleBatchDelete() {
+  try {
+    await ElMessageBox.confirm(`确定删除选中的 ${selectedIds.value.length} 条记录吗？`, '批量删除', { type: 'warning' })
+    await Promise.all(selectedIds.value.map(id => deleteProduct(id)))
+    ElMessage.success(t('common.deleted'))
+    selectedIds.value = []
+    loadData()
+  } catch { /* cancelled */ }
+}
+
+function handleExport() {
+  exportToCSV(tableData.value, [
+    { label: 'ID', key: 'id' },
+    { label: '商品名称', key: 'name' },
+    { label: '价格', key: 'price' },
+    { label: '库存', key: 'stock' },
+    { label: '销量', key: 'sale' },
+    { label: '状态', key: 'status', formatter: v => v === 1 ? '在售' : '下架' },
+  ], '文创商品')
+}
+
 function handleRowClick(row, column, event) {
-  if (event.target.closest('.el-button, .el-popconfirm, .el-switch')) return
+  if (event.target.closest('.el-button, .el-popconfirm, .el-switch, .el-checkbox')) return
   router.push(`/product/${row.id}`)
 }
 
-onMounted(loadData)
+function resetFilters() {
+  keyword.value = ''
+  statusFilter.value = null
+  categoryFilter.value = null
+  priceMin.value = null
+  priceMax.value = null
+  stockMin.value = null
+  stockMax.value = null
+  loadData()
+}
+
+onMounted(() => {
+  loadData()
+  loadRelationOptions()
+})
 </script>
 
 <style lang="scss" scoped>

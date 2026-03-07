@@ -7,15 +7,21 @@
           <router-link to="/content/item" class="ag-sub-pill" :class="{ active: $route.path === '/content/item' }">{{ t('content.tabs.items') }}</router-link>
           <router-link to="/content/heritage" class="ag-sub-pill" :class="{ active: $route.path === '/content/heritage' }">{{ t('content.tabs.heritageMan') }}</router-link>
         </nav>
-        <button class="ag-btn" @click="openDialog()">
-          <el-icon :size="14"><Plus /></el-icon>
-          <span>{{ t('common.add') }}</span>
-        </button>
+        <div class="toolbar-actions">
+          <button class="ag-btn-secondary" @click="handleExport">
+            <el-icon :size="14"><Download /></el-icon>
+            <span>导出</span>
+          </button>
+          <button class="ag-btn" @click="openDialog()">
+            <el-icon :size="14"><Plus /></el-icon>
+            <span>{{ t('common.add') }}</span>
+          </button>
+        </div>
       </div>
 
       <div class="ag-card">
-        <el-table :data="treeData" v-loading="loading" row-key="id" default-expand-all>
-          <el-table-column prop="name" :label="t('common.name')" width="120" align="center" />
+        <el-table :data="treeData" v-loading="loading" row-key="id" default-expand-all @row-click="handleRowClick" class="cursor-row">
+          <el-table-column prop="name" :label="t('common.name')" align="center" />
           <el-table-column :label="t('content.category.icon')" align="center">
             <template #default="{ row }">
               <el-image v-if="row.icon" :src="row.icon" fit="cover" style="width: 36px; height: 36px; border-radius: 6px;" :preview-src-list="[row.icon]" preview-teleported />
@@ -28,8 +34,8 @@
             </template>
           </el-table-column>
           <el-table-column prop="level" :label="t('common.level')" align="center" />
-          <el-table-column prop="sort" :label="t('common.sort')" align="center" />
-          <el-table-column prop="status" :label="t('common.status')" align="center">
+          <el-table-column prop="sort" :label="t('common.sort')" width="100" align="center" />
+          <el-table-column prop="status" :label="t('common.status')" width="100" align="center">
             <template #default="{ row }">
               <el-tag :type="row.status === 1 ? 'success' : 'info'" size="small" round>{{ row.status === 1 ? t('common.active') : t('common.disabled') }}</el-tag>
             </template>
@@ -103,12 +109,14 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getCategoryTree, getCategory, addCategory, updateCategory, deleteCategory } from '@/api/content'
 import { ElMessage } from 'element-plus'
+import { exportToCSV } from '@/utils/export'
 
 const { t } = useI18n()
-
+const router = useRouter()
 
 const treeData = ref([])
 const loading = ref(false)
@@ -134,11 +142,6 @@ function fileToBase64(file) {
 
 async function handleIconChange(uploadFile) {
   if (uploadFile.raw) {
-    if (uploadFile.raw.size > 5 * 1024 * 1024) {
-      ElMessage.warning(t('common.fileTooLarge'))
-      iconFileList.value = []
-      return
-    }
     form.value.icon = await fileToBase64(uploadFile.raw)
   }
 }
@@ -149,11 +152,6 @@ function handleIconRemove() {
 
 async function handleImageChange(uploadFile) {
   if (uploadFile.raw) {
-    if (uploadFile.raw.size > 5 * 1024 * 1024) {
-      ElMessage.warning(t('common.fileTooLarge'))
-      uploadFileList.value = uploadFileList.value.filter(f => f.uid !== uploadFile.uid)
-      return
-    }
     const base64 = await fileToBase64(uploadFile.raw)
     uploadFile._base64 = base64
     syncImagesToForm()
@@ -223,6 +221,30 @@ async function handleDelete(id) {
   await deleteCategory(id)
   ElMessage.success(t('common.deleted'))
   loadData()
+}
+
+function handleRowClick(row, column, event) {
+  if (event.target.closest('.el-button, .el-popconfirm, .el-image')) return
+  router.push(`/content/category/${row.id}`)
+}
+
+function flattenTree(nodes, result = []) {
+  nodes.forEach(n => {
+    result.push(n)
+    if (n.children?.length) flattenTree(n.children, result)
+  })
+  return result
+}
+
+function handleExport() {
+  const flat = flattenTree(treeData.value)
+  exportToCSV(flat, [
+    { label: 'ID', key: 'id' },
+    { label: '名称', key: 'name' },
+    { label: '级别', key: 'level' },
+    { label: '排序', key: 'sort' },
+    { label: '状态', key: 'status', formatter: v => v === 1 ? '启用' : '禁用' },
+  ], '非遗分类')
 }
 
 onMounted(loadData)

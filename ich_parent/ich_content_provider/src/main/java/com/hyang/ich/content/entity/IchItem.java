@@ -17,6 +17,8 @@ public class IchItem {
     private Date declarationTime;
     private String description;
     private String content;
+    private String detailImages;
+    private String videos;
     private Integer status;
     private Integer sort;
     private Date createTime;

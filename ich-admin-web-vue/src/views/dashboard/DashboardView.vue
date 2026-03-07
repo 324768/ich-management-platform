@@ -63,7 +63,7 @@
               </div>
               <div class="ag-order-right">
                 <span class="ag-order-amount">¥{{ order.amount }}</span>
-                <el-tag :type="statusType(order.status)" size="small" round>{{ order.status }}</el-tag>
+                <el-tag :type="statusType(order.statusCode)" size="small" round>{{ order.status }}</el-tag>
               </div>
             </div>
           </div>
@@ -140,11 +140,11 @@ const statsCards = computed(() => [
 
 const recentOrders = ref([])
 
-const statusMap = { 0: 'Pending', 1: 'Paid', 2: 'Shipped', 3: 'Completed', 4: 'Cancelled' }
+const statusTypeMap = { 0: 'info', 1: 'primary', 2: 'warning', 3: 'success', 4: 'danger' }
+const statusLabelKeys = { 0: 'order.pending', 1: 'order.paid', 2: 'order.shipped', 3: 'order.completed', 4: 'order.cancelled' }
 
 function statusType(status) {
-  const map = { Paid: 'primary', Shipped: 'warning', Completed: 'success', Pending: 'info', Cancelled: 'danger' }
-  return map[status] || 'info'
+  return statusTypeMap[status] ?? 'info'
 }
 
 async function loadDashboardData() {
@@ -158,7 +158,8 @@ async function loadDashboardData() {
         orderNo: o.orderNo,
         customer: o.receiverName || `用户${o.userId}`,
         amount: o.payAmount ? Number(o.payAmount).toFixed(2) : '0.00',
-        status: statusMap[o.status] || 'Pending'
+        statusCode: o.status,
+        status: t(statusLabelKeys[o.status] || 'order.pending')
       }))
     }
     if (trendRes.data && lineChart) {

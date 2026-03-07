@@ -71,8 +71,9 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public IchCategoryDTO addCategory(IchCategoryDTO dto) {
         IchCategory entity = new IchCategory();
-        BeanUtils.copyProperties(dto, entity, "detailImages");
+        BeanUtils.copyProperties(dto, entity, "detailImages", "videos");
         entity.setDetailImages(toJsonString(dto.getDetailImages()));
+        entity.setVideos(toJsonString(dto.getVideos()));
         if (entity.getStatus() == null) entity.setStatus(1);
         if (entity.getSort() == null) entity.setSort(0);
         if (entity.getParentId() == null) entity.setParentId(0L);
@@ -85,8 +86,9 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public void updateCategory(IchCategoryDTO dto) {
         IchCategory entity = new IchCategory();
-        BeanUtils.copyProperties(dto, entity, "detailImages");
+        BeanUtils.copyProperties(dto, entity, "detailImages", "videos");
         entity.setDetailImages(toJsonString(dto.getDetailImages()));
+        entity.setVideos(toJsonString(dto.getVideos()));
         categoryMapper.update(entity);
     }
 
@@ -111,15 +113,19 @@ public class ContentServiceImpl implements ContentService {
         IchItem item = itemMapper.selectById(id);
         if (item == null) return null;
         IchItemDTO dto = toItemDTO(item);
-        IchCategory category = categoryMapper.selectById(item.getCategoryId());
-        if (category != null) dto.setCategoryName(category.getName());
+        if (item.getCategoryId() != null) {
+            IchCategory category = categoryMapper.selectById(item.getCategoryId());
+            if (category != null) dto.setCategoryName(category.getName());
+        }
         return dto;
     }
 
     @Override
     public IchItemDTO addItem(IchItemDTO dto) {
         IchItem entity = new IchItem();
-        BeanUtils.copyProperties(dto, entity);
+        BeanUtils.copyProperties(dto, entity, "detailImages", "videos");
+        entity.setDetailImages(toJsonString(dto.getDetailImages()));
+        entity.setVideos(toJsonString(dto.getVideos()));
         if (entity.getStatus() == null) entity.setStatus(0);
         itemMapper.insert(entity);
         dto.setId(entity.getId());
@@ -129,7 +135,9 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public void updateItem(IchItemDTO dto) {
         IchItem entity = new IchItem();
-        BeanUtils.copyProperties(dto, entity);
+        BeanUtils.copyProperties(dto, entity, "detailImages", "videos");
+        entity.setDetailImages(toJsonString(dto.getDetailImages()));
+        entity.setVideos(toJsonString(dto.getVideos()));
         itemMapper.update(entity);
     }
 
@@ -157,13 +165,25 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public IchHeritageManDTO getHeritageManById(Long id) {
         IchHeritageMan man = heritageManMapper.selectById(id);
-        return man != null ? toHeritageManDTO(man) : null;
+        if (man == null) return null;
+        IchHeritageManDTO dto = toHeritageManDTO(man);
+        if (man.getCategoryId() != null) {
+            IchCategory cat = categoryMapper.selectById(man.getCategoryId());
+            if (cat != null) dto.setCategoryName(cat.getName());
+        }
+        if (man.getItemId() != null) {
+            IchItem item = itemMapper.selectById(man.getItemId());
+            if (item != null) dto.setItemName(item.getName());
+        }
+        return dto;
     }
 
     @Override
     public IchHeritageManDTO addHeritageMan(IchHeritageManDTO dto) {
         IchHeritageMan entity = new IchHeritageMan();
-        BeanUtils.copyProperties(dto, entity);
+        BeanUtils.copyProperties(dto, entity, "detailImages", "videos");
+        entity.setDetailImages(toJsonString(dto.getDetailImages()));
+        entity.setVideos(toJsonString(dto.getVideos()));
         if (entity.getStatus() == null) entity.setStatus(1);
         heritageManMapper.insert(entity);
         dto.setId(entity.getId());
@@ -173,7 +193,9 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public void updateHeritageMan(IchHeritageManDTO dto) {
         IchHeritageMan entity = new IchHeritageMan();
-        BeanUtils.copyProperties(dto, entity);
+        BeanUtils.copyProperties(dto, entity, "detailImages", "videos");
+        entity.setDetailImages(toJsonString(dto.getDetailImages()));
+        entity.setVideos(toJsonString(dto.getVideos()));
         heritageManMapper.update(entity);
     }
 
@@ -191,8 +213,9 @@ public class ContentServiceImpl implements ContentService {
 
     private IchCategoryDTO toCategoryDTO(IchCategory entity) {
         IchCategoryDTO dto = new IchCategoryDTO();
-        BeanUtils.copyProperties(entity, dto, "detailImages");
+        BeanUtils.copyProperties(entity, dto, "detailImages", "videos");
         dto.setDetailImages(parseJsonList(entity.getDetailImages()));
+        dto.setVideos(parseJsonList(entity.getVideos()));
         return dto;
     }
 
@@ -208,13 +231,17 @@ public class ContentServiceImpl implements ContentService {
 
     private IchItemDTO toItemDTO(IchItem entity) {
         IchItemDTO dto = new IchItemDTO();
-        BeanUtils.copyProperties(entity, dto);
+        BeanUtils.copyProperties(entity, dto, "detailImages", "videos");
+        dto.setDetailImages(parseJsonList(entity.getDetailImages()));
+        dto.setVideos(parseJsonList(entity.getVideos()));
         return dto;
     }
 
     private IchHeritageManDTO toHeritageManDTO(IchHeritageMan entity) {
         IchHeritageManDTO dto = new IchHeritageManDTO();
-        BeanUtils.copyProperties(entity, dto);
+        BeanUtils.copyProperties(entity, dto, "detailImages", "videos");
+        dto.setDetailImages(parseJsonList(entity.getDetailImages()));
+        dto.setVideos(parseJsonList(entity.getVideos()));
         return dto;
     }
 }

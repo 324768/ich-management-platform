@@ -36,6 +36,12 @@ const routes = [
         meta: { title: 'ICH Categories', icon: 'Collection', parent: 'ICH Content' }
       },
       {
+        path: 'content/category/:id',
+        name: 'ContentCategoryDetail',
+        component: () => import('@/views/content/CategoryDetail.vue'),
+        meta: { title: 'ICH Category Detail', parent: 'ICH Content' }
+      },
+      {
         path: 'content/item',
         name: 'ContentItem',
         component: () => import('@/views/content/ItemList.vue'),
@@ -66,16 +72,34 @@ const routes = [
         meta: { title: 'Product Categories', icon: 'Grid', parent: 'Products' }
       },
       {
+        path: 'product/category/:id',
+        name: 'ProductCategoryDetail',
+        component: () => import('@/views/product/ProductCategoryDetail.vue'),
+        meta: { title: 'Product Category Detail', parent: 'Products' }
+      },
+      {
         path: 'product/list',
         name: 'ProductList',
         component: () => import('@/views/product/ProductList.vue'),
         meta: { title: 'Product List', icon: 'ShoppingBag', parent: 'Products' }
       },
       {
+        path: 'product/stock-alert',
+        name: 'StockAlert',
+        component: () => import('@/views/product/StockAlertList.vue'),
+        meta: { title: 'Stock Alert', icon: 'WarningFilled', parent: 'Products' }
+      },
+      {
         path: 'product/:id',
         name: 'ProductDetail',
         component: () => import('@/views/product/ProductDetail.vue'),
         meta: { title: 'Product Detail', parent: 'Products' }
+      },
+      {
+        path: 'video/exhibition',
+        name: 'VideoExhibition',
+        component: () => import('@/views/video/VideoExhibitionList.vue'),
+        meta: { title: 'Video Exhibition', icon: 'VideoCamera', parent: 'Video' }
       },
       {
         path: 'order',

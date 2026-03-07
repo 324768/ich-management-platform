@@ -259,6 +259,98 @@ a { text-decoration: none; }
   color: $gray-500;
 }
 
+// ── Detail page inline edit (light mode) ──
+.detail-edit-field {
+  --el-input-bg-color: transparent;
+  --el-input-border-color: transparent;
+  --el-input-hover-border-color: transparent;
+  --el-input-focus-border-color: transparent;
+  --el-input-focus-border: transparent;
+  --el-fill-color-blank: transparent;
+  --el-input-text-color: #374151;
+
+  .el-input__wrapper,
+  .el-input__wrapper:hover,
+  .el-input__wrapper.is-focus,
+  .el-input__wrapper:focus,
+  .el-input__wrapper:focus-within {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    transition: none !important;
+    outline: none !important;
+  }
+  .el-input__inner,
+  .el-input__inner:focus,
+  .el-input__inner:focus-visible {
+    color: #374151 !important;
+    cursor: text;
+    font-size: 14px !important;
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    text-align: left !important;
+  }
+  .el-textarea__inner,
+  .el-textarea__inner:focus,
+  .el-textarea__inner:focus-visible {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 4px 0 !important;
+    resize: none;
+    color: #374151 !important;
+    font-size: 14px !important;
+    outline: none !important;
+  }
+  .el-input-number {
+    line-height: normal;
+    width: auto !important;
+    .el-input__inner { text-align: left !important; }
+  }
+  .el-select {
+    --el-select-border-color-hover: transparent !important;
+    --el-select-input-focus-border-color: transparent !important;
+    .el-select__suffix { display: none; }
+    .el-select__wrapper,
+    .el-select__wrapper:hover,
+    .el-select__wrapper.is-focused,
+    .el-select__wrapper.is-focus,
+    .el-select__wrapper:focus-within {
+      background-color: transparent !important;
+      box-shadow: none !important;
+      border: none !important;
+      border-color: transparent !important;
+      padding: 0 !important;
+      min-height: auto !important;
+      outline: none !important;
+    }
+    .el-select__wrapper::before,
+    .el-select__wrapper::after {
+      display: none !important;
+      content: none !important;
+    }
+    .el-select__selected-item, .el-select__placeholder {
+      font-size: 14px !important;
+      color: #374151 !important;
+      text-decoration: none !important;
+    }
+    .el-select__input {
+      background-color: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      outline: none !important;
+    }
+  }
+  .el-descriptions__content {
+    font-size: 14px !important;
+  }
+  .el-descriptions__label {
+    font-size: 14px !important;
+  }
+}
+
 // ═══════════════════════════════════════════
 // Antigravity Dark Mode (data-theme="dark")
 // ═══════════════════════════════════════════
@@ -402,14 +494,71 @@ html[data-theme="dark"] {
 
   // Detail page inline edit
   .detail-edit-field {
-    .el-input__wrapper { background: transparent !important; box-shadow: none !important; border: none !important;
-      &:hover { background: #2a323c !important; }
-      &.is-focus { background: #2a323c !important; box-shadow: 0 0 0 1px #3b82f6 !important; }
+    --el-input-bg-color: transparent;
+    --el-input-border-color: transparent;
+    --el-input-hover-border-color: transparent;
+    --el-input-focus-border-color: transparent;
+    --el-input-focus-border: transparent;
+    --el-fill-color-blank: transparent;
+    --el-input-text-color: #a6adbb;
+
+    .el-input__wrapper,
+    .el-input__wrapper:hover,
+    .el-input__wrapper.is-focus,
+    .el-input__wrapper:focus,
+    .el-input__wrapper:focus-within {
+      background-color: transparent !important; box-shadow: none !important; border: none !important; padding: 0 !important; transition: none !important; outline: none !important;
     }
-    .el-input__inner { color: #a6adbb; }
-    .el-textarea__inner { background: transparent !important; border: none !important;
-      &:hover { background: #2a323c !important; }
-      &:focus { background: #2a323c !important; box-shadow: 0 0 0 1px #3b82f6 !important; }
+    .el-input__inner,
+    .el-input__inner:focus,
+    .el-input__inner:focus-visible {
+      color: #a6adbb !important; cursor: text; font-size: 14px !important; outline: none !important; border: none !important; box-shadow: none !important; text-align: left !important;
+    }
+    .el-textarea__inner,
+    .el-textarea__inner:focus,
+    .el-textarea__inner:focus-visible {
+      background-color: transparent !important; border: none !important; box-shadow: none !important; padding: 4px 0 !important; resize: none; color: #a6adbb !important; font-size: 14px !important; outline: none !important;
+    }
+    .el-input-number { line-height: normal; width: auto !important; .el-input__inner { text-align: left !important; } }
+    .el-select {
+      --el-select-border-color-hover: transparent !important;
+      --el-select-input-focus-border-color: transparent !important;
+      .el-select__suffix { display: none; }
+      .el-select__wrapper,
+      .el-select__wrapper:hover,
+      .el-select__wrapper.is-focused,
+      .el-select__wrapper.is-focus,
+      .el-select__wrapper:focus-within {
+        background-color: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-color: transparent !important;
+        padding: 0 !important;
+        min-height: auto !important;
+        outline: none !important;
+      }
+      .el-select__wrapper::before,
+      .el-select__wrapper::after {
+        display: none !important;
+        content: none !important;
+      }
+      .el-select__selected-item, .el-select__placeholder {
+        font-size: 14px !important;
+        color: #a6adbb !important;
+        text-decoration: none !important;
+      }
+      .el-select__input {
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+      }
+    }
+    .el-descriptions__content {
+      font-size: 14px !important;
+    }
+    .el-descriptions__label {
+      font-size: 14px !important;
     }
   }
 }

@@ -18,6 +18,8 @@ public class ProductDTO implements Serializable {
     private Long brandId;
     private Long categoryId;
     private String categoryName;
+    private Long heritageManId;
+    private String heritageManName;
     private BigDecimal price;
     private BigDecimal originalPrice;
     private Integer stock;
@@ -28,6 +30,7 @@ public class ProductDTO implements Serializable {
     private String detailDesc;
     private String mainImage;
     private String subImages;
+    private java.util.List<String> videos;
     private Integer status;
     private Integer sort;
     private Date createTime;

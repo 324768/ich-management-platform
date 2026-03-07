@@ -36,3 +36,8 @@ export function deleteProduct(id) {
 export function updateProductStatus(id, status) {
   return request.put('/admin/product/status', null, { params: { id, status } })
 }
+
+// ========== 库存预警 ==========
+export function getLowStockProducts(threshold = 10) {
+  return request.get('/admin/product/low-stock', { params: { threshold } })
+}

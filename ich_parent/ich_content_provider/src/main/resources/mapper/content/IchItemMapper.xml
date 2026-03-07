@@ -11,7 +11,7 @@
     <sql id="allColumns">
         id, category_id, name, cover_image, level, region_code, region_name,
         declaration_unit, protection_unit, declaration_time, description, content,
-        status, sort, create_time, update_time
+        detail_images, videos, status, sort, create_time, update_time
     </sql>
 
     <sql id="condition">
@@ -24,7 +24,7 @@
     </sql>
 
     <select id="selectByCondition" resultType="com.hyang.ich.content.entity.IchItem">
-        SELECT <include refid="columns"/> FROM ich_item
+        SELECT <include refid="allColumns"/> FROM ich_item
         <include refid="condition"/>
         ORDER BY create_time DESC LIMIT #{offset}, #{limit}
     </select>
@@ -39,9 +39,9 @@
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO ich_item (category_id, name, cover_image, level, region_code, region_name,
-            declaration_unit, protection_unit, declaration_time, description, content, status, sort)
+            declaration_unit, protection_unit, declaration_time, description, content, detail_images, videos, status, sort)
         VALUES (#{categoryId}, #{name}, #{coverImage}, #{level}, #{regionCode}, #{regionName},
-            #{declarationUnit}, #{protectionUnit}, #{declarationTime}, #{description}, #{content}, #{status}, #{sort})
+            #{declarationUnit}, #{protectionUnit}, #{declarationTime}, #{description}, #{content}, #{detailImages}, #{videos}, #{status}, #{sort})
     </insert>
 
     <update id="update">
@@ -58,6 +58,8 @@
             <if test="declarationTime != null">declaration_time = #{declarationTime},</if>
             <if test="description != null">description = #{description},</if>
             <if test="content != null">content = #{content},</if>
+            <if test="detailImages != null">detail_images = #{detailImages},</if>
+            <if test="videos != null">videos = #{videos},</if>
             <if test="status != null">status = #{status},</if>
             <if test="sort != null">sort = #{sort},</if>
         </set>

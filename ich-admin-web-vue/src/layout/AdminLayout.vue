@@ -213,8 +213,8 @@ const avatarDropdownRef = ref(null)
 // ── Language dropdown (Antigravity constants.ts exact LANGUAGES) ──
 const languages = [
   { code: 'zh', label: '简体中文', short: 'ZH' },
+  { code: 'zh-TW', label: '繁體中文', short: 'TW' },
   { code: 'en', label: 'English', short: 'EN' },
-  { code: 'ja', label: '日本語', short: 'JA' },
 ]
 
 const langDropdownOpen = ref(false)

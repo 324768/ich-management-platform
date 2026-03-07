@@ -84,4 +84,9 @@ public class AdminProductController {
         productService.updateProductStatus(id, status);
         return Result.success();
     }
+
+    @GetMapping("/low-stock")
+    public Result<List<ProductDTO>> listLowStock(@RequestParam(defaultValue = "10") int threshold) {
+        return Result.success(productService.listLowStockProducts(threshold));
+    }
 }

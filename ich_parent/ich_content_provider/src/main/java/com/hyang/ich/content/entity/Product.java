@@ -12,6 +12,7 @@ public class Product {
     private String subTitle;
     private Long brandId;
     private Long categoryId;
+    private Long heritageManId;
     private BigDecimal price;
     private BigDecimal originalPrice;
     private Integer stock;
@@ -22,6 +23,7 @@ public class Product {
     private String detailDesc;
     private String mainImage;
     private String subImages;
+    private String videos;
     private Integer status;
     private Integer sort;
     private Date createTime;

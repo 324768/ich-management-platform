@@ -3,14 +3,45 @@
     <div class="ag-page-content">
       <div class="ag-page-toolbar">
         <h2 class="ag-page-title">{{ t('user.title') }}</h2>
+        <div class="toolbar-actions">
+          <button class="ag-btn-secondary" @click="handleExport">
+            <el-icon :size="14"><Download /></el-icon>
+            <span>导出</span>
+          </button>
+        </div>
       </div>
 
       <div class="ag-card">
         <div class="table-toolbar">
-          <el-input v-model="keyword" :placeholder="t('user.searchPlaceholder')" clearable style="width: 240px" @clear="loadData" @keyup.enter="loadData">
-            <template #prefix><el-icon><Search /></el-icon></template>
-          </el-input>
+          <div class="toolbar-left">
+            <el-input v-model="keyword" :placeholder="t('user.searchPlaceholder')" clearable style="width: 240px" @clear="loadData" @keyup.enter="loadData">
+              <template #prefix><el-icon><Search /></el-icon></template>
+            </el-input>
+            <button class="ag-btn-secondary" @click="showAdvanced = !showAdvanced">
+              <el-icon :size="14"><Filter /></el-icon>
+              <span>高级筛选</span>
+            </button>
+          </div>
         </div>
+        <transition name="slide">
+          <div v-show="showAdvanced" class="advanced-filter">
+            <el-form :inline="true" size="small">
+              <el-form-item :label="t('common.status')">
+                <el-select v-model="statusFilter" placeholder="全部" clearable style="width: 120px" @change="loadData">
+                  <el-option label="启用" :value="1" />
+                  <el-option label="禁用" :value="0" />
+                </el-select>
+              </el-form-item>
+              <el-form-item label="注册时间">
+                <el-date-picker v-model="dateRange" type="daterange" range-separator="-" start-placeholder="开始" end-placeholder="结束" style="width: 240px" value-format="YYYY-MM-DD" @change="loadData" />
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" size="small" @click="loadData">查询</el-button>
+                <el-button size="small" @click="resetFilters">重置</el-button>
+              </el-form-item>
+            </el-form>
+          </div>
+        </transition>
         <el-table :data="tableData" v-loading="loading">
         <el-table-column width="80" :label="t('common.avatar')" align="center" class-name="avatar-col">
           <template #default="{ row }">
@@ -47,12 +78,16 @@ import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getUserList, updateUserStatus } from '@/api/user'
 import { ElMessage } from 'element-plus'
+import { exportToCSV } from '@/utils/export'
 
 const { t } = useI18n()
 
 const tableData = ref([])
 const loading = ref(false)
 const keyword = ref('')
+const statusFilter = ref(null)
+const dateRange = ref(null)
+const showAdvanced = ref(false)
 const pageNum = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
@@ -78,6 +113,24 @@ async function handleStatusChange(row, val) {
   await updateUserStatus(row.id, status)
   ElMessage.success(t('common.statusUpdated'))
   loadData()
+}
+
+function resetFilters() {
+  keyword.value = ''
+  statusFilter.value = null
+  dateRange.value = null
+  loadData()
+}
+
+function handleExport() {
+  exportToCSV(tableData.value, [
+    { label: '用户名', key: 'username' },
+    { label: '昵称', key: 'nickname' },
+    { label: '邮箱', key: 'email' },
+    { label: '手机号', key: 'phone' },
+    { label: '状态', key: 'status', formatter: v => v === 1 ? '启用' : '禁用' },
+    { label: '注册时间', key: 'createTime', formatter: v => formatDate(v) },
+  ], '用户')
 }
 
 onMounted(loadData)

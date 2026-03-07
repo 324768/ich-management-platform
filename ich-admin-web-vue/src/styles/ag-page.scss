@@ -108,6 +108,32 @@
   }
 }
 
+.ag-btn-danger {
+  padding: 6px 12px;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+
+  &:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+  }
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 // ── Card (Antigravity: bg-white rounded-2xl p-6 shadow-sm border border-gray-100) ──
 .ag-card {
   background: #fff;
@@ -208,6 +234,60 @@
     background: #dbeafe;
     color: #2563eb;
   }
+}
+
+// ── Table toolbar layout ──
+.table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 8px;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+// ── Advanced filter panel ──
+.advanced-filter {
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  background: #f9fafb;
+  border-radius: 10px;
+  border: 1px solid #f3f4f6;
+
+  :deep(.el-form-item) {
+    margin-bottom: 0;
+    margin-right: 16px;
+  }
+
+  :deep(.el-form-item__label) {
+    font-size: 13px;
+    color: #6b7280;
+  }
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.25s ease;
+  overflow: hidden;
+}
+.slide-enter-from,
+.slide-leave-to {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+.slide-enter-to,
+.slide-leave-from {
+  max-height: 200px;
+  opacity: 1;
 }
 
 // ── Table pagination ──

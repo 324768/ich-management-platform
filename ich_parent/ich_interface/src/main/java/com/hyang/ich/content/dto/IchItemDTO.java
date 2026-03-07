@@ -23,6 +23,8 @@ public class IchItemDTO implements Serializable {
     private Date declarationTime;
     private String description;
     private String content;
+    private java.util.List<String> detailImages;
+    private java.util.List<String> videos;
     private Integer status;
     private Integer sort;
     private Date createTime;

@@ -32,4 +32,6 @@ public interface ProductMapper {
     long countAll();
 
     long countLowStock(@Param("threshold") int threshold);
+
+    List<Product> selectLowStock(@Param("threshold") int threshold);
 }

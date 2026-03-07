@@ -12,6 +12,7 @@ public class IchCategory {
     private Integer sort;
     private String icon;
     private String detailImages;
+    private String videos;
     private Integer status;
     private Date createTime;
     private Date updateTime;

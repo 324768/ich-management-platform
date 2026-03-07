@@ -13,12 +13,15 @@ public class ProductCategoryDTO implements Serializable {
 
     private Long id;
     private Long parentId;
+    private Long ichCategoryId;
+    private String ichCategoryName;
     private String name;
     private Integer level;
     private Integer sort;
     private String icon;
     private String description;
     private List<String> detailImages;
+    private List<String> videos;
     private Integer status;
     private Date createTime;
     private Date updateTime;

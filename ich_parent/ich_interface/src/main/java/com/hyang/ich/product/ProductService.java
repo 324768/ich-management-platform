@@ -61,4 +61,7 @@ public interface ProductService {
 
     /** 统计低库存商品数（库存低于阈值） */
     long countLowStockProducts(int threshold);
+
+    /** 查询低库存商品列表 */
+    List<ProductDTO> listLowStockProducts(int threshold);
 }

@@ -21,11 +21,15 @@ public class IchHeritageManDTO implements Serializable {
     private String avatar;
     private Integer level;
     private Long categoryId;
+    private String categoryName;
     private Long itemId;
+    private String itemName;
     private String title;
     private String skill;
     private String introduction;
     private String achievement;
+    private java.util.List<String> detailImages;
+    private java.util.List<String> videos;
     private Integer status;
     private Date createTime;
     private Date updateTime;

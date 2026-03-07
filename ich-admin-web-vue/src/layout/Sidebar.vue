@@ -54,7 +54,13 @@
           </template>
           <el-menu-item index="/product/category">Categories</el-menu-item>
           <el-menu-item index="/product/list">Product List</el-menu-item>
+          <el-menu-item index="/product/stock-alert">Stock Alert</el-menu-item>
         </el-sub-menu>
+
+        <el-menu-item index="/video/exhibition">
+          <el-icon><VideoCamera /></el-icon>
+          <template #title>Video Exhibition</template>
+        </el-menu-item>
 
         <el-menu-item index="/order">
           <el-icon><List /></el-icon>

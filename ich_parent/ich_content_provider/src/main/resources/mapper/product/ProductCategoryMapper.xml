@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.hyang.ich.content.mapper.product.ProductCategoryMapper">
 
-    <sql id="allColumns">id, parent_id, name, level, sort, icon, description, detail_images, status, create_time, update_time</sql>
+    <sql id="allColumns">id, parent_id, ich_category_id, name, level, sort, icon, description, detail_images, videos, status, create_time, update_time</sql>
 
     <select id="selectByParentId" resultType="com.hyang.ich.content.entity.ProductCategory">
         SELECT <include refid="allColumns"/> FROM product_category WHERE parent_id = #{parentId} ORDER BY sort ASC
@@ -17,18 +17,20 @@
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO product_category (parent_id, name, level, sort, icon, description, detail_images, status)
-        VALUES (#{parentId}, #{name}, #{level}, #{sort}, #{icon}, #{description}, #{detailImages}, #{status})
+        INSERT INTO product_category (parent_id, ich_category_id, name, level, sort, icon, description, detail_images, videos, status)
+        VALUES (#{parentId}, #{ichCategoryId}, #{name}, #{level}, #{sort}, #{icon}, #{description}, #{detailImages}, #{videos}, #{status})
     </insert>
 
     <update id="update">
         UPDATE product_category
         <set>
+            <if test="ichCategoryId != null">ich_category_id = #{ichCategoryId},</if>
             <if test="name != null">name = #{name},</if>
             <if test="sort != null">sort = #{sort},</if>
             <if test="icon != null">icon = #{icon},</if>
             <if test="description != null">description = #{description},</if>
             <if test="detailImages != null">detail_images = #{detailImages},</if>
+            <if test="videos != null">videos = #{videos},</if>
             <if test="status != null">status = #{status},</if>
         </set>
         WHERE id = #{id}

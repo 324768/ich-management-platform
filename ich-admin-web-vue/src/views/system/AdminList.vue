@@ -6,19 +6,52 @@
           <router-link to="/system/admin" class="ag-sub-pill" :class="{ active: $route.path === '/system/admin' }">{{ t('system.tabs.admin') }}</router-link>
           <router-link to="/system/role" class="ag-sub-pill" :class="{ active: $route.path === '/system/role' }">{{ t('system.tabs.role') }}</router-link>
         </nav>
-        <button class="ag-btn" @click="openDialog()">
-          <el-icon :size="14"><Plus /></el-icon>
-          <span>{{ t('common.add') }}</span>
-        </button>
+        <div class="toolbar-actions">
+          <button v-if="selectedIds.length" class="ag-btn-danger" @click="handleBatchDelete">
+            <el-icon :size="14"><Delete /></el-icon>
+            <span>批量删除 ({{ selectedIds.length }})</span>
+          </button>
+          <button class="ag-btn-secondary" @click="handleExport">
+            <el-icon :size="14"><Download /></el-icon>
+            <span>导出</span>
+          </button>
+          <button class="ag-btn" @click="openDialog()">
+            <el-icon :size="14"><Plus /></el-icon>
+            <span>{{ t('common.add') }}</span>
+          </button>
+        </div>
       </div>
 
       <div class="ag-card">
         <div class="table-toolbar">
-          <el-input v-model="keyword" :placeholder="t('system.admin.searchPlaceholder')" clearable style="width: 240px" @clear="loadData" @keyup.enter="loadData">
-            <template #prefix><el-icon><Search /></el-icon></template>
-          </el-input>
+          <div class="toolbar-left">
+            <el-input v-model="keyword" :placeholder="t('system.admin.searchPlaceholder')" clearable style="width: 240px" @clear="loadData" @keyup.enter="loadData">
+              <template #prefix><el-icon><Search /></el-icon></template>
+            </el-input>
+            <button class="ag-btn-secondary" @click="showAdvanced = !showAdvanced">
+              <el-icon :size="14"><Filter /></el-icon>
+              <span>高级筛选</span>
+            </button>
+          </div>
         </div>
-        <el-table :data="tableData" v-loading="loading">
+        <transition name="slide">
+          <div v-show="showAdvanced" class="advanced-filter">
+            <el-form :inline="true" size="small">
+              <el-form-item :label="t('common.status')">
+                <el-select v-model="statusFilter" placeholder="全部" clearable style="width: 120px" @change="loadData">
+                  <el-option :label="t('common.active')" :value="1" />
+                  <el-option :label="t('common.disabled')" :value="0" />
+                </el-select>
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" size="small" @click="loadData">查询</el-button>
+                <el-button size="small" @click="resetFilters">重置</el-button>
+              </el-form-item>
+            </el-form>
+          </div>
+        </transition>
+        <el-table :data="tableData" v-loading="loading" @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="45" align="center" />
         <el-table-column width="80" :label="t('common.avatar')" align="center" class-name="avatar-col">
           <template #default="{ row }">
             <div class="table-avatar">
@@ -115,7 +148,8 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/store/auth'
 import { getAdminList, getAdmin, addAdmin, updateAdmin, deleteAdmin, updateAdminStatus, assignRoles } from '@/api/system'
 import { getRoleList } from '@/api/system'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { exportToCSV } from '@/utils/export'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
@@ -125,6 +159,8 @@ const avatarInputRef = ref(null)
 const tableData = ref([])
 const loading = ref(false)
 const keyword = ref('')
+const statusFilter = ref(null)
+const showAdvanced = ref(false)
 const pageNum = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
@@ -237,15 +273,42 @@ function triggerAvatarInput() {
 function handleAvatarChange(e) {
   const file = e.target.files?.[0]
   if (!file) return
-  if (file.size > 2 * 1024 * 1024) {
-    ElMessage.warning(t('common.fileTooLarge'))
-    return
-  }
   const reader = new FileReader()
   reader.onload = (ev) => {
     form.value.avatar = ev.target.result
   }
   reader.readAsDataURL(file)
+}
+
+const selectedIds = ref([])
+function handleSelectionChange(rows) { selectedIds.value = rows.map(r => r.id) }
+
+async function handleBatchDelete() {
+  try {
+    await ElMessageBox.confirm(`确定删除选中的 ${selectedIds.value.length} 条记录吗？`, '批量删除', { type: 'warning' })
+    await Promise.all(selectedIds.value.map(id => deleteAdmin(id)))
+    ElMessage.success(t('common.deleted'))
+    selectedIds.value = []
+    loadData()
+  } catch { /* cancelled */ }
+}
+
+function handleExport() {
+  exportToCSV(tableData.value, [
+    { label: 'ID', key: 'id' },
+    { label: '用户名', key: 'username' },
+    { label: '昵称', key: 'nickname' },
+    { label: '邮箱', key: 'email' },
+    { label: '手机号', key: 'phone' },
+    { label: '状态', key: 'status', formatter: v => v === 1 ? '启用' : '禁用' },
+    { label: '最后登录', key: 'lastLoginTime', formatter: v => formatDate(v) },
+  ], '管理员')
+}
+
+function resetFilters() {
+  keyword.value = ''
+  statusFilter.value = null
+  loadData()
 }
 
 onMounted(loadData)

@@ -2,8 +2,12 @@ package com.hyang.ich.content.service.impl;
 
 import com.hyang.ich.common.vo.PageResult;
 import com.hyang.ich.content.entity.Cart;
+import com.hyang.ich.content.entity.IchCategory;
+import com.hyang.ich.content.entity.IchHeritageMan;
 import com.hyang.ich.content.entity.Product;
 import com.hyang.ich.content.entity.ProductCategory;
+import com.hyang.ich.content.mapper.content.IchCategoryMapper;
+import com.hyang.ich.content.mapper.content.IchHeritageManMapper;
 import com.hyang.ich.content.mapper.product.CartMapper;
 import com.hyang.ich.content.mapper.product.ProductCategoryMapper;
 import com.hyang.ich.content.mapper.product.ProductMapper;
@@ -35,6 +39,12 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private CartMapper cartMapper;
 
+    @Autowired
+    private IchCategoryMapper ichCategoryMapper;
+
+    @Autowired
+    private IchHeritageManMapper heritageManMapper;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // ========== 商品分类 ==========
@@ -65,14 +75,21 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductCategoryDTO getCategoryById(Long id) {
         ProductCategory c = categoryMapper.selectById(id);
-        return c != null ? toCategoryDTO(c) : null;
+        if (c == null) return null;
+        ProductCategoryDTO dto = toCategoryDTO(c);
+        if (c.getIchCategoryId() != null) {
+            IchCategory ichCat = ichCategoryMapper.selectById(c.getIchCategoryId());
+            if (ichCat != null) dto.setIchCategoryName(ichCat.getName());
+        }
+        return dto;
     }
 
     @Override
     public ProductCategoryDTO addCategory(ProductCategoryDTO dto) {
         ProductCategory entity = new ProductCategory();
-        BeanUtils.copyProperties(dto, entity, "detailImages");
+        BeanUtils.copyProperties(dto, entity, "detailImages", "videos");
         entity.setDetailImages(toJsonString(dto.getDetailImages()));
+        entity.setVideos(toJsonString(dto.getVideos()));
         if (entity.getStatus() == null) entity.setStatus(1);
         if (entity.getSort() == null) entity.setSort(0);
         if (entity.getParentId() == null) entity.setParentId(0L);
@@ -85,8 +102,9 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void updateCategory(ProductCategoryDTO dto) {
         ProductCategory entity = new ProductCategory();
-        BeanUtils.copyProperties(dto, entity, "detailImages");
+        BeanUtils.copyProperties(dto, entity, "detailImages", "videos");
         entity.setDetailImages(toJsonString(dto.getDetailImages()));
+        entity.setVideos(toJsonString(dto.getVideos()));
         categoryMapper.update(entity);
     }
 
@@ -111,15 +129,22 @@ public class ProductServiceImpl implements ProductService {
         Product p = productMapper.selectById(id);
         if (p == null) return null;
         ProductDTO dto = toProductDTO(p);
-        ProductCategory cat = categoryMapper.selectById(p.getCategoryId());
-        if (cat != null) dto.setCategoryName(cat.getName());
+        if (p.getCategoryId() != null) {
+            ProductCategory cat = categoryMapper.selectById(p.getCategoryId());
+            if (cat != null) dto.setCategoryName(cat.getName());
+        }
+        if (p.getHeritageManId() != null) {
+            IchHeritageMan hm = heritageManMapper.selectById(p.getHeritageManId());
+            if (hm != null) dto.setHeritageManName(hm.getName());
+        }
         return dto;
     }
 
     @Override
     public ProductDTO addProduct(ProductDTO dto) {
         Product entity = new Product();
-        BeanUtils.copyProperties(dto, entity);
+        BeanUtils.copyProperties(dto, entity, "videos");
+        entity.setVideos(toJsonString(dto.getVideos()));
         if (entity.getStatus() == null) entity.setStatus(1);
         if (entity.getStock() == null) entity.setStock(0);
         productMapper.insert(entity);
@@ -130,7 +155,8 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void updateProduct(ProductDTO dto) {
         Product entity = new Product();
-        BeanUtils.copyProperties(dto, entity);
+        BeanUtils.copyProperties(dto, entity, "videos");
+        entity.setVideos(toJsonString(dto.getVideos()));
         productMapper.update(entity);
     }
 
@@ -222,12 +248,18 @@ public class ProductServiceImpl implements ProductService {
         return productMapper.countLowStock(threshold);
     }
 
+    @Override
+    public List<ProductDTO> listLowStockProducts(int threshold) {
+        return productMapper.selectLowStock(threshold).stream().map(this::toProductDTO).collect(Collectors.toList());
+    }
+
     // ========== 转换方法 ==========
 
     private ProductCategoryDTO toCategoryDTO(ProductCategory entity) {
         ProductCategoryDTO dto = new ProductCategoryDTO();
-        BeanUtils.copyProperties(entity, dto, "detailImages");
+        BeanUtils.copyProperties(entity, dto, "detailImages", "videos");
         dto.setDetailImages(fromJsonString(entity.getDetailImages()));
+        dto.setVideos(fromJsonString(entity.getVideos()));
         return dto;
     }
 
@@ -251,7 +283,8 @@ public class ProductServiceImpl implements ProductService {
 
     private ProductDTO toProductDTO(Product entity) {
         ProductDTO dto = new ProductDTO();
-        BeanUtils.copyProperties(entity, dto);
+        BeanUtils.copyProperties(entity, dto, "videos");
+        dto.setVideos(fromJsonString(entity.getVideos()));
         return dto;
     }
 

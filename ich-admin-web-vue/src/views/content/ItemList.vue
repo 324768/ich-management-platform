@@ -7,26 +7,60 @@
           <router-link to="/content/item" class="ag-sub-pill" :class="{ active: $route.path === '/content/item' }">{{ t('content.tabs.items') }}</router-link>
           <router-link to="/content/heritage" class="ag-sub-pill" :class="{ active: $route.path === '/content/heritage' }">{{ t('content.tabs.heritageMan') }}</router-link>
         </nav>
-        <button class="ag-btn" @click="openDialog()">
-          <el-icon :size="14"><Plus /></el-icon>
-          <span>{{ t('common.add') }}</span>
-        </button>
+        <div class="toolbar-actions">
+          <button v-if="selectedIds.length" class="ag-btn-danger" @click="handleBatchDelete">
+            <el-icon :size="14"><Delete /></el-icon>
+            <span>批量删除 ({{ selectedIds.length }})</span>
+          </button>
+          <button class="ag-btn-secondary" @click="handleExport">
+            <el-icon :size="14"><Download /></el-icon>
+            <span>导出</span>
+          </button>
+          <button class="ag-btn" @click="openDialog()">
+            <el-icon :size="14"><Plus /></el-icon>
+            <span>{{ t('common.add') }}</span>
+          </button>
+        </div>
       </div>
 
       <div class="ag-card">
         <div class="table-toolbar">
-          <el-input v-model="keyword" :placeholder="t('content.item.searchPlaceholder')" clearable style="width: 240px" @clear="loadData" @keyup.enter="loadData">
-            <template #prefix><el-icon><Search /></el-icon></template>
-          </el-input>
-          <el-select v-model="statusFilter" :placeholder="t('common.status')" clearable style="width: 140px; margin-left: 8px" @change="loadData">
-            <el-option :label="t('content.item.published')" :value="1" />
-            <el-option :label="t('content.item.draft')" :value="0" />
-          </el-select>
+          <div class="toolbar-left">
+            <el-input v-model="keyword" :placeholder="t('content.item.searchPlaceholder')" clearable style="width: 240px" @clear="loadData" @keyup.enter="loadData">
+              <template #prefix><el-icon><Search /></el-icon></template>
+            </el-input>
+            <el-select v-model="statusFilter" :placeholder="t('common.status')" clearable style="width: 140px" @change="loadData">
+              <el-option :label="t('content.item.published')" :value="1" />
+              <el-option :label="t('content.item.draft')" :value="0" />
+            </el-select>
+            <button class="ag-btn-secondary" @click="showAdvanced = !showAdvanced">
+              <el-icon :size="14"><Filter /></el-icon>
+              <span>高级筛选</span>
+            </button>
+          </div>
         </div>
-        <el-table :data="tableData" v-loading="loading" @row-click="handleRowClick" style="cursor: pointer;">
+        <transition name="slide">
+          <div v-show="showAdvanced" class="advanced-filter">
+            <el-form :inline="true" size="small">
+              <el-form-item label="级别">
+                <el-select v-model="levelFilter" placeholder="全部" clearable style="width: 120px" @change="loadData">
+                  <el-option v-for="i in 5" :key="i" :label="`${i}级`" :value="i" />
+                </el-select>
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" size="small" @click="loadData">查询</el-button>
+                <el-button size="small" @click="resetFilters">重置</el-button>
+              </el-form-item>
+            </el-form>
+          </div>
+        </transition>
+        <el-table :data="tableData" v-loading="loading" @row-click="handleRowClick" @selection-change="handleSelectionChange" style="cursor: pointer;">
+        <el-table-column type="selection" width="45" align="center" />
         <el-table-column prop="id" :label="t('common.id')" width="70" align="center" />
         <el-table-column prop="name" :label="t('common.name')" show-overflow-tooltip align="center" />
-        <el-table-column prop="level" :label="t('common.level')" align="center" />
+        <el-table-column :label="t('common.belongCategory')" align="center" show-overflow-tooltip>
+          <template #default="{ row }">{{ getCategoryName(row.categoryId) }}</template>
+        </el-table-column>
         <el-table-column prop="regionName" :label="t('content.item.regionName')" show-overflow-tooltip align="center" />
         <el-table-column prop="status" :label="t('common.status')" align="center">
           <template #default="{ row }">
@@ -61,6 +95,11 @@
             <el-form-item :label="t('common.level')"><el-input-number v-model="form.level" :min="1" :max="5" style="width: 100%" /></el-form-item>
           </el-col>
         </el-row>
+        <el-form-item :label="t('common.belongCategory')">
+          <el-select v-model="form.categoryId" :placeholder="t('common.selectCategory')" clearable style="width: 100%">
+            <el-option v-for="c in categoryOptions" :key="c.id" :label="c.name" :value="c.id" />
+          </el-select>
+        </el-form-item>
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item :label="t('content.item.regionName')"><el-input v-model="form.regionName" /></el-form-item>
@@ -104,8 +143,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { getItemList, getItem, addItem, updateItem, deleteItem, updateItemStatus } from '@/api/content'
-import { ElMessage } from 'element-plus'
+import { getItemList, getItem, addItem, updateItem, deleteItem, updateItemStatus, getCategoryTree } from '@/api/content'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { exportToCSV } from '@/utils/export'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -114,6 +154,8 @@ const tableData = ref([])
 const loading = ref(false)
 const keyword = ref('')
 const statusFilter = ref(null)
+const levelFilter = ref(null)
+const showAdvanced = ref(false)
 const pageNum = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
@@ -122,7 +164,8 @@ const isEdit = ref(false)
 const submitting = ref(false)
 const formRef = ref(null)
 
-const defaultForm = { name: '', level: null, regionName: '', regionCode: '', coverImage: '', description: '', content: '', declarationUnit: '', status: 0 }
+const categoryOptions = ref([])
+const defaultForm = { name: '', level: null, categoryId: null, regionName: '', regionCode: '', coverImage: '', description: '', content: '', declarationUnit: '', status: 0 }
 const form = ref({ ...defaultForm })
 const coverFileList = ref([])
 const rules = { name: [{ required: true, message: () => t('common.required'), trigger: 'blur' }] }
@@ -137,17 +180,33 @@ function fileToBase64(file) {
 
 async function handleCoverChange(uploadFile) {
   if (uploadFile.raw) {
-    if (uploadFile.raw.size > 5 * 1024 * 1024) {
-      ElMessage.warning(t('common.fileTooLarge'))
-      coverFileList.value = []
-      return
-    }
     form.value.coverImage = await fileToBase64(uploadFile.raw)
   }
 }
 
 function handleCoverRemove() {
   form.value.coverImage = ''
+}
+
+function flattenCategoryTree(nodes, result = [], prefix = '') {
+  nodes.forEach(n => {
+    result.push({ id: n.id, name: prefix + n.name })
+    if (n.children?.length) flattenCategoryTree(n.children, result, prefix + n.name + ' / ')
+  })
+  return result
+}
+
+function getCategoryName(id) {
+  if (!id) return '-'
+  const found = categoryOptions.value.find(c => c.id === id)
+  return found ? found.name : id
+}
+
+async function loadCategoryOptions() {
+  try {
+    const res = await getCategoryTree()
+    categoryOptions.value = flattenCategoryTree(res.data || [])
+  } catch { categoryOptions.value = [] }
 }
 
 async function loadData() {
@@ -202,12 +261,45 @@ async function handleDelete(id) {
   loadData()
 }
 
+const selectedIds = ref([])
+function handleSelectionChange(rows) { selectedIds.value = rows.map(r => r.id) }
+
+async function handleBatchDelete() {
+  try {
+    await ElMessageBox.confirm(`确定删除选中的 ${selectedIds.value.length} 条记录吗？`, '批量删除', { type: 'warning' })
+    await Promise.all(selectedIds.value.map(id => deleteItem(id)))
+    ElMessage.success(t('common.deleted'))
+    selectedIds.value = []
+    loadData()
+  } catch { /* cancelled */ }
+}
+
+function handleExport() {
+  exportToCSV(tableData.value, [
+    { label: 'ID', key: 'id' },
+    { label: '名称', key: 'name' },
+    { label: '级别', key: 'level' },
+    { label: '区域', key: 'regionName' },
+    { label: '状态', key: 'status', formatter: v => v === 1 ? '已发布' : '草稿' },
+  ], '非遗项目')
+}
+
 function handleRowClick(row, column, event) {
-  if (event.target.closest('.el-button, .el-popconfirm, .el-switch')) return
+  if (event.target.closest('.el-button, .el-popconfirm, .el-switch, .el-checkbox')) return
   router.push(`/content/item/${row.id}`)
 }
 
-onMounted(loadData)
+function resetFilters() {
+  keyword.value = ''
+  statusFilter.value = null
+  levelFilter.value = null
+  loadData()
+}
+
+onMounted(() => {
+  loadData()
+  loadCategoryOptions()
+})
 </script>
 
 <style lang="scss" scoped>

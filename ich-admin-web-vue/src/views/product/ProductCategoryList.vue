@@ -6,14 +6,31 @@
           <router-link to="/product/category" class="ag-sub-pill" :class="{ active: $route.path === '/product/category' }">{{ t('product.tabs.category') }}</router-link>
           <router-link to="/product/list" class="ag-sub-pill" :class="{ active: $route.path === '/product/list' }">{{ t('product.tabs.list') }}</router-link>
         </nav>
-        <button class="ag-btn" @click="openDialog()">
-          <el-icon :size="14"><Plus /></el-icon>
-          <span>{{ t('common.add') }}</span>
-        </button>
+        <div class="toolbar-actions">
+          <button class="ag-btn-secondary" @click="handleExport">
+            <el-icon :size="14"><Download /></el-icon>
+            <span>导出</span>
+          </button>
+          <button class="ag-btn" @click="openDialog()">
+            <el-icon :size="14"><Plus /></el-icon>
+            <span>{{ t('common.add') }}</span>
+          </button>
+        </div>
       </div>
 
       <div class="ag-card">
-        <el-table :data="treeData" v-loading="loading" row-key="id" default-expand-all :indent="48">
+        <div class="table-toolbar">
+          <div class="toolbar-left">
+            <el-input v-model="searchKeyword" placeholder="搜索分类名称" clearable style="width: 200px" @clear="applyClientFilter" @keyup.enter="applyClientFilter">
+              <template #prefix><el-icon><Search /></el-icon></template>
+            </el-input>
+            <el-select v-model="statusFilter" placeholder="状态" clearable style="width: 120px" @change="applyClientFilter">
+              <el-option :label="t('common.active')" :value="1" />
+              <el-option :label="t('common.disabled')" :value="0" />
+            </el-select>
+          </div>
+        </div>
+        <el-table :data="filteredData" v-loading="loading" row-key="id" default-expand-all :indent="48" @row-click="handleRowClick" style="cursor: pointer;">
         <el-table-column prop="name" :label="t('common.name')" width="280" align="center" />
         <el-table-column :label="t('product.category.icon')" align="center">
           <template #default="{ row }">
@@ -25,6 +42,9 @@
           <template #default="{ row }">
             <span style="color: #6366f1; font-weight: 500;">{{ row.detailImages ? (Array.isArray(row.detailImages) ? row.detailImages.length : 0) : 0 }}{{ t('common.imageUnit') }}</span>
           </template>
+        </el-table-column>
+        <el-table-column :label="t('common.belongCategory')" align="center" show-overflow-tooltip>
+          <template #default="{ row }">{{ getIchCategoryName(row.ichCategoryId) }}</template>
         </el-table-column>
         <el-table-column prop="description" :label="t('common.description')" align="center">
           <template #default="{ row }">
@@ -104,19 +124,26 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { getProductCategoryTree, getProductCategory, addProductCategory, updateProductCategory, deleteProductCategory } from '@/api/product'
+import { getCategoryTree } from '@/api/content'
 import { ElMessage } from 'element-plus'
+import { exportToCSV } from '@/utils/export'
 
 const { t } = useI18n()
-
+const router = useRouter()
 
 const treeData = ref([])
+const filteredData = ref([])
+const searchKeyword = ref('')
+const statusFilter = ref(null)
 const loading = ref(false)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const submitting = ref(false)
 const formRef = ref(null)
 
+const ichCategoryOptions = ref([])
 const form = ref({ name: '', parentId: 0, sort: 0, icon: '', detailImages: [], description: '', status: 1 })
 const uploadFileList = ref([])
 const iconFileList = ref([])
@@ -133,11 +160,6 @@ function fileToBase64(file) {
 
 async function handleImageChange(uploadFile) {
   if (uploadFile.raw) {
-    if (uploadFile.raw.size > 5 * 1024 * 1024) {
-      ElMessage.warning(t('common.fileTooLarge'))
-      uploadFileList.value = uploadFileList.value.filter(f => f.uid !== uploadFile.uid)
-      return
-    }
     const base64 = await fileToBase64(uploadFile.raw)
     uploadFile._base64 = base64
     syncImagesToForm()
@@ -150,11 +172,6 @@ function handleImageRemove() {
 
 async function handleIconChange(uploadFile) {
   if (uploadFile.raw) {
-    if (uploadFile.raw.size > 5 * 1024 * 1024) {
-      ElMessage.warning(t('common.fileTooLarge'))
-      iconFileList.value = []
-      return
-    }
     const base64 = await fileToBase64(uploadFile.raw)
     form.value.icon = base64
   }
@@ -170,12 +187,48 @@ function syncImagesToForm() {
     .map(f => f._base64 || f.url)
 }
 
+function flattenCategoryTree(nodes, result = [], prefix = '') {
+  nodes.forEach(n => {
+    result.push({ id: n.id, name: prefix + n.name })
+    if (n.children?.length) flattenCategoryTree(n.children, result, prefix + n.name + ' / ')
+  })
+  return result
+}
+
+function getIchCategoryName(id) {
+  if (!id) return '-'
+  const found = ichCategoryOptions.value.find(c => c.id === id)
+  return found ? found.name : id
+}
+
 async function loadData() {
   loading.value = true
   try {
-    const res = await getProductCategoryTree()
+    const [res, ichRes] = await Promise.all([
+      getProductCategoryTree(),
+      getCategoryTree()
+    ])
     treeData.value = res.data || []
+    ichCategoryOptions.value = flattenCategoryTree(ichRes.data || [])
+    applyClientFilter()
   } finally { loading.value = false }
+}
+
+function applyClientFilter() {
+  let data = JSON.parse(JSON.stringify(treeData.value))
+  if (searchKeyword.value || statusFilter.value !== null) {
+    data = filterTree(data, searchKeyword.value?.toLowerCase(), statusFilter.value)
+  }
+  filteredData.value = data
+}
+
+function filterTree(nodes, kw, status) {
+  return nodes.filter(n => {
+    if (n.children?.length) n.children = filterTree(n.children, kw, status)
+    const nameMatch = !kw || n.name?.toLowerCase().includes(kw)
+    const statusMatch = status === null || status === undefined || n.status === status
+    return (nameMatch && statusMatch) || (n.children?.length > 0)
+  })
 }
 
 function openAddChild(parentRow) {
@@ -231,6 +284,29 @@ async function handleDelete(id) {
   await deleteProductCategory(id)
   ElMessage.success(t('common.deleted'))
   loadData()
+}
+
+function handleRowClick(row, column, event) {
+  if (event.target.closest('.el-button, .el-popconfirm, .el-switch')) return
+  router.push(`/product/category/${row.id}`)
+}
+
+function flattenTree(nodes, result = []) {
+  nodes.forEach(n => {
+    result.push(n)
+    if (n.children?.length) flattenTree(n.children, result)
+  })
+  return result
+}
+
+function handleExport() {
+  const flat = flattenTree(treeData.value)
+  exportToCSV(flat, [
+    { label: 'ID', key: 'id' },
+    { label: '名称', key: 'name' },
+    { label: '描述', key: 'description' },
+    { label: '状态', key: 'status', formatter: v => v === 1 ? '启用' : '禁用' },
+  ], '商品分类')
 }
 
 onMounted(loadData)

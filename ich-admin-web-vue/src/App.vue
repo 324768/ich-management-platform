@@ -10,11 +10,11 @@ import { ElConfigProvider } from 'element-plus'
 import { useThemeStore } from '@/store/theme'
 import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import en from 'element-plus/es/locale/lang/en'
-import ja from 'element-plus/es/locale/lang/ja'
+import zhTw from 'element-plus/es/locale/lang/zh-tw'
 
 const themeStore = useThemeStore()
 
-const localeMap = { zh: zhCn, en, ja }
+const localeMap = { zh: zhCn, en, 'zh-TW': zhTw }
 const elementLocale = computed(() => localeMap[themeStore.language] || zhCn)
 </script>
 

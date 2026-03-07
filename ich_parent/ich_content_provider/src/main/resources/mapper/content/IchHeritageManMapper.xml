@@ -9,7 +9,7 @@
 
     <sql id="allColumns">
         id, name, gender, birth_date, id_card, phone, email, address, avatar, level,
-        category_id, item_id, title, skill, introduction, achievement, status, create_time, update_time
+        category_id, item_id, title, skill, introduction, achievement, detail_images, videos, status, create_time, update_time
     </sql>
 
     <sql id="condition">
@@ -21,7 +21,7 @@
     </sql>
 
     <select id="selectByCondition" resultType="com.hyang.ich.content.entity.IchHeritageMan">
-        SELECT <include refid="columns"/> FROM ich_heritage_man
+        SELECT <include refid="allColumns"/> FROM ich_heritage_man
         <include refid="condition"/>
         ORDER BY create_time DESC LIMIT #{offset}, #{limit}
     </select>
@@ -36,9 +36,9 @@
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO ich_heritage_man (name, gender, birth_date, id_card, phone, email, address, avatar, level,
-            category_id, item_id, title, skill, introduction, achievement, status)
+            category_id, item_id, title, skill, introduction, achievement, detail_images, videos, status)
         VALUES (#{name}, #{gender}, #{birthDate}, #{idCard}, #{phone}, #{email}, #{address}, #{avatar}, #{level},
-            #{categoryId}, #{itemId}, #{title}, #{skill}, #{introduction}, #{achievement}, #{status})
+            #{categoryId}, #{itemId}, #{title}, #{skill}, #{introduction}, #{achievement}, #{detailImages}, #{videos}, #{status})
     </insert>
 
     <update id="update">
@@ -59,6 +59,8 @@
             <if test="skill != null">skill = #{skill},</if>
             <if test="introduction != null">introduction = #{introduction},</if>
             <if test="achievement != null">achievement = #{achievement},</if>
+            <if test="detailImages != null">detail_images = #{detailImages},</if>
+            <if test="videos != null">videos = #{videos},</if>
             <if test="status != null">status = #{status},</if>
         </set>
         WHERE id = #{id} AND is_deleted = 0

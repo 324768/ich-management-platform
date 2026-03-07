@@ -18,6 +18,7 @@ public class IchCategoryDTO implements Serializable {
     private Integer sort;
     private String icon;
     private List<String> detailImages;
+    private List<String> videos;
     private Integer status;
     private Date createTime;
     private Date updateTime;

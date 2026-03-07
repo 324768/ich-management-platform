@@ -14,7 +14,7 @@
     </select>
 
     <select id="selectByCondition" resultType="com.hyang.ich.user.entity.SysUser">
-        SELECT <include refid="columns"/> FROM sys_user
+        SELECT <include refid="allColumns"/> FROM sys_user
         <where>
             is_deleted = 0
             <if test="keyword != null and keyword != ''">AND (username LIKE CONCAT('%',#{keyword},'%') OR nickname LIKE CONCAT('%',#{keyword},'%'))</if>

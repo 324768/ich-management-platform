@@ -65,7 +65,7 @@
     </update>
 
     <select id="selectList" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/> FROM user WHERE is_deleted = 0
+        SELECT <include refid="All_Column_List"/> FROM user WHERE is_deleted = 0
         <if test="keyword != null and keyword != ''">
             AND (username LIKE CONCAT('%', #{keyword}, '%') OR nickname LIKE CONCAT('%', #{keyword}, '%') OR phone LIKE CONCAT('%', #{keyword}, '%'))
         </if>

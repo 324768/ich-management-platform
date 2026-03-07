@@ -21,6 +21,8 @@ public class IchHeritageMan {
     private String skill;
     private String introduction;
     private String achievement;
+    private String detailImages;
+    private String videos;
     private Integer status;
     private Date createTime;
     private Date updateTime;

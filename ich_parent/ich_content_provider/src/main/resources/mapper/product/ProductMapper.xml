@@ -3,13 +3,13 @@
 <mapper namespace="com.hyang.ich.content.mapper.product.ProductMapper">
 
     <sql id="columns">
-        id, product_sn, name, sub_title, brand_id, category_id, price, original_price, stock, sale,
+        id, product_sn, name, sub_title, brand_id, category_id, heritage_man_id, price, original_price, stock, sale,
         weight, keywords, description, detail_desc, status, sort, create_time, update_time
     </sql>
 
     <sql id="allColumns">
-        id, product_sn, name, sub_title, brand_id, category_id, price, original_price, stock, sale,
-        weight, keywords, description, detail_desc, main_image, sub_images, status, sort, create_time, update_time
+        id, product_sn, name, sub_title, brand_id, category_id, heritage_man_id, price, original_price, stock, sale,
+        weight, keywords, description, detail_desc, main_image, sub_images, videos, status, sort, create_time, update_time
     </sql>
 
     <sql id="condition">
@@ -22,7 +22,7 @@
     </sql>
 
     <select id="selectByCondition" resultType="com.hyang.ich.content.entity.Product">
-        SELECT <include refid="columns"/> FROM product
+        SELECT <include refid="allColumns"/> FROM product
         <include refid="condition"/>
         ORDER BY create_time DESC LIMIT #{offset}, #{limit}
     </select>
@@ -36,10 +36,10 @@
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO product (product_sn, name, sub_title, brand_id, category_id, price, original_price,
-            stock, weight, keywords, description, detail_desc, main_image, sub_images, status, sort)
-        VALUES (#{productSn}, #{name}, #{subTitle}, #{brandId}, #{categoryId}, #{price}, #{originalPrice},
-            #{stock}, #{weight}, #{keywords}, #{description}, #{detailDesc}, #{mainImage}, #{subImages}, #{status}, #{sort})
+        INSERT INTO product (product_sn, name, sub_title, brand_id, category_id, heritage_man_id, price, original_price,
+            stock, weight, keywords, description, detail_desc, main_image, sub_images, videos, status, sort)
+        VALUES (#{productSn}, #{name}, #{subTitle}, #{brandId}, #{categoryId}, #{heritageManId}, #{price}, #{originalPrice},
+            #{stock}, #{weight}, #{keywords}, #{description}, #{detailDesc}, #{mainImage}, #{subImages}, #{videos}, #{status}, #{sort})
     </insert>
 
     <update id="update">
@@ -49,6 +49,7 @@
             <if test="subTitle != null">sub_title = #{subTitle},</if>
             <if test="brandId != null">brand_id = #{brandId},</if>
             <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="heritageManId != null">heritage_man_id = #{heritageManId},</if>
             <if test="price != null">price = #{price},</if>
             <if test="originalPrice != null">original_price = #{originalPrice},</if>
             <if test="stock != null">stock = #{stock},</if>
@@ -58,6 +59,7 @@
             <if test="detailDesc != null">detail_desc = #{detailDesc},</if>
             <if test="mainImage != null">main_image = #{mainImage},</if>
             <if test="subImages != null">sub_images = #{subImages},</if>
+            <if test="videos != null">videos = #{videos},</if>
             <if test="status != null">status = #{status},</if>
             <if test="sort != null">sort = #{sort},</if>
         </set>
@@ -83,5 +85,9 @@
 
     <select id="countLowStock" resultType="long">
         SELECT COUNT(*) FROM product WHERE is_deleted = 0 AND status = 1 AND stock &lt; #{threshold}
+    </select>
+
+    <select id="selectLowStock" resultType="com.hyang.ich.content.entity.Product">
+        SELECT <include refid="allColumns"/> FROM product WHERE is_deleted = 0 AND status = 1 AND stock &lt; #{threshold} ORDER BY stock ASC
     </select>
 </mapper>
