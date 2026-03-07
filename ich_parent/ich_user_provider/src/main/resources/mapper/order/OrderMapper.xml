@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyang.ich.user.mapper.order.OrderMapper">
+
+    <sql id="columns">
+        id, order_no, user_id, total_amount, pay_amount, freight_amount, discount_amount,
+        pay_type, status, payment_time, consign_time, end_time, close_time,
+        shipping_name, shipping_code, receiver_name, receiver_phone,
+        receiver_post_code, receiver_province, receiver_city, receiver_region, receiver_detail_address,
+        note, create_time, update_time
+    </sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `order` (order_no, user_id, total_amount, pay_amount, freight_amount, discount_amount,
+            pay_type, status, receiver_name, receiver_phone, receiver_detail_address, note)
+        VALUES (#{orderNo}, #{userId}, #{totalAmount}, #{payAmount}, #{freightAmount}, #{discountAmount},
+            #{payType}, #{status}, #{receiverName}, #{receiverPhone}, #{receiverDetailAddress}, #{note})
+    </insert>
+
+    <select id="selectById" resultType="com.hyang.ich.user.entity.Order">
+        SELECT <include refid="columns"/> FROM `order` WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <select id="selectByOrderNo" resultType="com.hyang.ich.user.entity.Order">
+        SELECT <include refid="columns"/> FROM `order` WHERE order_no = #{orderNo} AND is_deleted = 0
+    </select>
+
+    <select id="selectByUserId" resultType="com.hyang.ich.user.entity.Order">
+        SELECT <include refid="columns"/> FROM `order`
+        <where>
+            is_deleted = 0 AND user_id = #{userId}
+            <if test="status != null">AND status = #{status}</if>
+        </where>
+        ORDER BY create_time DESC LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByUserId" resultType="int">
+        SELECT COUNT(*) FROM `order`
+        <where>
+            is_deleted = 0 AND user_id = #{userId}
+            <if test="status != null">AND status = #{status}</if>
+        </where>
+    </select>
+
+    <select id="selectByCondition" resultType="com.hyang.ich.user.entity.Order">
+        SELECT <include refid="columns"/> FROM `order`
+        <where>
+            is_deleted = 0
+            <if test="orderNo != null and orderNo != ''">AND order_no LIKE CONCAT('%',#{orderNo},'%')</if>
+            <if test="status != null">AND status = #{status}</if>
+        </where>
+        ORDER BY create_time DESC LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*) FROM `order`
+        <where>
+            is_deleted = 0
+            <if test="orderNo != null and orderNo != ''">AND order_no LIKE CONCAT('%',#{orderNo},'%')</if>
+            <if test="status != null">AND status = #{status}</if>
+        </where>
+    </select>
+
+    <update id="updateStatus">
+        UPDATE `order` SET status = #{status} WHERE order_no = #{orderNo} AND is_deleted = 0
+    </update>
+
+    <update id="updatePayment">
+        UPDATE `order` SET status = #{status}, pay_type = #{payType}, payment_time = NOW()
+        WHERE order_no = #{orderNo} AND is_deleted = 0
+    </update>
+
+    <update id="updateShipping">
+        UPDATE `order` SET status = 2, shipping_name = #{shippingName}, shipping_code = #{shippingCode}, consign_time = NOW()
+        WHERE order_no = #{orderNo} AND is_deleted = 0
+    </update>
+
+    <update id="updateConfirm">
+        UPDATE `order` SET status = 3, end_time = NOW()
+        WHERE order_no = #{orderNo} AND is_deleted = 0
+    </update>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*) FROM `order` WHERE is_deleted = 0
+    </select>
+
+    <select id="selectRecent" resultType="com.hyang.ich.user.entity.Order">
+        SELECT <include refid="columns"/> FROM `order`
+        WHERE is_deleted = 0
+        ORDER BY create_time DESC LIMIT #{limit}
+    </select>
+
+    <select id="countByDay" resultType="map">
+        SELECT DATE(create_time) AS day, COUNT(*) AS cnt
+        FROM `order`
+        WHERE is_deleted = 0 AND create_time >= #{startDate}
+        GROUP BY DATE(create_time)
+        ORDER BY day ASC
+    </select>
+</mapper>

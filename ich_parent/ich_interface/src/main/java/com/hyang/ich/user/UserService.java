@@ -50,6 +50,9 @@ public interface UserService {
 
     /** 设置默认地址 */
     void setDefaultAddress(Long userId, Long addressId);
+
+    /** 统计用户总数 */
+    long countUsers();
 }
 
 

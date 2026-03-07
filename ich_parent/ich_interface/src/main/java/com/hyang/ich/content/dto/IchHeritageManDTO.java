@@ -14,6 +14,10 @@ public class IchHeritageManDTO implements Serializable {
     private String name;
     private Integer gender;
     private Date birthDate;
+    private String idCard;
+    private String phone;
+    private String email;
+    private String address;
     private String avatar;
     private Integer level;
     private Long categoryId;

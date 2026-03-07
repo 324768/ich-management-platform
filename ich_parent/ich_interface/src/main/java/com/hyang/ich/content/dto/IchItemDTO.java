@@ -15,12 +15,16 @@ public class IchItemDTO implements Serializable {
     private String categoryName;
     private String name;
     private String coverImage;
+    private Integer level;
+    private String regionCode;
+    private String regionName;
+    private String declarationUnit;
+    private String protectionUnit;
+    private Date declarationTime;
     private String description;
     private String content;
     private Integer status;
-    private Integer viewCount;
-    private Integer likeCount;
-    private Integer commentCount;
+    private Integer sort;
     private Date createTime;
     private Date updateTime;
 }

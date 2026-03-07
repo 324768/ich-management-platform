@@ -65,4 +65,7 @@ public interface ContentService {
 
     /** 删除传承人 */
     void deleteHeritageMan(Long id);
+
+    /** 统计非遗项目总数 */
+    long countItems();
 }

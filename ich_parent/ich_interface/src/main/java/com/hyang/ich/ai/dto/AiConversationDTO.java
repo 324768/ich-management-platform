@@ -13,6 +13,7 @@ public class AiConversationDTO implements Serializable {
 
     private Long id;
     private Long userId;
+    private String sessionId;
     private String title;
     private Date createTime;
     private Date updateTime;

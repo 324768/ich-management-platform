@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.hyang.ich.user.mapper.UserMapper">
+<mapper namespace="com.hyang.ich.user.mapper.user.UserMapper">
 
     <resultMap id="BaseResultMap" type="com.hyang.ich.user.entity.User">
         <id column="id" property="id"/>
@@ -20,26 +20,26 @@
     </resultMap>
 
     <sql id="Base_Column_List">
+        id, username, password, nickname, email, phone, status,
+        last_login_time, last_login_ip, is_deleted, version, create_time, update_time
+    </sql>
+
+    <sql id="All_Column_List">
         id, username, password, nickname, avatar, email, phone, status,
         last_login_time, last_login_ip, is_deleted, version, create_time, update_time
     </sql>
 
     <select id="selectById" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
-        FROM user
-        WHERE id = #{id} AND is_deleted = 0
+        SELECT <include refid="All_Column_List"/> FROM user WHERE id = #{id} AND is_deleted = 0
     </select>
 
     <select id="selectByUsername" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
-        FROM user
-        WHERE username = #{username} AND is_deleted = 0
+        SELECT <include refid="All_Column_List"/> FROM user WHERE username = #{username} AND is_deleted = 0
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO user (username, password, nickname, avatar, email, phone, status, create_time, update_time)
-        VALUES (#{username}, #{password}, #{nickname}, #{avatar}, #{email}, #{phone},
-                #{status}, NOW(), NOW())
+        VALUES (#{username}, #{password}, #{nickname}, #{avatar}, #{email}, #{phone}, #{status}, NOW(), NOW())
     </insert>
 
     <update id="updateById">
@@ -57,37 +57,29 @@
     </update>
 
     <update id="updateStatus">
-        UPDATE user SET status = #{status}, update_time = NOW()
-        WHERE id = #{id} AND is_deleted = 0
+        UPDATE user SET status = #{status}, update_time = NOW() WHERE id = #{id} AND is_deleted = 0
     </update>
 
     <update id="updatePassword">
-        UPDATE user SET password = #{password}, update_time = NOW()
-        WHERE id = #{id} AND is_deleted = 0
+        UPDATE user SET password = #{password}, update_time = NOW() WHERE id = #{id} AND is_deleted = 0
     </update>
 
     <select id="selectList" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
-        FROM user
-        WHERE is_deleted = 0
+        SELECT <include refid="Base_Column_List"/> FROM user WHERE is_deleted = 0
         <if test="keyword != null and keyword != ''">
-            AND (username LIKE CONCAT('%', #{keyword}, '%')
-                 OR nickname LIKE CONCAT('%', #{keyword}, '%')
-                 OR phone LIKE CONCAT('%', #{keyword}, '%'))
+            AND (username LIKE CONCAT('%', #{keyword}, '%') OR nickname LIKE CONCAT('%', #{keyword}, '%') OR phone LIKE CONCAT('%', #{keyword}, '%'))
         </if>
-        ORDER BY create_time DESC
-        LIMIT #{offset}, #{limit}
+        ORDER BY create_time DESC LIMIT #{offset}, #{limit}
     </select>
 
     <select id="countList" resultType="long">
-        SELECT COUNT(*)
-        FROM user
-        WHERE is_deleted = 0
+        SELECT COUNT(*) FROM user WHERE is_deleted = 0
         <if test="keyword != null and keyword != ''">
-            AND (username LIKE CONCAT('%', #{keyword}, '%')
-                 OR nickname LIKE CONCAT('%', #{keyword}, '%')
-                 OR phone LIKE CONCAT('%', #{keyword}, '%'))
+            AND (username LIKE CONCAT('%', #{keyword}, '%') OR nickname LIKE CONCAT('%', #{keyword}, '%') OR phone LIKE CONCAT('%', #{keyword}, '%'))
         </if>
     </select>
 
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*) FROM user WHERE is_deleted = 0
+    </select>
 </mapper>

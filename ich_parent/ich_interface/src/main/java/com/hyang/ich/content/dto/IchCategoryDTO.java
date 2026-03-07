@@ -17,8 +17,8 @@ public class IchCategoryDTO implements Serializable {
     private Integer level;
     private Integer sort;
     private String icon;
-    private String description;
-    private Integer isDeleted;
+    private List<String> detailImages;
+    private Integer status;
     private Date createTime;
     private Date updateTime;
 

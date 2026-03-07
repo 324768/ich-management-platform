@@ -1,0 +1,415 @@
+@use './variables.scss' as *;
+
+// ══════════════════════════════════════════
+// Antigravity Tools — Exact Global Styles
+// ══════════════════════════════════════════
+
+// ── Reset (Antigravity App.css exact) ──
+*, *::before, *::after {
+  margin: 0; padding: 0; box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  overscroll-behavior: none;
+  height: 100%;
+  overflow-y: hidden;
+  overflow-x: hidden;
+  margin: 0; padding: 0;
+  background-color: $body-bg;
+}
+
+body {
+  font-family: $font-family;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 14px;
+  color: $text-primary;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: none;
+}
+
+a { text-decoration: none; }
+
+// ── Scrollbar (Antigravity: hidden but functional) ──
+::-webkit-scrollbar { width: 0px; background: transparent; }
+::-webkit-scrollbar-track { background-color: transparent; }
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 99px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background-color: rgba(0, 0, 0, 0.3); }
+
+// ── NProgress ──
+#nprogress .bar {
+  background: $primary !important;
+  height: 2px !important;
+}
+
+// ── Page Transitions ──
+.fade-enter-active, .fade-leave-active { transition: opacity $transition-base; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+
+// ── Page Container ──
+.page-container { padding: 0; }
+
+// ── Card (Antigravity exact: bg-white rounded-xl shadow-sm border border-gray-100) ──
+.card {
+  background: $card-bg;
+  border-radius: $card-radius;
+  border: 1px solid $card-border;
+  box-shadow: $card-shadow;
+  padding: 24px;
+}
+
+// ── Page Header (Antigravity: flex justify-between items-center) ──
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: $text-primary;
+  }
+}
+
+// ═══════════════════════════════════════════
+// Element Plus Overrides — Antigravity Style
+// ═══════════════════════════════════════════
+
+// ── Buttons (Antigravity: px-3 py-1.5 text-xs font-medium rounded-lg) ──
+.el-button {
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all $transition-fast;
+  font-size: 13px;
+
+  &--primary {
+    background: $primary;
+    border-color: $primary;
+    box-shadow: $card-shadow;
+    &:hover, &:focus { background: #2563eb; border-color: #2563eb; }
+  }
+
+  &--default {
+    border-color: $gray-200;
+    &:hover { color: $primary; border-color: $primary-light; }
+  }
+}
+
+// ── Tables (Antigravity: clean rows, subtle borders) ──
+.el-table {
+  --el-table-border-color: #{$gray-100};
+  --el-table-header-bg-color: transparent;
+  --el-table-header-text-color: #{$gray-500};
+  --el-table-row-hover-bg-color: #{$gray-50};
+  --el-table-border: none;
+  border-radius: 0;
+  overflow: visible;
+  background: transparent;
+
+  th.el-table__cell {
+    font-weight: 600;
+    font-size: 12px;
+    color: $gray-500;
+    border-bottom: 1px solid $gray-200 !important;
+    background: transparent !important;
+    padding: 12px 0;
+  }
+
+  .el-table__cell .cell {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  td.el-table__cell {
+    padding: 14px 0;
+    border-bottom: 1px solid $gray-100 !important;
+    color: $gray-700;
+    font-size: 14px;
+  }
+
+  &::before, &::after { display: none; }
+}
+
+// ── Table centering fix (high specificity to override Element Plus auto-imported CSS) ──
+.el-table th.el-table__cell .cell {
+  text-align: center !important;
+}
+.el-table td.el-table__cell .cell {
+  text-align: center !important;
+}
+
+// ── Tags ──
+.el-tag {
+  border-radius: 6px;
+  font-weight: 500;
+  border: none;
+  padding: 0 10px;
+  font-size: 12px;
+
+  &--success { background: $success-light; color: #059669; }
+  &--warning { background: $warning-light; color: #d97706; }
+  &--danger { background: $danger-light; color: #dc2626; }
+  &--info { background: $info-light; color: $info; }
+}
+
+// ── Inputs (Antigravity: border border-gray-200 rounded-lg focus:ring-2 ring-blue-500) ──
+.el-input__wrapper {
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  border: 1px solid $gray-200 !important;
+  transition: all $transition-fast !important;
+  padding: 2px 12px !important;
+  background: white !important;
+
+  &:hover { border-color: $gray-300 !important; }
+  &.is-focus {
+    border-color: transparent !important;
+    outline: 2px solid $primary !important;
+    outline-offset: -1px;
+  }
+}
+
+// ── Select ──
+.el-select .el-select__wrapper {
+  border-radius: 8px;
+  border: 1px solid $gray-200;
+  box-shadow: none;
+  &:hover { border-color: $gray-300; }
+  &.is-focused { outline: 2px solid $primary; outline-offset: -1px; }
+}
+
+// ── Dialog (Antigravity: rounded-2xl) ──
+.el-dialog {
+  border-radius: $card-radius-lg;
+  overflow: hidden;
+  .el-dialog__header { padding: 20px 24px 16px; border-bottom: 1px solid $gray-100; margin-right: 0; }
+  .el-dialog__title { font-size: 16px; font-weight: 600; color: $text-primary; }
+  .el-dialog__body { padding: 20px 24px; }
+  .el-dialog__footer { padding: 16px 24px; border-top: 1px solid $gray-100; }
+}
+
+// ── Pagination (Antigravity: rounded-lg, blue active) ──
+.el-pagination {
+  .btn-prev, .btn-next { border-radius: 8px; background: transparent; }
+  .el-pager li {
+    border-radius: 8px;
+    font-weight: 500;
+    &.is-active { background: $primary; color: #fff; font-weight: 600; }
+  }
+}
+
+// ── Form ──
+.el-form-item__label { font-weight: 500; color: $text-primary; font-size: 14px; }
+
+// ── Message Box ──
+.el-message-box { border-radius: $card-radius; }
+
+// ── Dropdown ──
+.el-dropdown-menu {
+  border-radius: $card-radius;
+  border: 1px solid $gray-100;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  padding: 4px;
+  .el-dropdown-menu__item {
+    border-radius: 6px; padding: 8px 12px; font-size: 14px;
+    &:hover { background: $gray-50; color: $text-primary; }
+  }
+}
+
+// ── Switch (Antigravity toggle style) ──
+.el-switch.is-checked .el-switch__core { background-color: $primary; border-color: $primary; }
+
+// ═══════════════════════════════════════════
+// Antigravity Layout Patterns
+// ═══════════════════════════════════════════
+
+// ── Toolbar (Antigravity: flex items-center gap-2) ──
+.table-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.toolbar-left { display: flex; align-items: center; gap: 8px; }
+.toolbar-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+// ── Pagination container ──
+.table-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  font-size: 13px;
+  color: $gray-500;
+}
+
+// ═══════════════════════════════════════════
+// Antigravity Dark Mode (data-theme="dark")
+// ═══════════════════════════════════════════
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  body { background: #1d232a; color: #a6adbb; }
+  #app { background: #1d232a; }
+
+  .ag-layout { background: #1d232a; }
+  .ag-navbar { background: #1d232a; }
+  .ag-logo .ag-logo-text { color: #a6adbb; }
+  .ag-pills { background: #191e24; }
+  .ag-pill-indicator { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .ag-pill {
+    color: #9ca3af;
+    &:hover:not(.active) { color: #a6adbb; background: rgba(255,255,255,0.05); }
+    &.active { color: #111827; background: transparent; }
+  }
+  .ag-circle-btn { background: #191e24; color: #9ca3af;
+    &:hover { background: #15191e; }
+  }
+  .ag-icon { color: #a6adbb; }
+  .ag-lang-code { color: #9ca3af; }
+  .ag-avatar-btn { border-color: #2a323c;
+    &:hover { border-color: #6366f1; }
+  }
+  .ag-avatar-name { color: #a6adbb; }
+  .ag-dropdown-divider { background: #2a323c; }
+  .ag-dropdown-logout {
+    &:hover { background: rgba(220, 38, 38, 0.15) !important; }
+  }
+  .ag-logout-btn { background: rgba(220, 38, 38, 0.1);
+    &:hover { background: rgba(220, 38, 38, 0.2); }
+    .ag-icon-red { color: #f87171; }
+  }
+  .ag-dropdown-menu { background: #191e24; border-color: #2a323c; }
+  .ag-dropdown-item { color: #a6adbb;
+    &:hover { background: #15191e; }
+    &.active { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
+  }
+  .ag-dropdown-short { color: #6b7280; .active & { color: #60a5fa; } }
+
+  // Cards & pages
+  .ag-card, .ag-stat-card, .card { background: #191e24; border-color: #2a323c; }
+  .ag-stat-value, .ag-greeting-title, .ag-page-title { color: #a6adbb; }
+  .ag-stat-label { color: #6b7280; }
+  .ag-order-no { color: #a6adbb; }
+  .ag-order-amount { color: #a6adbb; }
+  .ag-order-row { border-bottom-color: #2a323c; }
+  .ag-card-header h3 { color: #a6adbb; }
+
+  // Link cards
+  .ag-link-indigo { background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.2);
+    .ag-link-text { color: #a5b4fc; }
+    .ag-link-icon { color: #818cf8; }
+    &:hover { border-color: rgba(99, 102, 241, 0.4); }
+  }
+  .ag-link-purple { background: rgba(168, 85, 247, 0.1); border-color: rgba(168, 85, 247, 0.2);
+    .ag-link-text { color: #d8b4fe; }
+    .ag-link-icon { color: #c084fc; }
+    &:hover { border-color: rgba(168, 85, 247, 0.4); }
+  }
+
+  // Sub-tab pills
+  .ag-sub-pills { background: #191e24; }
+  .ag-sub-pill { color: #9ca3af;
+    &:hover { color: #a6adbb; background: #15191e; }
+    &.active { background: #2a323c; color: #a6adbb; }
+  }
+
+  // Element Plus dark overrides
+  .el-table {
+    --el-table-bg-color: transparent;
+    --el-table-tr-bg-color: transparent;
+    --el-table-header-bg-color: transparent;
+    --el-table-border-color: #2a323c;
+    --el-table-row-hover-bg-color: #15191e;
+    --el-table-header-text-color: #6b7280;
+    --el-table-text-color: #a6adbb;
+    th.el-table__cell { border-bottom-color: #2a323c !important; }
+    td.el-table__cell { border-bottom-color: #2a323c !important; color: #a6adbb; }
+  }
+  .el-input__wrapper { background: #191e24 !important; border-color: #2a323c !important;
+    &.is-focus { outline-color: #3b82f6 !important; }
+  }
+  .el-input__inner { color: #a6adbb; }
+  .el-textarea__inner { background: #191e24 !important; border-color: #2a323c !important; color: #a6adbb;
+    &:focus { outline-color: #3b82f6 !important; }
+  }
+  .el-input-number {
+    .el-input-number__decrease, .el-input-number__increase {
+      background: #191e24 !important; border-color: #2a323c !important; color: #a6adbb;
+      &:hover { color: #60a5fa; }
+      &.is-disabled { color: #4b5563 !important; }
+    }
+  }
+  .el-dialog { background: #1d232a; }
+  .el-dialog__header { border-bottom-color: #2a323c; }
+  .el-dialog__title { color: #a6adbb; }
+  .el-dialog__footer { border-top-color: #2a323c; }
+  .el-form-item__label { color: #a6adbb; }
+  .el-button--default { border-color: #2a323c; color: #a6adbb; background: transparent;
+    &:hover { color: #60a5fa; border-color: #3b82f6; }
+  }
+  .el-pagination {
+    .el-pager li { color: #a6adbb; background: transparent;
+      &.is-active { background: #3b82f6; color: #fff; }
+    }
+    .btn-prev, .btn-next {
+      background: #191e24 !important; color: #a6adbb !important;
+      &:disabled { color: #4b5563 !important; }
+    }
+    .el-pagination__total { color: #a6adbb; }
+    .el-pagination__sizes { color: #a6adbb; }
+  }
+  .el-select .el-select__wrapper { background: #191e24 !important; border-color: #2a323c !important;
+    .el-select__placeholder span { color: #a6adbb; }
+    .el-select__caret { color: #6b7280; }
+  }
+
+  // Detail pages
+  .ag-btn-secondary { background: #2a323c; color: #a6adbb;
+    &:hover { background: #353d47; }
+  }
+  .detail-title { color: #a6adbb !important; }
+  .detail-subtitle { color: #6b7280 !important; }
+  .detail-desc { color: #6b7280 !important; }
+  .detail-cover.placeholder { background: #2a323c !important; border-color: #353d47 !important; }
+  .detail-avatar.placeholder { border-color: #353d47 !important; }
+  .section-title { color: #a6adbb !important; border-bottom-color: #2a323c !important; }
+  .section-body { color: #9ca3af !important; }
+  .price-current { color: #f87171 !important; }
+  .price-original { color: #6b7280 !important; }
+  .el-divider { border-top-color: #2a323c !important; }
+  .el-descriptions { --el-descriptions-table-border: 1px solid #2a323c; }
+  .el-descriptions__label.is-bordered-label { background: #1d232a !important; color: #6b7280 !important; }
+  .el-descriptions__content.is-bordered-content { color: #a6adbb !important; }
+  .el-descriptions__cell.is-bordered-label,
+  .el-descriptions__cell.is-bordered-content { border-color: #2a323c !important; }
+
+  // Detail page inline edit
+  .detail-edit-field {
+    .el-input__wrapper { background: transparent !important; box-shadow: none !important; border: none !important;
+      &:hover { background: #2a323c !important; }
+      &.is-focus { background: #2a323c !important; box-shadow: 0 0 0 1px #3b82f6 !important; }
+    }
+    .el-input__inner { color: #a6adbb; }
+    .el-textarea__inner { background: transparent !important; border: none !important;
+      &:hover { background: #2a323c !important; }
+      &:focus { background: #2a323c !important; box-shadow: 0 0 0 1px #3b82f6 !important; }
+    }
+  }
+}

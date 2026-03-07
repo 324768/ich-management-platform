@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyang.ich.content.mapper.product.CartMapper">
+
+    <sql id="columns">
+        id, user_id, product_id, product_sku_id, quantity, price, selected, source, create_time, update_time
+    </sql>
+
+    <select id="selectByUserId" resultType="com.hyang.ich.content.entity.Cart">
+        SELECT <include refid="columns"/> FROM shopping_cart
+        WHERE user_id = #{userId} AND is_deleted = 0 ORDER BY create_time DESC
+    </select>
+
+    <select id="selectByUserAndProduct" resultType="com.hyang.ich.content.entity.Cart">
+        SELECT <include refid="columns"/> FROM shopping_cart
+        WHERE user_id = #{userId} AND product_id = #{productId} AND is_deleted = 0
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO shopping_cart (user_id, product_id, product_sku_id, quantity, price, selected, source)
+        VALUES (#{userId}, #{productId}, #{productSkuId}, #{quantity}, #{price}, #{selected}, #{source})
+    </insert>
+
+    <update id="updateQuantity">
+        UPDATE shopping_cart SET quantity = #{quantity} WHERE user_id = #{userId} AND product_id = #{productId} AND is_deleted = 0
+    </update>
+
+    <update id="deleteByUserAndProduct">
+        UPDATE shopping_cart SET is_deleted = 1 WHERE user_id = #{userId} AND product_id = #{productId}
+    </update>
+
+    <update id="deleteByUserId">
+        UPDATE shopping_cart SET is_deleted = 1 WHERE user_id = #{userId}
+    </update>
+
+    <update id="updateSelected">
+        UPDATE shopping_cart SET selected = #{selected} WHERE user_id = #{userId} AND product_id = #{productId} AND is_deleted = 0
+    </update>
+
+    <update id="updateAllSelected">
+        UPDATE shopping_cart SET selected = #{selected} WHERE user_id = #{userId} AND is_deleted = 0
+    </update>
+</mapper>

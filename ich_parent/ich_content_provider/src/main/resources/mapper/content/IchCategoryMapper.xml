@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyang.ich.content.mapper.content.IchCategoryMapper">
+
+    <sql id="allColumns">id, parent_id, name, level, sort, icon, detail_images, status, create_time, update_time</sql>
+
+    <select id="selectByParentId" resultType="com.hyang.ich.content.entity.IchCategory">
+        SELECT <include refid="allColumns"/> FROM ich_category WHERE parent_id = #{parentId} ORDER BY sort ASC
+    </select>
+
+    <select id="selectAll" resultType="com.hyang.ich.content.entity.IchCategory">
+        SELECT <include refid="allColumns"/> FROM ich_category ORDER BY sort ASC
+    </select>
+
+    <select id="selectById" resultType="com.hyang.ich.content.entity.IchCategory">
+        SELECT <include refid="allColumns"/> FROM ich_category WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ich_category (parent_id, name, level, sort, icon, detail_images, status)
+        VALUES (#{parentId}, #{name}, #{level}, #{sort}, #{icon}, #{detailImages}, #{status})
+    </insert>
+
+    <update id="update">
+        UPDATE ich_category
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="sort != null">sort = #{sort},</if>
+            <if test="icon != null">icon = #{icon},</if>
+            <if test="detailImages != null">detail_images = #{detailImages},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM ich_category WHERE id = #{id}
+    </delete>
+</mapper>

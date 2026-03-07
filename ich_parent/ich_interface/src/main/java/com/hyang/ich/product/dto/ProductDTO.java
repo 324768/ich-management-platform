@@ -12,20 +12,24 @@ public class ProductDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Long id;
+    private String productSn;
+    private String name;
+    private String subTitle;
+    private Long brandId;
     private Long categoryId;
     private String categoryName;
-    private String name;
-    private String subtitle;
+    private BigDecimal price;
+    private BigDecimal originalPrice;
+    private Integer stock;
+    private Integer sale;
+    private BigDecimal weight;
+    private String keywords;
+    private String description;
+    private String detailDesc;
     private String mainImage;
     private String subImages;
-    private String detail;
-    private BigDecimal price;
-    private Integer stock;
     private Integer status;
-    private Integer sales;
-    private Integer viewCount;
-    private Integer commentCount;
-    private Integer isDeleted;
+    private Integer sort;
     private Date createTime;
     private Date updateTime;
 }

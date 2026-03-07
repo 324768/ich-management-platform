@@ -14,8 +14,11 @@ public class CartDTO implements Serializable {
     private Long id;
     private Long userId;
     private Long productId;
+    private Long productSkuId;
     private Integer quantity;
-    private Integer checked;
+    private BigDecimal price;
+    private Integer selected;
+    private Integer source;
     private Date createTime;
     private Date updateTime;
 

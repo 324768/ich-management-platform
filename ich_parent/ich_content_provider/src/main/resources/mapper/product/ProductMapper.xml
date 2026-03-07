@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyang.ich.content.mapper.product.ProductMapper">
+
+    <sql id="columns">
+        id, product_sn, name, sub_title, brand_id, category_id, price, original_price, stock, sale,
+        weight, keywords, description, detail_desc, status, sort, create_time, update_time
+    </sql>
+
+    <sql id="allColumns">
+        id, product_sn, name, sub_title, brand_id, category_id, price, original_price, stock, sale,
+        weight, keywords, description, detail_desc, main_image, sub_images, status, sort, create_time, update_time
+    </sql>
+
+    <sql id="condition">
+        <where>
+            is_deleted = 0
+            <if test="categoryId != null">AND category_id = #{categoryId}</if>
+            <if test="keyword != null and keyword != ''">AND (name LIKE CONCAT('%',#{keyword},'%') OR sub_title LIKE CONCAT('%',#{keyword},'%'))</if>
+            <if test="status != null">AND status = #{status}</if>
+        </where>
+    </sql>
+
+    <select id="selectByCondition" resultType="com.hyang.ich.content.entity.Product">
+        SELECT <include refid="columns"/> FROM product
+        <include refid="condition"/>
+        ORDER BY create_time DESC LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*) FROM product <include refid="condition"/>
+    </select>
+
+    <select id="selectById" resultType="com.hyang.ich.content.entity.Product">
+        SELECT <include refid="allColumns"/> FROM product WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO product (product_sn, name, sub_title, brand_id, category_id, price, original_price,
+            stock, weight, keywords, description, detail_desc, main_image, sub_images, status, sort)
+        VALUES (#{productSn}, #{name}, #{subTitle}, #{brandId}, #{categoryId}, #{price}, #{originalPrice},
+            #{stock}, #{weight}, #{keywords}, #{description}, #{detailDesc}, #{mainImage}, #{subImages}, #{status}, #{sort})
+    </insert>
+
+    <update id="update">
+        UPDATE product
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="subTitle != null">sub_title = #{subTitle},</if>
+            <if test="brandId != null">brand_id = #{brandId},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="originalPrice != null">original_price = #{originalPrice},</if>
+            <if test="stock != null">stock = #{stock},</if>
+            <if test="weight != null">weight = #{weight},</if>
+            <if test="keywords != null">keywords = #{keywords},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="detailDesc != null">detail_desc = #{detailDesc},</if>
+            <if test="mainImage != null">main_image = #{mainImage},</if>
+            <if test="subImages != null">sub_images = #{subImages},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="sort != null">sort = #{sort},</if>
+        </set>
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE product SET is_deleted = 1 WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE product SET status = #{status} WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <update id="reduceStock">
+        UPDATE product SET stock = stock - #{quantity}, sale = sale + #{quantity}
+        WHERE id = #{id} AND stock >= #{quantity} AND is_deleted = 0
+    </update>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*) FROM product WHERE is_deleted = 0
+    </select>
+
+    <select id="countLowStock" resultType="long">
+        SELECT COUNT(*) FROM product WHERE is_deleted = 0 AND status = 1 AND stock &lt; #{threshold}
+    </select>
+</mapper>

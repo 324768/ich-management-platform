@@ -55,4 +55,10 @@ public interface ProductService {
     void checkCartItem(Long userId, Long productId, Integer checked);
 
     void checkAllCartItems(Long userId, Integer checked);
+
+    /** 统计商品总数 */
+    long countProducts();
+
+    /** 统计低库存商品数（库存低于阈值） */
+    long countLowStockProducts(int threshold);
 }

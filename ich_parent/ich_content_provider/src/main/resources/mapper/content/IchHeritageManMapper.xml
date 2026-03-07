@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyang.ich.content.mapper.content.IchHeritageManMapper">
+
+    <sql id="columns">
+        id, name, gender, birth_date, id_card, phone, email, address, level,
+        category_id, item_id, title, skill, introduction, achievement, status, create_time, update_time
+    </sql>
+
+    <sql id="allColumns">
+        id, name, gender, birth_date, id_card, phone, email, address, avatar, level,
+        category_id, item_id, title, skill, introduction, achievement, status, create_time, update_time
+    </sql>
+
+    <sql id="condition">
+        <where>
+            is_deleted = 0
+            <if test="keyword != null and keyword != ''">AND name LIKE CONCAT('%',#{keyword},'%')</if>
+            <if test="status != null">AND status = #{status}</if>
+        </where>
+    </sql>
+
+    <select id="selectByCondition" resultType="com.hyang.ich.content.entity.IchHeritageMan">
+        SELECT <include refid="columns"/> FROM ich_heritage_man
+        <include refid="condition"/>
+        ORDER BY create_time DESC LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*) FROM ich_heritage_man <include refid="condition"/>
+    </select>
+
+    <select id="selectById" resultType="com.hyang.ich.content.entity.IchHeritageMan">
+        SELECT <include refid="allColumns"/> FROM ich_heritage_man WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ich_heritage_man (name, gender, birth_date, id_card, phone, email, address, avatar, level,
+            category_id, item_id, title, skill, introduction, achievement, status)
+        VALUES (#{name}, #{gender}, #{birthDate}, #{idCard}, #{phone}, #{email}, #{address}, #{avatar}, #{level},
+            #{categoryId}, #{itemId}, #{title}, #{skill}, #{introduction}, #{achievement}, #{status})
+    </insert>
+
+    <update id="update">
+        UPDATE ich_heritage_man
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="birthDate != null">birth_date = #{birthDate},</if>
+            <if test="idCard != null">id_card = #{idCard},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
+            <if test="level != null">level = #{level},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="itemId != null">item_id = #{itemId},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="skill != null">skill = #{skill},</if>
+            <if test="introduction != null">introduction = #{introduction},</if>
+            <if test="achievement != null">achievement = #{achievement},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE ich_heritage_man SET is_deleted = 1 WHERE id = #{id}
+    </update>
+</mapper>

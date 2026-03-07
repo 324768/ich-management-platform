@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.hyang.ich.user.mapper.UserAddressMapper">
+<mapper namespace="com.hyang.ich.user.mapper.user.UserAddressMapper">
 
     <resultMap id="BaseResultMap" type="com.hyang.ich.user.entity.UserAddress">
         <id column="id" property="id"/>
@@ -18,28 +18,20 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, user_id, receiver_name, receiver_phone, province, city, district,
-        detail_address, is_default, is_deleted, create_time, update_time
+        id, user_id, receiver_name, receiver_phone, province, city, district, detail_address, is_default, is_deleted, create_time, update_time
     </sql>
 
     <select id="selectByUserId" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
-        FROM user_address
-        WHERE user_id = #{userId} AND is_deleted = 0
-        ORDER BY is_default DESC, create_time DESC
+        SELECT <include refid="Base_Column_List"/> FROM user_address WHERE user_id = #{userId} AND is_deleted = 0 ORDER BY is_default DESC, create_time DESC
     </select>
 
     <select id="selectById" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
-        FROM user_address
-        WHERE id = #{id} AND is_deleted = 0
+        SELECT <include refid="Base_Column_List"/> FROM user_address WHERE id = #{id} AND is_deleted = 0
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO user_address (user_id, receiver_name, receiver_phone, province, city,
-                                  district, detail_address, is_default, create_time, update_time)
-        VALUES (#{userId}, #{receiverName}, #{receiverPhone}, #{province}, #{city},
-                #{district}, #{detailAddress}, #{isDefault}, NOW(), NOW())
+        INSERT INTO user_address (user_id, receiver_name, receiver_phone, province, city, district, detail_address, is_default, create_time, update_time)
+        VALUES (#{userId}, #{receiverName}, #{receiverPhone}, #{province}, #{city}, #{district}, #{detailAddress}, #{isDefault}, NOW(), NOW())
     </insert>
 
     <update id="updateById">
@@ -57,18 +49,14 @@
     </update>
 
     <update id="deleteById">
-        UPDATE user_address SET is_deleted = 1, update_time = NOW()
-        WHERE id = #{id} AND user_id = #{userId} AND is_deleted = 0
+        UPDATE user_address SET is_deleted = 1, update_time = NOW() WHERE id = #{id} AND user_id = #{userId} AND is_deleted = 0
     </update>
 
     <update id="clearDefault">
-        UPDATE user_address SET is_default = 0, update_time = NOW()
-        WHERE user_id = #{userId} AND is_deleted = 0
+        UPDATE user_address SET is_default = 0, update_time = NOW() WHERE user_id = #{userId} AND is_deleted = 0
     </update>
 
     <update id="setDefault">
-        UPDATE user_address SET is_default = 1, update_time = NOW()
-        WHERE id = #{id} AND user_id = #{userId} AND is_deleted = 0
+        UPDATE user_address SET is_default = 1, update_time = NOW() WHERE id = #{id} AND user_id = #{userId} AND is_deleted = 0
     </update>
-
 </mapper>

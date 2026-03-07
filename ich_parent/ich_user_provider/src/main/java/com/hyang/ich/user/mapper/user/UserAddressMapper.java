@@ -1,12 +1,10 @@
-package com.hyang.ich.user.mapper;
+package com.hyang.ich.user.mapper.user;
 
 import com.hyang.ich.user.entity.UserAddress;
-import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
-@Mapper
 public interface UserAddressMapper {
 
     List<UserAddress> selectByUserId(@Param("userId") Long userId);

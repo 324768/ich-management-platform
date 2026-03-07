@@ -1,0 +1,113 @@
+// ========== Antigravity Tools — Exact Design System ==========
+// Replicated from Antigravity-Manager source (Tailwind + DaisyUI values)
+
+// ── Core Brand (Tailwind blue-500) ──
+$primary: #3b82f6;
+$primary-light: #60a5fa;
+$primary-lighter: #dbeafe;
+$primary-dark: #2563eb;
+
+// ── Grays (Tailwind gray palette — used everywhere) ──
+$gray-50: #f9fafb;
+$gray-100: #f3f4f6;
+$gray-200: #e5e7eb;
+$gray-300: #d1d5db;
+$gray-400: #9ca3af;
+$gray-500: #6b7280;
+$gray-600: #4b5563;
+$gray-700: #374151;
+$gray-800: #1f2937;
+$gray-900: #111827;
+
+// ── Page ──
+$body-bg: #FAFBFC;       // Antigravity exact bg
+$card-bg: #ffffff;
+$card-radius: 12px;       // rounded-xl
+$card-radius-lg: 16px;    // rounded-2xl
+$card-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);  // shadow-sm
+$card-border: $gray-100;
+
+// ── Typography ──
+$text-primary: $gray-900;   // text-gray-900
+$text-secondary: $gray-700;  // text-gray-700
+$text-muted: $gray-500;      // text-gray-500
+$text-disabled: $gray-400;   // text-gray-400
+
+// ── Borders ──
+$border-color: $gray-200;
+$border-light: $gray-100;
+
+// ── Semantic Colors (exact Antigravity / Tailwind) ──
+$success: #10b981;
+$success-light: #d1fae5;
+$success-bg: #f0fdf4;        // green-50
+$warning: #f59e0b;
+$warning-light: #fef3c7;
+$warning-bg: #fff7ed;         // orange-50
+$danger: #ef4444;
+$danger-light: #fee2e2;
+$danger-bg: #fef2f2;          // red-50
+$info: #0ea5e9;
+$info-light: #e0f2fe;
+$info-bg: #eff6ff;             // blue-50
+$purple: #a855f7;
+$purple-bg: #faf5ff;           // purple-50
+$cyan: #06b6d4;
+$cyan-bg: #ecfeff;             // cyan-50
+
+// ── Font (Antigravity exact) ──
+$font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+
+// ── Motion ──
+$transition-fast: 0.15s ease;
+$transition-base: 0.2s ease;
+
+// ── Layout ──
+$max-width: 1280px;  // max-w-7xl
+$content-px: 32px;   // px-8
+$content-py: 20px;   // p-5
+$navbar-h: 64px;     // h-16
+
+// ── Element Plus Theme Override ──
+:root {
+  --el-color-primary: #{$primary};
+  --el-color-primary-light-1: #60a5fa;
+  --el-color-primary-light-2: #93c5fd;
+  --el-color-primary-light-3: #bfdbfe;
+  --el-color-primary-light-5: #dbeafe;
+  --el-color-primary-light-7: #eff6ff;
+  --el-color-primary-light-9: #f5f9ff;
+  --el-color-primary-dark-2: #{$primary-dark};
+
+  --el-color-success: #{$success};
+  --el-color-warning: #{$warning};
+  --el-color-danger: #{$danger};
+  --el-color-info: #{$info};
+
+  --el-border-radius-base: 8px;
+  --el-border-radius-small: 6px;
+  --el-border-radius-round: 9999px;
+  --el-border-color: #{$border-color};
+  --el-border-color-light: #{$border-light};
+  --el-border-color-lighter: #{$border-light};
+
+  --el-fill-color-light: #{$gray-50};
+  --el-fill-color-lighter: #{$body-bg};
+  --el-fill-color-blank: #ffffff;
+
+  --el-text-color-primary: #{$text-primary};
+  --el-text-color-regular: #{$text-secondary};
+  --el-text-color-secondary: #{$text-muted};
+  --el-text-color-placeholder: #{$text-disabled};
+
+  --el-font-family: #{$font-family};
+  --el-font-size-base: 14px;
+
+  --el-bg-color: #{$body-bg};
+  --el-bg-color-page: #{$body-bg};
+  --el-bg-color-overlay: #ffffff;
+
+  --el-box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --el-box-shadow-light: #{$card-shadow};
+}

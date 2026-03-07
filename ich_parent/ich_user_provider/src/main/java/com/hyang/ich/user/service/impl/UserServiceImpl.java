@@ -11,8 +11,8 @@ import com.hyang.ich.user.dto.UserLoginDTO;
 import com.hyang.ich.user.dto.UserRegisterDTO;
 import com.hyang.ich.user.entity.User;
 import com.hyang.ich.user.entity.UserAddress;
-import com.hyang.ich.user.mapper.UserAddressMapper;
-import com.hyang.ich.user.mapper.UserMapper;
+import com.hyang.ich.user.mapper.user.UserAddressMapper;
+import com.hyang.ich.user.mapper.user.UserMapper;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -189,6 +189,11 @@ public class UserServiceImpl implements UserService {
     public void setDefaultAddress(Long userId, Long addressId) {
         userAddressMapper.clearDefault(userId);
         userAddressMapper.setDefault(addressId, userId);
+    }
+
+    @Override
+    public long countUsers() {
+        return userMapper.countAll();
     }
 
     // ========== 实体转DTO ==========

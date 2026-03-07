@@ -14,5 +14,7 @@ public class AiMessageDTO implements Serializable {
     private Long conversationId;
     private String role;
     private String content;
+    private Integer tokens;
+    private String model;
     private Date createTime;
 }

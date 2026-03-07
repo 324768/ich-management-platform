@@ -15,10 +15,14 @@ public class OrderItemDTO implements Serializable {
     private Long orderId;
     private String orderNo;
     private Long productId;
+    private String productPic;
     private String productName;
-    private String productImage;
+    private String productBrand;
+    private String productSn;
     private BigDecimal productPrice;
-    private Integer quantity;
-    private BigDecimal totalPrice;
+    private Integer productQuantity;
+    private Long productSkuId;
+    private String productSkuCode;
+    private Long productCategoryId;
     private Date createTime;
 }

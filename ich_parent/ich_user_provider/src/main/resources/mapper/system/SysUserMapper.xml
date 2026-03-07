@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyang.ich.user.mapper.system.SysUserMapper">
+
+    <sql id="columns">id, username, password, nickname, email, phone, status, last_login_time, last_login_ip, create_time, update_time</sql>
+    <sql id="allColumns">id, username, password, nickname, avatar, email, phone, status, last_login_time, last_login_ip, create_time, update_time</sql>
+
+    <select id="selectById" resultType="com.hyang.ich.user.entity.SysUser">
+        SELECT <include refid="allColumns"/> FROM sys_user WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <select id="selectByUsername" resultType="com.hyang.ich.user.entity.SysUser">
+        SELECT <include refid="allColumns"/> FROM sys_user WHERE username = #{username} AND is_deleted = 0
+    </select>
+
+    <select id="selectByCondition" resultType="com.hyang.ich.user.entity.SysUser">
+        SELECT <include refid="columns"/> FROM sys_user
+        <where>
+            is_deleted = 0
+            <if test="keyword != null and keyword != ''">AND (username LIKE CONCAT('%',#{keyword},'%') OR nickname LIKE CONCAT('%',#{keyword},'%'))</if>
+        </where>
+        ORDER BY create_time DESC LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*) FROM sys_user
+        <where>
+            is_deleted = 0
+            <if test="keyword != null and keyword != ''">AND (username LIKE CONCAT('%',#{keyword},'%') OR nickname LIKE CONCAT('%',#{keyword},'%'))</if>
+        </where>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_user (username, password, nickname, avatar, email, phone, status)
+        VALUES (#{username}, #{password}, #{nickname}, #{avatar}, #{email}, #{phone}, #{status})
+    </insert>
+
+    <update id="update">
+        UPDATE sys_user
+        <set>
+            <if test="password != null">password = #{password},</if>
+            <if test="nickname != null">nickname = #{nickname},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE sys_user SET is_deleted = 1 WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE sys_user SET status = #{status} WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <update id="updateLoginInfo">
+        UPDATE sys_user SET last_login_time = NOW(), last_login_ip = #{lastLoginIp} WHERE id = #{id} AND is_deleted = 0
+    </update>
+</mapper>

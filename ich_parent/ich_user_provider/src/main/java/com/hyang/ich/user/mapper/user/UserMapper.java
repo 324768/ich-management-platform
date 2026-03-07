@@ -1,12 +1,10 @@
-package com.hyang.ich.user.mapper;
+package com.hyang.ich.user.mapper.user;
 
 import com.hyang.ich.user.entity.User;
-import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
-@Mapper
 public interface UserMapper {
 
     User selectById(@Param("id") Long id);
@@ -24,4 +22,6 @@ public interface UserMapper {
     List<User> selectList(@Param("keyword") String keyword, @Param("offset") int offset, @Param("limit") int limit);
 
     long countList(@Param("keyword") String keyword);
+
+    long countAll();
 }

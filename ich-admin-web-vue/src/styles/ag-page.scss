@@ -1,0 +1,221 @@
+// ══════════════════════════════════════════
+// Antigravity Page — Shared Styles
+// Used by all business pages (Content, Products, Orders, Users, System)
+// ══════════════════════════════════════════
+
+// ── Page scroll wrapper (Antigravity: h-full w-full overflow-y-auto) ──
+.ag-page-scroll {
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+}
+
+// ── Page content (Antigravity: p-5 space-y-4 max-w-7xl mx-auto) ──
+.ag-page-content {
+  padding: 20px;
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+// ── Page toolbar (Antigravity Settings: flex justify-between items-center) ──
+.ag-page-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+// ── Sub-tab pills (Antigravity Settings: bg-gray-100 rounded-full p-1 gap-1) ──
+.ag-sub-pills {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #f3f4f6;
+  border-radius: 9999px;
+  padding: 4px;
+}
+
+.ag-sub-pill {
+  padding: 8px 24px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+  white-space: nowrap;
+  text-decoration: none;
+  color: #4b5563;
+  cursor: pointer;
+
+  &:hover {
+    color: #111827;
+    background: #e5e7eb;
+  }
+
+  &.active {
+    background: #e5e7eb;
+    color: #111827;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
+}
+
+// ── Primary action button (Antigravity: px-3 py-1.5 bg-blue-500 text-white text-xs rounded-lg) ──
+.ag-btn {
+  padding: 6px 12px;
+  background: #3b82f6;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: background 0.15s;
+
+  &:hover {
+    background: #2563eb;
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+.ag-btn-secondary {
+  padding: 6px 12px;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #e5e7eb;
+  }
+}
+
+// ── Card (Antigravity: bg-white rounded-2xl p-6 shadow-sm border border-gray-100) ──
+.ag-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border: 1px solid #f3f4f6;
+  overflow-x: auto;
+}
+
+// ── Search input (Antigravity Accounts: w-40 pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg) ──
+.ag-search {
+  position: relative;
+  width: 160px;
+  transition: width 0.2s;
+
+  &:focus-within {
+    width: 192px;
+  }
+
+  .ag-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    pointer-events: none;
+  }
+
+  input {
+    width: 100%;
+    padding: 8px 16px 8px 36px;
+    background: #fff;
+    font-size: 14px;
+    color: #111827;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    outline: none;
+    transition: all 0.15s;
+
+    &::placeholder {
+      color: #9ca3af;
+    }
+
+    &:focus {
+      border-color: transparent;
+      box-shadow: 0 0 0 2px #3b82f6;
+    }
+  }
+}
+
+// ── Filter pills (Antigravity Accounts: bg-gray-100/80 p-1 rounded-xl) ──
+.ag-filter-pills {
+  display: flex;
+  gap: 2px;
+  background: rgba(243, 244, 246, 0.8);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(229, 231, 235, 0.5);
+}
+
+.ag-filter-pill {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+
+  &:hover {
+    color: #111827;
+    background: rgba(255, 255, 255, 0.4);
+  }
+
+  &.active {
+    background: #fff;
+    color: #2563eb;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  }
+}
+
+.ag-filter-badge {
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  background: #e5e7eb;
+  color: #6b7280;
+
+  .active & {
+    background: #dbeafe;
+    color: #2563eb;
+  }
+}
+
+// ── Table pagination ──
+.ag-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  font-size: 13px;
+  color: #6b7280;
+}
