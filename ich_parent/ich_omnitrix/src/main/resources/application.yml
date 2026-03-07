@@ -3,8 +3,19 @@ server:
 spring:
   application:
     name: ich-omnitrix
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/ai_service?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
 
-# Dubbo provider config (使用本地 Zookeeper 3.4.11，默认 2181)
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.hyang.ich.omnitrix.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
 dubbo:
   application:
     name: ich-omnitrix

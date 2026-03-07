@@ -7,6 +7,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class ContentProviderApplication {
     public static void main(String[] args) {
         SpringApplication.run(ContentProviderApplication.class, args);
+        System.out.println("====================================");
+        System.out.println("  内容服务提供者 (ContentProvider) 启动成功!");
+        System.out.println("  端口: 8082 | Dubbo端口: 20882");
+        System.out.println("====================================");
     }
 }
-

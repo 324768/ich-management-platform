@@ -72,6 +72,18 @@
                 <version>8.0.33</version>
             </dependency>
 
+            <!-- Curator (Dubbo Zookeeper client, 2.x for ZooKeeper 3.4.x) -->
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-framework</artifactId>
+                <version>2.13.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-recipes</artifactId>
+                <version>2.13.0</version>
+            </dependency>
+
             <!-- Manage Guava to allow omitting version in child modules -->
             <dependency>
                 <groupId>com.google.guava</groupId>

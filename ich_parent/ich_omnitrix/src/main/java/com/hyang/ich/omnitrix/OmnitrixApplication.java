@@ -7,5 +7,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class OmnitrixApplication {
     public static void main(String[] args) {
         SpringApplication.run(OmnitrixApplication.class, args);
+        System.out.println("====================================");
+        System.out.println("  AI智能服务 (Omnitrix) 启动成功!");
+        System.out.println("  端口: 8083 | Dubbo端口: 20883");
+        System.out.println("====================================");
     }
 }
