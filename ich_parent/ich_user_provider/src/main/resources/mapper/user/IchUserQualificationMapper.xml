@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyang.ich.user.mapper.user.IchUserQualificationMapper">
+
+    <sql id="columns">
+        id, user_id, user_name, user_phone, qualification_type, title, description,
+        materials, id_card_front, id_card_back, certificate_images,
+        status, reject_reason, reviewer_id, review_time, create_time, update_time
+    </sql>
+
+    <sql id="condition">
+        <where>
+            is_deleted = 0
+            <if test="keyword != null and keyword != ''">
+                AND (user_name LIKE CONCAT('%',#{keyword},'%') OR user_phone LIKE CONCAT('%',#{keyword},'%') OR title LIKE CONCAT('%',#{keyword},'%'))
+            </if>
+            <if test="status != null">AND status = #{status}</if>
+            <if test="userId != null">AND user_id = #{userId}</if>
+        </where>
+    </sql>
+
+    <select id="selectByCondition" resultType="com.hyang.ich.user.entity.IchUserQualification">
+        SELECT <include refid="columns"/>
+        FROM ich_user_qualification
+        <include refid="condition"/>
+        ORDER BY create_time DESC LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*)
+        FROM ich_user_qualification
+        <include refid="condition"/>
+    </select>
+
+    <select id="selectById" resultType="com.hyang.ich.user.entity.IchUserQualification">
+        SELECT <include refid="columns"/>
+        FROM ich_user_qualification
+        WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <select id="selectByUserId" resultType="com.hyang.ich.user.entity.IchUserQualification">
+        SELECT <include refid="columns"/>
+        FROM ich_user_qualification
+        WHERE user_id = #{userId} AND is_deleted = 0
+        ORDER BY create_time DESC LIMIT 1
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ich_user_qualification (user_id, user_name, user_phone, qualification_type, title,
+            description, materials, id_card_front, id_card_back, certificate_images, status)
+        VALUES (#{userId}, #{userName}, #{userPhone}, #{qualificationType}, #{title},
+            #{description}, #{materials}, #{idCardFront}, #{idCardBack}, #{certificateImages}, #{status})
+    </insert>
+
+    <update id="updateStatus">
+        UPDATE ich_user_qualification
+        SET status = #{status}, reject_reason = #{rejectReason}, reviewer_id = #{reviewerId}, review_time = NOW()
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE ich_user_qualification SET is_deleted = 1 WHERE id = #{id}
+    </update>
+</mapper>

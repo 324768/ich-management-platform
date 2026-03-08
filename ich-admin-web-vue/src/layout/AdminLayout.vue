@@ -159,6 +159,7 @@ const { t } = useI18n()
 const mainTabs = computed(() => [
   { label: t('navbar.dashboard'), path: '/dashboard', match: ['/dashboard'] },
   { label: t('navbar.content'), path: '/content/category', match: ['/content'] },
+  { label: t('navbar.activity'), path: '/activity/list', match: ['/activity'] },
   { label: t('navbar.products'), path: '/product/category', match: ['/product'] },
   { label: t('navbar.orders'), path: '/order', match: ['/order'] },
   { label: t('navbar.users'), path: '/user', match: ['/user'] },

@@ -5,11 +5,14 @@ import com.hyang.ich.common.utils.JwtUtils;
 import com.hyang.ich.common.vo.PageResult;
 import com.hyang.ich.system.SystemService;
 import com.hyang.ich.system.dto.SysLoginDTO;
+import com.hyang.ich.system.dto.SysNotificationDTO;
 import com.hyang.ich.system.dto.SysRoleDTO;
 import com.hyang.ich.system.dto.SysUserDTO;
+import com.hyang.ich.user.entity.SysMessage;
 import com.hyang.ich.user.entity.SysRole;
 import com.hyang.ich.user.entity.SysUser;
 import com.hyang.ich.user.entity.SysUserRole;
+import com.hyang.ich.user.mapper.system.SysMessageMapper;
 import com.hyang.ich.user.mapper.system.SysRoleMapper;
 import com.hyang.ich.user.mapper.system.SysUserMapper;
 import com.hyang.ich.user.mapper.system.SysUserRoleMapper;
@@ -32,6 +35,9 @@ public class SystemServiceImpl implements SystemService {
 
     @Autowired
     private SysUserRoleMapper sysUserRoleMapper;
+
+    @Autowired
+    private SysMessageMapper sysMessageMapper;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -139,6 +145,51 @@ public class SystemServiceImpl implements SystemService {
     }
 
     @Override
+    public PageResult<SysNotificationDTO> listNotifications(int pageNum, int pageSize, String keyword, Integer messageType, Integer isPublished) {
+        int offset = (pageNum - 1) * pageSize;
+        List<SysMessage> list = sysMessageMapper.selectByCondition(keyword, messageType, isPublished, offset, pageSize);
+        int total = sysMessageMapper.countByCondition(keyword, messageType, isPublished);
+        List<SysNotificationDTO> dtoList = list.stream().map(this::toSysNotificationDTO).collect(Collectors.toList());
+        return new PageResult<>(pageNum, pageSize, (long) total, dtoList);
+    }
+
+    @Override
+    public SysNotificationDTO getNotificationById(Long id) {
+        SysMessage message = sysMessageMapper.selectById(id);
+        return message != null ? toSysNotificationDTO(message) : null;
+    }
+
+    @Override
+    public SysNotificationDTO addNotification(SysNotificationDTO notificationDTO) {
+        SysMessage message = new SysMessage();
+        BeanUtils.copyProperties(notificationDTO, message);
+        if (message.getIsPublished() == null) message.setIsPublished(0);
+        if (message.getCreateBy() == null) message.setCreateBy(1L);
+        sysMessageMapper.insert(message);
+        notificationDTO.setId(message.getId());
+        if (notificationDTO.getIsPublished() == null) notificationDTO.setIsPublished(0);
+        if (notificationDTO.getCreateBy() == null) notificationDTO.setCreateBy(1L);
+        return notificationDTO;
+    }
+
+    @Override
+    public void updateNotification(SysNotificationDTO notificationDTO) {
+        SysMessage message = new SysMessage();
+        BeanUtils.copyProperties(notificationDTO, message);
+        sysMessageMapper.update(message);
+    }
+
+    @Override
+    public void deleteNotification(Long id) {
+        sysMessageMapper.deleteById(id);
+    }
+
+    @Override
+    public void publishNotification(Long id) {
+        sysMessageMapper.publish(id);
+    }
+
+    @Override
     public void assignRoles(Long adminId, List<Long> roleIds) {
         sysUserRoleMapper.deleteByUserId(adminId);
         if (roleIds != null) {
@@ -162,6 +213,12 @@ public class SystemServiceImpl implements SystemService {
     private SysRoleDTO toSysRoleDTO(SysRole role) {
         SysRoleDTO dto = new SysRoleDTO();
         BeanUtils.copyProperties(role, dto);
+        return dto;
+    }
+
+    private SysNotificationDTO toSysNotificationDTO(SysMessage message) {
+        SysNotificationDTO dto = new SysNotificationDTO();
+        BeanUtils.copyProperties(message, dto);
         return dto;
     }
 }

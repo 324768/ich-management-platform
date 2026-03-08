@@ -97,4 +97,17 @@
         GROUP BY DATE(create_time)
         ORDER BY day ASC
     </select>
+
+    <select id="selectExpiredUnpaid" resultType="com.hyang.ich.user.entity.Order">
+        SELECT <include refid="columns"/> FROM `order`
+        WHERE is_deleted = 0 AND status = 0
+          AND create_time &lt; DATE_SUB(NOW(), INTERVAL #{minutes} MINUTE)
+        ORDER BY create_time ASC
+    </select>
+
+    <update id="batchCancelExpired">
+        UPDATE `order` SET status = 4, close_time = NOW(), update_time = NOW()
+        WHERE is_deleted = 0 AND status = 0
+          AND create_time &lt; DATE_SUB(NOW(), INTERVAL #{minutes} MINUTE)
+    </update>
 </mapper>

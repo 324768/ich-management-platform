@@ -39,4 +39,8 @@ public interface OrderMapper {
     List<Order> selectRecent(@Param("limit") int limit);
 
     List<Map<String, Object>> countByDay(@Param("startDate") String startDate);
+
+    List<Order> selectExpiredUnpaid(@Param("minutes") int minutes);
+
+    int batchCancelExpired(@Param("minutes") int minutes);
 }

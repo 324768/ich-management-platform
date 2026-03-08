@@ -2,7 +2,12 @@
   <div class="ag-page-scroll">
     <div class="ag-page-content">
       <div class="ag-page-toolbar">
-        <span class="ag-page-title">库存预警</span>
+        <nav class="ag-sub-pills">
+          <router-link to="/product/category" class="ag-sub-pill" :class="{ active: $route.path === '/product/category' }">{{ t('product.tabs.category') }}</router-link>
+          <router-link to="/product/list" class="ag-sub-pill" :class="{ active: $route.path === '/product/list' }">{{ t('product.tabs.list') }}</router-link>
+          <router-link to="/product/inventory" class="ag-sub-pill" :class="{ active: $route.path === '/product/inventory' }">{{ t('inventory.tabs.records') }}</router-link>
+          <router-link to="/product/stock-alert" class="ag-sub-pill" :class="{ active: $route.path === '/product/stock-alert' }">{{ t('inventory.tabs.alert') }}</router-link>
+        </nav>
         <div class="toolbar-actions">
           <button class="ag-btn-secondary" @click="handleExport">
             <el-icon :size="14"><Download /></el-icon>

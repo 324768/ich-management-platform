@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyang.ich.content.mapper.content.IchActivityRecordMapper">
+
+    <sql id="columns">
+        r.id, r.activity_id, a.name AS activity_name, r.user_id, r.user_name, r.user_phone,
+        r.registration_time, r.check_in_time, r.status, r.remark, r.create_time, r.update_time
+    </sql>
+
+    <sql id="condition">
+        <where>
+            r.is_deleted = 0
+            <if test="keyword != null and keyword != ''">AND (a.name LIKE CONCAT('%',#{keyword},'%') OR r.user_name LIKE CONCAT('%',#{keyword},'%') OR r.user_phone LIKE CONCAT('%',#{keyword},'%'))</if>
+            <if test="status != null">AND r.status = #{status}</if>
+            <if test="activityId != null">AND r.activity_id = #{activityId}</if>
+        </where>
+    </sql>
+
+    <select id="selectByCondition" resultType="com.hyang.ich.content.entity.IchActivityRecord">
+        SELECT <include refid="columns"/>
+        FROM ich_activity_record r
+        LEFT JOIN ich_activity a ON r.activity_id = a.id
+        <include refid="condition"/>
+        ORDER BY r.registration_time DESC LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*)
+        FROM ich_activity_record r
+        LEFT JOIN ich_activity a ON r.activity_id = a.id
+        <include refid="condition"/>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ich_activity_record (activity_id, user_id, user_name, user_phone, registration_time, status, remark)
+        VALUES (#{activityId}, #{userId}, #{userName}, #{userPhone}, NOW(), #{status}, #{remark})
+    </insert>
+
+    <update id="updateStatus">
+        UPDATE ich_activity_record SET status = #{status} WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE ich_activity_record SET is_deleted = 1 WHERE id = #{id}
+    </update>
+</mapper>

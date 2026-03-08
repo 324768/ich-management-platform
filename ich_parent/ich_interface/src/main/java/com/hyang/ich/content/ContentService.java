@@ -1,9 +1,15 @@
 package com.hyang.ich.content;
 
 import com.hyang.ich.common.vo.PageResult;
+import com.hyang.ich.content.dto.IchActivityCommentDTO;
+import com.hyang.ich.content.dto.IchActivityDTO;
+import com.hyang.ich.content.dto.IchActivityRecordDTO;
+import com.hyang.ich.content.dto.IchActivityViewLogDTO;
 import com.hyang.ich.content.dto.IchCategoryDTO;
 import com.hyang.ich.content.dto.IchHeritageManDTO;
 import com.hyang.ich.content.dto.IchItemDTO;
+import com.hyang.ich.content.dto.IchPostDTO;
+import com.hyang.ich.content.dto.IchPostCommentDTO;
 
 import java.util.List;
 
@@ -66,6 +72,92 @@ public interface ContentService {
     /** 删除传承人 */
     void deleteHeritageMan(Long id);
 
+    PageResult<IchActivityDTO> listActivities(int pageNum, int pageSize, String keyword, Integer status, Integer activityType);
+
+    IchActivityDTO getActivityById(Long id);
+
+    IchActivityDTO addActivity(IchActivityDTO activityDTO);
+
+    void updateActivity(IchActivityDTO activityDTO);
+
+    void deleteActivity(Long id);
+
+    void updateActivityStatus(Long id, Integer status);
+
+    PageResult<IchActivityRecordDTO> listActivityRecords(int pageNum, int pageSize, String keyword, Integer status, Long activityId);
+
+    void updateActivityRecordStatus(Long id, Integer status);
+
+    void deleteActivityRecord(Long id);
+
+    /**
+     * 活动报名 — 检查人数上限，成功后 currentParticipants + 1
+     * @return 报名记录 DTO，若已满则返回 null
+     */
+    IchActivityRecordDTO registerActivity(IchActivityRecordDTO recordDTO);
+
+    // ========== 活动审批 ==========
+
+    /** 按审批状态分页查询活动 */
+    PageResult<IchActivityDTO> listActivitiesByApproval(int pageNum, int pageSize, String keyword, Integer approvalStatus);
+
+    /** 更新活动审批状态 */
+    void updateActivityApprovalStatus(Long id, Integer approvalStatus, String rejectReason, Long reviewerId);
+
+    // ========== 活动评论 ==========
+
+    PageResult<IchActivityCommentDTO> listActivityComments(Long activityId, int pageNum, int pageSize);
+
+    IchActivityCommentDTO addActivityComment(IchActivityCommentDTO commentDTO);
+
+    void deleteActivityComment(Long id);
+
+    void updateActivityCommentStatus(Long id, Integer status);
+
+    // ========== 活动浏览记录 ==========
+
+    PageResult<IchActivityViewLogDTO> listActivityViewLogs(Long activityId, int pageNum, int pageSize);
+
+    void addActivityViewLog(IchActivityViewLogDTO viewLogDTO);
+
     /** 统计非遗项目总数 */
     long countItems();
+
+    // ========== 非遗动态/笔记 ==========
+
+    PageResult<IchPostDTO> listPosts(int pageNum, int pageSize, String keyword, Integer type);
+
+    IchPostDTO getPostById(Long id);
+
+    IchPostDTO addPost(IchPostDTO postDTO);
+
+    void updatePost(IchPostDTO postDTO);
+
+    void deletePost(Long id);
+
+    void likePost(Long postId, Long userId);
+
+    void unlikePost(Long postId, Long userId);
+
+    void favoritePost(Long postId, Long userId);
+
+    void unfavoritePost(Long postId, Long userId);
+
+    boolean hasLikedPost(Long postId, Long userId);
+
+    boolean hasFavoritedPost(Long postId, Long userId);
+
+    PageResult<IchPostDTO> listUserPosts(Long userId, int pageNum, int pageSize);
+
+    PageResult<IchPostDTO> listUserLikedPosts(Long userId, int pageNum, int pageSize);
+
+    PageResult<IchPostDTO> listUserFavoritedPosts(Long userId, int pageNum, int pageSize);
+
+    // ========== 非遗动态评论 ==========
+
+    PageResult<IchPostCommentDTO> listPostComments(Long postId, int pageNum, int pageSize);
+
+    IchPostCommentDTO addPostComment(IchPostCommentDTO commentDTO);
+
+    void deletePostComment(Long id);
 }

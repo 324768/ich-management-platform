@@ -5,14 +5,19 @@ import com.hyang.ich.common.exception.BusinessException;
 import com.hyang.ich.common.utils.JwtUtils;
 import com.hyang.ich.common.vo.PageResult;
 import com.hyang.ich.user.UserService;
+import com.hyang.ich.user.dto.IchUserQualificationDTO;
 import com.hyang.ich.user.dto.UserAddressDTO;
 import com.hyang.ich.user.dto.UserDTO;
 import com.hyang.ich.user.dto.UserLoginDTO;
 import com.hyang.ich.user.dto.UserRegisterDTO;
+import com.hyang.ich.user.entity.IchUserQualification;
 import com.hyang.ich.user.entity.User;
 import com.hyang.ich.user.entity.UserAddress;
+import com.hyang.ich.user.mapper.user.IchUserQualificationMapper;
 import com.hyang.ich.user.mapper.user.UserAddressMapper;
 import com.hyang.ich.user.mapper.user.UserMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,8 +25,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @DubboService
 public class UserServiceImpl implements UserService {
@@ -34,7 +41,11 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserAddressMapper userAddressMapper;
 
+    @Autowired
+    private IchUserQualificationMapper qualificationMapper;
+
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     // ========== 用户认证 ==========
 
@@ -196,6 +207,66 @@ public class UserServiceImpl implements UserService {
         return userMapper.countAll();
     }
 
+    // ========== 用户资格认证 ==========
+
+    @Override
+    public IchUserQualificationDTO submitQualification(IchUserQualificationDTO dto) {
+        IchUserQualification entity = new IchUserQualification();
+        entity.setUserId(dto.getUserId());
+        entity.setUserName(dto.getUserName());
+        entity.setUserPhone(dto.getUserPhone());
+        entity.setQualificationType(dto.getQualificationType());
+        entity.setTitle(dto.getTitle());
+        entity.setDescription(dto.getDescription());
+        entity.setMaterials(toJsonString(dto.getMaterials()));
+        entity.setIdCardFront(dto.getIdCardFront());
+        entity.setIdCardBack(dto.getIdCardBack());
+        entity.setCertificateImages(toJsonString(dto.getCertificateImages()));
+        entity.setStatus(0);
+        qualificationMapper.insert(entity);
+        dto.setId(entity.getId());
+        dto.setStatus(0);
+        return dto;
+    }
+
+    @Override
+    public IchUserQualificationDTO getQualificationByUserId(Long userId) {
+        IchUserQualification entity = qualificationMapper.selectByUserId(userId);
+        return entity != null ? toQualificationDTO(entity) : null;
+    }
+
+    @Override
+    public PageResult<IchUserQualificationDTO> listQualifications(int pageNum, int pageSize, String keyword, Integer status) {
+        int offset = (pageNum - 1) * pageSize;
+        List<IchUserQualification> list = qualificationMapper.selectByCondition(keyword, status, null, offset, pageSize);
+        int total = qualificationMapper.countByCondition(keyword, status, null);
+        List<IchUserQualificationDTO> dtoList = list.stream().map(this::toQualificationDTO).collect(Collectors.toList());
+        return new PageResult<>(pageNum, pageSize, (long) total, dtoList);
+    }
+
+    @Override
+    public void reviewQualification(Long id, Integer status, String rejectReason, Long reviewerId) {
+        qualificationMapper.updateStatus(id, status, rejectReason, reviewerId);
+        // 审核通过时，更新用户的 heritage_flag
+        if (status != null && status == 1) {
+            IchUserQualification q = qualificationMapper.selectById(id);
+            if (q != null) {
+                userMapper.updateHeritageFlag(q.getUserId(), 1);
+            }
+        } else if (status != null && status == 2) {
+            IchUserQualification q = qualificationMapper.selectById(id);
+            if (q != null) {
+                userMapper.updateHeritageFlag(q.getUserId(), 0);
+            }
+        }
+    }
+
+    @Override
+    public boolean hasHeritageFlag(Long userId) {
+        User user = userMapper.selectById(userId);
+        return user != null && user.getHeritageFlag() != null && user.getHeritageFlag() == 1;
+    }
+
     // ========== 实体转DTO ==========
 
     private UserDTO toUserDTO(User user) {
@@ -207,11 +278,44 @@ public class UserServiceImpl implements UserService {
         dto.setEmail(user.getEmail());
         dto.setPhone(user.getPhone());
         dto.setStatus(user.getStatus());
+        dto.setHeritageFlag(user.getHeritageFlag());
         dto.setLastLoginTime(user.getLastLoginTime());
         dto.setLastLoginIp(user.getLastLoginIp());
         dto.setCreateTime(user.getCreateTime());
         dto.setUpdateTime(user.getUpdateTime());
         return dto;
+    }
+
+    private IchUserQualificationDTO toQualificationDTO(IchUserQualification entity) {
+        IchUserQualificationDTO dto = new IchUserQualificationDTO();
+        dto.setId(entity.getId());
+        dto.setUserId(entity.getUserId());
+        dto.setUserName(entity.getUserName());
+        dto.setUserPhone(entity.getUserPhone());
+        dto.setQualificationType(entity.getQualificationType());
+        dto.setTitle(entity.getTitle());
+        dto.setDescription(entity.getDescription());
+        dto.setMaterials(parseJsonList(entity.getMaterials()));
+        dto.setIdCardFront(entity.getIdCardFront());
+        dto.setIdCardBack(entity.getIdCardBack());
+        dto.setCertificateImages(parseJsonList(entity.getCertificateImages()));
+        dto.setStatus(entity.getStatus());
+        dto.setRejectReason(entity.getRejectReason());
+        dto.setReviewerId(entity.getReviewerId());
+        dto.setReviewTime(entity.getReviewTime());
+        dto.setCreateTime(entity.getCreateTime());
+        dto.setUpdateTime(entity.getUpdateTime());
+        return dto;
+    }
+
+    private String toJsonString(List<String> list) {
+        if (list == null || list.isEmpty()) return null;
+        try { return objectMapper.writeValueAsString(list); } catch (Exception e) { return null; }
+    }
+
+    private List<String> parseJsonList(String json) {
+        if (json == null || json.isEmpty()) return Collections.emptyList();
+        try { return objectMapper.readValue(json, new TypeReference<List<String>>() {}); } catch (Exception e) { return Collections.emptyList(); }
     }
 
     private UserAddressDTO toAddressDTO(UserAddress addr) {

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyang.ich.content.mapper.content.IchActivityMapper">
+
+    <sql id="allColumns">
+        id, name, activity_type, cover_image, description, content, location, start_time, end_time,
+        max_participants, current_participants, registration_deadline, contact_person, contact_phone,
+        organizer, requester, request_unit, detail_images, videos, timeline_data,
+        item_id, status, approval_status, reject_reason, reviewer_id, review_time, publisher_user_id,
+        sort, create_time, update_time
+    </sql>
+
+    <sql id="condition">
+        <where>
+            is_deleted = 0
+            <if test="keyword != null and keyword != ''">AND (name LIKE CONCAT('%',#{keyword},'%') OR description LIKE CONCAT('%',#{keyword},'%'))</if>
+            <if test="status != null">AND status = #{status}</if>
+            <if test="activityType != null">AND activity_type = #{activityType}</if>
+            <if test="approvalStatus != null">AND approval_status = #{approvalStatus}</if>
+        </where>
+    </sql>
+
+    <select id="selectByCondition" resultType="com.hyang.ich.content.entity.IchActivity">
+        SELECT <include refid="allColumns"/> FROM ich_activity
+        <include refid="condition"/>
+        ORDER BY create_time DESC LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*) FROM ich_activity <include refid="condition"/>
+    </select>
+
+    <select id="selectById" resultType="com.hyang.ich.content.entity.IchActivity">
+        SELECT <include refid="allColumns"/> FROM ich_activity WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ich_activity (name, activity_type, cover_image, description, content, location, start_time, end_time,
+            max_participants, current_participants, registration_deadline, contact_person, contact_phone,
+            organizer, requester, request_unit, detail_images, videos, timeline_data, item_id, status,
+            approval_status, publisher_user_id, sort)
+        VALUES (#{name}, #{activityType}, #{coverImage}, #{description}, #{content}, #{location}, #{startTime}, #{endTime},
+            #{maxParticipants}, #{currentParticipants}, #{registrationDeadline}, #{contactPerson}, #{contactPhone},
+            #{organizer}, #{requester}, #{requestUnit}, #{detailImages}, #{videos}, #{timelineData}, #{itemId}, #{status},
+            #{approvalStatus}, #{publisherUserId}, #{sort})
+    </insert>
+
+    <update id="update">
+        UPDATE ich_activity
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="activityType != null">activity_type = #{activityType},</if>
+            <if test="coverImage != null">cover_image = #{coverImage},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="location != null">location = #{location},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="maxParticipants != null">max_participants = #{maxParticipants},</if>
+            <if test="currentParticipants != null">current_participants = #{currentParticipants},</if>
+            <if test="registrationDeadline != null">registration_deadline = #{registrationDeadline},</if>
+            <if test="contactPerson != null">contact_person = #{contactPerson},</if>
+            <if test="contactPhone != null">contact_phone = #{contactPhone},</if>
+            <if test="organizer != null">organizer = #{organizer},</if>
+            <if test="requester != null">requester = #{requester},</if>
+            <if test="requestUnit != null">request_unit = #{requestUnit},</if>
+            <if test="detailImages != null">detail_images = #{detailImages},</if>
+            <if test="videos != null">videos = #{videos},</if>
+            <if test="timelineData != null">timeline_data = #{timelineData},</if>
+            <if test="itemId != null">item_id = #{itemId},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="approvalStatus != null">approval_status = #{approvalStatus},</if>
+            <if test="rejectReason != null">reject_reason = #{rejectReason},</if>
+            <if test="reviewerId != null">reviewer_id = #{reviewerId},</if>
+            <if test="reviewTime != null">review_time = #{reviewTime},</if>
+            <if test="publisherUserId != null">publisher_user_id = #{publisherUserId},</if>
+            <if test="sort != null">sort = #{sort},</if>
+        </set>
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE ich_activity SET is_deleted = 1 WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE ich_activity SET status = #{status} WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <update id="incrementParticipants">
+        UPDATE ich_activity SET current_participants = IFNULL(current_participants, 0) + 1
+        WHERE id = #{id} AND is_deleted = 0
+        AND (max_participants IS NULL OR max_participants = 0 OR IFNULL(current_participants, 0) &lt; max_participants)
+    </update>
+
+    <update id="updateApprovalStatus">
+        UPDATE ich_activity SET approval_status = #{approvalStatus},
+        reject_reason = #{rejectReason}, reviewer_id = #{reviewerId}, review_time = NOW()
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <select id="selectByApprovalStatus" resultType="com.hyang.ich.content.entity.IchActivity">
+        SELECT <include refid="allColumns"/> FROM ich_activity
+        WHERE is_deleted = 0 AND approval_status = #{approvalStatus}
+        <if test="keyword != null and keyword != ''">AND (name LIKE CONCAT('%',#{keyword},'%') OR description LIKE CONCAT('%',#{keyword},'%'))</if>
+        ORDER BY create_time DESC LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByApprovalStatus" resultType="int">
+        SELECT COUNT(*) FROM ich_activity WHERE is_deleted = 0 AND approval_status = #{approvalStatus}
+        <if test="keyword != null and keyword != ''">AND (name LIKE CONCAT('%',#{keyword},'%') OR description LIKE CONCAT('%',#{keyword},'%'))</if>
+    </select>
+</mapper>

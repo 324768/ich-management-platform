@@ -26,6 +26,7 @@ dubbo:
   protocol:
     name: dubbo
     port: 20882
+    payload: 52428800
   scan:
     base-packages: com.hyang.ich.content
 

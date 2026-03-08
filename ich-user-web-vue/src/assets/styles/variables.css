@@ -1,0 +1,50 @@
+:root {
+  /* Primary Colors - Chinese Red */
+  --ich-primary: #8B2020;
+  --ich-primary-light: #A63030;
+  --ich-primary-dark: #6B1515;
+  --ich-primary-bg: rgba(139, 32, 32, 0.05);
+  --ich-primary-hover: rgba(139, 32, 32, 0.08);
+
+  /* Accent Colors */
+  --ich-gold: #D4A847;
+  --ich-gold-light: #E8C878;
+
+  /* Neutral Colors */
+  --ich-white: #ffffff;
+  --ich-bg: #f5f5f5;
+  --ich-bg-soft: #fafafa;
+  --ich-bg-warm: #fdf8f4;
+  --ich-border: #e8e8e8;
+  --ich-border-hover: #d0d0d0;
+
+  /* Text Colors */
+  --ich-text-primary: #1a1a1a;
+  --ich-text-secondary: #666666;
+  --ich-text-muted: #999999;
+  --ich-text-white: #ffffff;
+
+  /* Shadows */
+  --ich-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --ich-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --ich-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --ich-shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+  /* Layout */
+  --ich-header-height: 64px;
+  --ich-max-width: 1200px;
+
+  /* Border Radius */
+  --ich-radius-sm: 4px;
+  --ich-radius-md: 8px;
+  --ich-radius-lg: 12px;
+  --ich-radius-xl: 20px;
+  --ich-radius-round: 50%;
+
+  /* Transitions */
+  --ich-transition: all 0.3s ease;
+
+  /* Font */
+  --ich-font: 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', -apple-system, sans-serif;
+  --ich-font-serif: 'Noto Serif SC', 'STSong', 'SimSun', serif;
+}

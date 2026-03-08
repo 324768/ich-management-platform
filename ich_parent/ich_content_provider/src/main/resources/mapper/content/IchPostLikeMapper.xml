@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyang.ich.content.mapper.content.IchPostLikeMapper">
+
+    <insert id="insert">
+        INSERT IGNORE INTO ich_post_like (post_id, user_id) VALUES (#{postId}, #{userId})
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM ich_post_like WHERE post_id = #{postId} AND user_id = #{userId}
+    </delete>
+
+    <select id="exists" resultType="int">
+        SELECT COUNT(*) FROM ich_post_like WHERE post_id = #{postId} AND user_id = #{userId}
+    </select>
+
+    <select id="selectPostsByUserId" resultType="com.hyang.ich.content.entity.IchPost">
+        SELECT p.id, p.user_id, p.user_name, p.user_avatar, p.title, p.content, p.images, p.video_url, p.cover_image,
+               p.tags, p.type, p.like_count, p.favorite_count, p.comment_count, p.view_count, p.status, p.create_time, p.update_time
+        FROM ich_post_like l INNER JOIN ich_post p ON l.post_id = p.id
+        WHERE l.user_id = #{userId} AND p.is_deleted = 0 AND p.status = 1
+        ORDER BY l.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByUserId" resultType="int">
+        SELECT COUNT(*) FROM ich_post_like l INNER JOIN ich_post p ON l.post_id = p.id
+        WHERE l.user_id = #{userId} AND p.is_deleted = 0 AND p.status = 1
+    </select>
+</mapper>

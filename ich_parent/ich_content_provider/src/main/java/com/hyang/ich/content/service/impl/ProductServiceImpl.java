@@ -4,15 +4,18 @@ import com.hyang.ich.common.vo.PageResult;
 import com.hyang.ich.content.entity.Cart;
 import com.hyang.ich.content.entity.IchCategory;
 import com.hyang.ich.content.entity.IchHeritageMan;
+import com.hyang.ich.content.entity.InventoryRecord;
 import com.hyang.ich.content.entity.Product;
 import com.hyang.ich.content.entity.ProductCategory;
 import com.hyang.ich.content.mapper.content.IchCategoryMapper;
 import com.hyang.ich.content.mapper.content.IchHeritageManMapper;
 import com.hyang.ich.content.mapper.product.CartMapper;
+import com.hyang.ich.content.mapper.product.InventoryRecordMapper;
 import com.hyang.ich.content.mapper.product.ProductCategoryMapper;
 import com.hyang.ich.content.mapper.product.ProductMapper;
 import com.hyang.ich.product.ProductService;
 import com.hyang.ich.product.dto.CartDTO;
+import com.hyang.ich.product.dto.InventoryRecordDTO;
 import com.hyang.ich.product.dto.ProductCategoryDTO;
 import com.hyang.ich.product.dto.ProductDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -35,6 +38,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private ProductMapper productMapper;
+
+    @Autowired
+    private InventoryRecordMapper inventoryRecordMapper;
 
     @Autowired
     private CartMapper cartMapper;
@@ -178,6 +184,68 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
+    @Override
+    public PageResult<InventoryRecordDTO> listInventoryRecords(int pageNum, int pageSize, String keyword, Integer type) {
+        int offset = (pageNum - 1) * pageSize;
+        List<InventoryRecord> list = inventoryRecordMapper.selectByCondition(keyword, type, offset, pageSize);
+        int total = inventoryRecordMapper.countByCondition(keyword, type);
+        List<InventoryRecordDTO> dtoList = list.stream().map(this::toInventoryRecordDTO).collect(Collectors.toList());
+        return new PageResult<>(pageNum, pageSize, (long) total, dtoList);
+    }
+
+    @Override
+    public InventoryRecordDTO addInventoryRecord(InventoryRecordDTO dto) {
+        Product product = productMapper.selectById(dto.getProductId());
+        if (product == null) {
+            throw new RuntimeException("商品不存在");
+        }
+        int beforeStock = product.getStock() == null ? 0 : product.getStock();
+        int inputQuantity = dto.getQuantity() == null ? 0 : dto.getQuantity();
+        int recordQuantity = inputQuantity;
+        int afterStock;
+        if (dto.getType() != null && dto.getType() == 2) {
+            if (beforeStock < inputQuantity) {
+                throw new RuntimeException("库存不足");
+            }
+            recordQuantity = -inputQuantity;
+            afterStock = beforeStock - inputQuantity;
+        } else if (dto.getType() != null && dto.getType() == 3) {
+            afterStock = inputQuantity;
+            recordQuantity = inputQuantity - beforeStock;
+        } else {
+            afterStock = beforeStock + inputQuantity;
+        }
+
+        Product updateProduct = new Product();
+        updateProduct.setId(product.getId());
+        updateProduct.setStock(afterStock);
+        productMapper.update(updateProduct);
+
+        InventoryRecord entity = new InventoryRecord();
+        entity.setProductId(product.getId());
+        entity.setProductName(product.getName());
+        entity.setType(dto.getType());
+        entity.setQuantity(recordQuantity);
+        entity.setBeforeStock(beforeStock);
+        entity.setAfterStock(afterStock);
+        entity.setReason(dto.getReason());
+        entity.setOperatorId(dto.getOperatorId());
+        entity.setOperatorName(dto.getOperatorName());
+        inventoryRecordMapper.insert(entity);
+
+        dto.setId(entity.getId());
+        dto.setProductName(product.getName());
+        dto.setQuantity(recordQuantity);
+        dto.setBeforeStock(beforeStock);
+        dto.setAfterStock(afterStock);
+        return dto;
+    }
+
+    @Override
+    public void deleteInventoryRecord(Long id) {
+        inventoryRecordMapper.deleteById(id);
+    }
+
     // ========== 购物车 ==========
 
     @Override
@@ -285,6 +353,12 @@ public class ProductServiceImpl implements ProductService {
         ProductDTO dto = new ProductDTO();
         BeanUtils.copyProperties(entity, dto, "videos");
         dto.setVideos(fromJsonString(entity.getVideos()));
+        return dto;
+    }
+
+    private InventoryRecordDTO toInventoryRecordDTO(InventoryRecord entity) {
+        InventoryRecordDTO dto = new InventoryRecordDTO();
+        BeanUtils.copyProperties(entity, dto);
         return dto;
     }
 

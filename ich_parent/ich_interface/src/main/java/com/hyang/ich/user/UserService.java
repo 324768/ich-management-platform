@@ -2,6 +2,7 @@ package com.hyang.ich.user;
 
 import com.hyang.ich.common.vo.PageResult;
 import com.hyang.ich.user.dto.UserAddressDTO;
+import com.hyang.ich.user.dto.IchUserQualificationDTO;
 import com.hyang.ich.user.dto.UserDTO;
 import com.hyang.ich.user.dto.UserLoginDTO;
 import com.hyang.ich.user.dto.UserRegisterDTO;
@@ -53,6 +54,23 @@ public interface UserService {
 
     /** 统计用户总数 */
     long countUsers();
+
+    // ========== 用户资格认证 ==========
+
+    /** 提交资格认证申请 */
+    IchUserQualificationDTO submitQualification(IchUserQualificationDTO dto);
+
+    /** 查询用户自己的资格认证 */
+    IchUserQualificationDTO getQualificationByUserId(Long userId);
+
+    /** 分页查询资格认证列表（管理端） */
+    PageResult<IchUserQualificationDTO> listQualifications(int pageNum, int pageSize, String keyword, Integer status);
+
+    /** 审核资格认证（管理端） */
+    void reviewQualification(Long id, Integer status, String rejectReason, Long reviewerId);
+
+    /** 检查用户是否有传承标志 */
+    boolean hasHeritageFlag(Long userId);
 }
 
 

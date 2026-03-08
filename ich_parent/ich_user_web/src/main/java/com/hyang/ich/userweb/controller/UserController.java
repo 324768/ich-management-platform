@@ -76,6 +76,5 @@ public class UserController {
         userService.setDefaultAddress(userId, addressId);
         return Result.success();
     }
+
 }
-
-

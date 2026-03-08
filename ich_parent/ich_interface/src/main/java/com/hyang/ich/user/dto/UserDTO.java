@@ -17,6 +17,7 @@ public class UserDTO implements Serializable {
     private String email;
     private String phone;
     private Integer status;
+    private Integer heritageFlag;    // 0=普通用户 1=已认证传承人/公司
     private Date lastLoginTime;
     private String lastLoginIp;
     private Date createTime;

@@ -2,6 +2,7 @@ package com.hyang.ich.system;
 
 import com.hyang.ich.common.vo.PageResult;
 import com.hyang.ich.system.dto.SysLoginDTO;
+import com.hyang.ich.system.dto.SysNotificationDTO;
 import com.hyang.ich.system.dto.SysRoleDTO;
 import com.hyang.ich.system.dto.SysUserDTO;
 
@@ -47,6 +48,18 @@ public interface SystemService {
 
     /** 删除角色 */
     void deleteRole(Long roleId);
+
+    PageResult<SysNotificationDTO> listNotifications(int pageNum, int pageSize, String keyword, Integer messageType, Integer isPublished);
+
+    SysNotificationDTO getNotificationById(Long id);
+
+    SysNotificationDTO addNotification(SysNotificationDTO notificationDTO);
+
+    void updateNotification(SysNotificationDTO notificationDTO);
+
+    void deleteNotification(Long id);
+
+    void publishNotification(Long id);
 
     /** 为管理员分配角色 */
     void assignRoles(Long adminId, List<Long> roleIds);

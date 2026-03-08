@@ -194,7 +194,7 @@ import { useAuthStore } from '@/store/auth'
 import { useThemeStore } from '@/store/theme'
 import { ElMessage } from 'element-plus'
 
-const { t } = useI18n()
+const { t, tm } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
 const themeStore = useThemeStore()
@@ -204,9 +204,9 @@ const rememberMe = ref(false)
 const cardPosition = ref('left')
 const activeDecoTab = ref(0)
 const decoTabs = computed(() => [
-  { label: t('login.tab1'), items: t('login.tab1Items'), color: '#6366f1' },
-  { label: t('login.tab2'), items: t('login.tab2Items'), color: '#8b5cf6' },
-  { label: t('login.tab3'), items: t('login.tab3Items'), color: '#3b82f6' },
+  { label: t('login.tab1'), items: tm('login.tab1Items'), color: '#6366f1' },
+  { label: t('login.tab2'), items: tm('login.tab2Items'), color: '#8b5cf6' },
+  { label: t('login.tab3'), items: tm('login.tab3Items'), color: '#3b82f6' },
 ])
 const dropdownOpen = ref(false)
 const dropdownRef = ref(null)
@@ -719,8 +719,8 @@ $accent: #c4642a;
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 10px 14px;
-  padding: 5px 10px;
+  margin: 8px 14px;
+  padding: 4px 10px;
   background: #f9f8f6;
   border-radius: 6px;
   font-size: 11px;
@@ -730,21 +730,21 @@ $accent: #c4642a;
 .ws-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  padding: 0 14px 10px;
+  gap: 6px;
+  padding: 0 14px 8px;
 }
 
 .ws-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 12px 0;
+  gap: 4px;
+  padding: 8px 0;
   cursor: default;
 
   .ws-icon {
-    width: 38px;
-    height: 28px;
+    width: 34px;
+    height: 24px;
     border-radius: 4px 4px 0 0;
     position: relative;
     transition: background 0.2s;

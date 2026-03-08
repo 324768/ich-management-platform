@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyang.ich.content.mapper.content.IchPostCommentMapper">
+
+    <sql id="columns">
+        id, post_id, user_id, user_name, user_avatar, content, images, like_count, location, status, create_time
+    </sql>
+
+    <select id="selectByPostId" resultType="com.hyang.ich.content.entity.IchPostComment">
+        SELECT <include refid="columns"/> FROM ich_post_comment
+        WHERE post_id = #{postId} AND is_deleted = 0
+        ORDER BY create_time DESC LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByPostId" resultType="int">
+        SELECT COUNT(*) FROM ich_post_comment
+        WHERE post_id = #{postId} AND is_deleted = 0
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ich_post_comment (post_id, user_id, user_name, user_avatar, content, images, location, status)
+        VALUES (#{postId}, #{userId}, #{userName}, #{userAvatar}, #{content}, #{images}, #{location}, #{status})
+    </insert>
+
+    <update id="deleteById">
+        UPDATE ich_post_comment SET is_deleted = 1 WHERE id = #{id}
+    </update>
+</mapper>

@@ -24,4 +24,6 @@ public interface UserMapper {
     long countList(@Param("keyword") String keyword);
 
     long countAll();
+
+    int updateHeritageFlag(@Param("id") Long id, @Param("heritageFlag") Integer heritageFlag);
 }

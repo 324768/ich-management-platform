@@ -1,5 +1,8 @@
 server:
   port: 8090
+  tomcat:
+    max-http-form-content-size: 52428800
+    max-swallow-size: 52428800
 spring:
   application:
     name: ich-user-web
@@ -16,6 +19,9 @@ dubbo:
     address: zookeeper://127.0.0.1:2181
   consumer:
     check: false
+  protocol:
+    name: dubbo
+    payload: 52428800
 
 logging:
   level:

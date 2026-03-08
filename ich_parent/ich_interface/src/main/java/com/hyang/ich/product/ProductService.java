@@ -2,6 +2,7 @@ package com.hyang.ich.product;
 
 import com.hyang.ich.common.vo.PageResult;
 import com.hyang.ich.product.dto.CartDTO;
+import com.hyang.ich.product.dto.InventoryRecordDTO;
 import com.hyang.ich.product.dto.ProductCategoryDTO;
 import com.hyang.ich.product.dto.ProductDTO;
 
@@ -39,6 +40,12 @@ public interface ProductService {
 
     /** 扣减库存 */
     void reduceStock(Long productId, Integer quantity);
+
+    PageResult<InventoryRecordDTO> listInventoryRecords(int pageNum, int pageSize, String keyword, Integer type);
+
+    InventoryRecordDTO addInventoryRecord(InventoryRecordDTO inventoryRecordDTO);
+
+    void deleteInventoryRecord(Long id);
 
     // ========== 购物车 ==========
 

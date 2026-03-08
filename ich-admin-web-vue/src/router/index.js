@@ -84,6 +84,12 @@ const routes = [
         meta: { title: 'Product List', icon: 'ShoppingBag', parent: 'Products' }
       },
       {
+        path: 'product/inventory',
+        name: 'InventoryRecord',
+        component: () => import('@/views/product/InventoryRecordList.vue'),
+        meta: { title: 'Inventory Records', icon: 'Notebook', parent: 'Products' }
+      },
+      {
         path: 'product/stock-alert',
         name: 'StockAlert',
         component: () => import('@/views/product/StockAlertList.vue'),
@@ -102,6 +108,36 @@ const routes = [
         meta: { title: 'Video Exhibition', icon: 'VideoCamera', parent: 'Video' }
       },
       {
+        path: 'activity/list',
+        name: 'ActivityList',
+        component: () => import('@/views/activity/ActivityList.vue'),
+        meta: { title: 'Activities', icon: 'Flag', parent: 'Activity' }
+      },
+      {
+        path: 'activity/detail/:id',
+        name: 'ActivityDetail',
+        component: () => import('@/views/activity/ActivityDetail.vue'),
+        meta: { title: 'Activity Detail', parent: 'Activity' }
+      },
+      {
+        path: 'activity/record',
+        name: 'ActivityRecord',
+        component: () => import('@/views/activity/ActivityRecordList.vue'),
+        meta: { title: 'Activity Records', icon: 'Tickets', parent: 'Activity' }
+      },
+      {
+        path: 'activity/history/:id',
+        name: 'ActivityRecordDetail',
+        component: () => import('@/views/activity/ActivityRecordDetail.vue'),
+        meta: { title: 'Activity Record Detail', parent: 'Activity' }
+      },
+      {
+        path: 'activity/approval',
+        name: 'ActivityApproval',
+        component: () => import('@/views/activity/ActivityApprovalList.vue'),
+        meta: { title: 'Activity Approval', icon: 'Stamp', parent: 'Activity' }
+      },
+      {
         path: 'order',
         name: 'OrderManage',
         component: () => import('@/views/order/OrderList.vue'),
@@ -118,6 +154,12 @@ const routes = [
         name: 'RoleManage',
         component: () => import('@/views/system/RoleList.vue'),
         meta: { title: 'Roles', icon: 'Key', parent: 'System' }
+      },
+      {
+        path: 'system/notification',
+        name: 'NotificationManage',
+        component: () => import('@/views/system/NotificationList.vue'),
+        meta: { title: 'Notifications', icon: 'Bell', parent: 'System' }
       }
     ]
   },
