@@ -52,6 +52,24 @@ public interface UserService {
     /** 设置默认地址 */
     void setDefaultAddress(Long userId, Long addressId);
 
+    /** 根据昵称查询用户 */
+    UserDTO findByNickname(String nickname);
+
+    /** 删除用户（Ultra AI 专用） */
+    void deleteUser(Long userId);
+
+    /** 查询在线用户ID列表 */
+    List<Long> listOnlineUserIds();
+
+    /** 查询在线用户详情列表 */
+    List<UserDTO> listOnlineUsers();
+
+    /** 设置用户在线状态 */
+    void setOnlineStatus(Long userId, boolean online);
+
+    /** 批量设置用户离线（超时清理用） */
+    int clearInactiveUsers(int timeoutMinutes);
+
     /** 统计用户总数 */
     long countUsers();
 

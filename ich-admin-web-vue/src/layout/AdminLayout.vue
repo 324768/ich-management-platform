@@ -138,6 +138,7 @@
         <component :is="Component" />
       </router-view>
     </main>
+    <OmnitrixFloat />
   </div>
 </template>
 
@@ -148,6 +149,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/store/auth'
 import { useThemeStore } from '@/store/theme'
 import { ElMessageBox } from 'element-plus'
+import OmnitrixFloat from '@/components/OmnitrixFloat.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -163,6 +165,7 @@ const mainTabs = computed(() => [
   { label: t('navbar.products'), path: '/product/category', match: ['/product'] },
   { label: t('navbar.orders'), path: '/order', match: ['/order'] },
   { label: t('navbar.users'), path: '/user', match: ['/user'] },
+  { label: t('navbar.ai'), path: '/ai/dashboard', match: ['/ai'] },
   { label: t('navbar.system'), path: '/system/admin', match: ['/system'] },
 ])
 

@@ -8,6 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -16,13 +19,13 @@ import java.util.stream.Collectors;
 @Service
 public class KnowledgeService {
 
-    private static final Set<String> STOP_WORDS = Set.of(
+    private static final Set<String> STOP_WORDS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             "的", "了", "是", "在", "有", "和", "就", "不", "人", "都",
             "一", "一个", "上", "也", "很", "到", "说", "要", "去", "你",
             "会", "着", "没有", "看", "好", "自己", "这", "他", "她", "它",
             "我", "什么", "吗", "吧", "呢", "啊", "哪", "怎么", "那",
             "请问", "请", "帮我", "可以", "能", "想", "知道", "告诉"
-    );
+    )));
 
     private final AiKnowledgeBaseMapper knowledgeBaseMapper;
     private final LlmClient llmClient;
@@ -64,7 +67,7 @@ public class KnowledgeService {
      * 简易中文分词：按标点/空格分割 + 双字/三字滑动窗口 + 去停用词
      */
     private List<String> tokenize(String text) {
-        if (text == null || text.trim().isEmpty()) return List.of();
+        if (text == null || text.trim().isEmpty()) return Collections.emptyList();
 
         String cleaned = text.replaceAll("[\\p{Punct}\\p{IsGeneral_Category=Open_Punctuation}\\p{IsGeneral_Category=Close_Punctuation}\\s\uff0c\u3002\uff1f\uff01\u3001\uff1b\uff1a\u201c\u201d\u2018\u2019\u3010\u3011\uff08\uff09\u300a\u300b]+", " ").trim();
 

@@ -6,13 +6,16 @@ import com.hyang.ich.common.vo.PageResult;
 import com.hyang.ich.system.SystemService;
 import com.hyang.ich.system.dto.SysLoginDTO;
 import com.hyang.ich.system.dto.SysNotificationDTO;
+import com.hyang.ich.system.dto.SysOperationLogDTO;
 import com.hyang.ich.system.dto.SysRoleDTO;
 import com.hyang.ich.system.dto.SysUserDTO;
 import com.hyang.ich.user.entity.SysMessage;
+import com.hyang.ich.user.entity.SysOperationLog;
 import com.hyang.ich.user.entity.SysRole;
 import com.hyang.ich.user.entity.SysUser;
 import com.hyang.ich.user.entity.SysUserRole;
 import com.hyang.ich.user.mapper.system.SysMessageMapper;
+import com.hyang.ich.user.mapper.system.SysOperationLogMapper;
 import com.hyang.ich.user.mapper.system.SysRoleMapper;
 import com.hyang.ich.user.mapper.system.SysUserMapper;
 import com.hyang.ich.user.mapper.system.SysUserRoleMapper;
@@ -38,6 +41,9 @@ public class SystemServiceImpl implements SystemService {
 
     @Autowired
     private SysMessageMapper sysMessageMapper;
+
+    @Autowired
+    private SysOperationLogMapper sysOperationLogMapper;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -202,6 +208,34 @@ public class SystemServiceImpl implements SystemService {
         }
     }
 
+    // ========== 操作日志 / 安全审计 ==========
+
+    @Override
+    public PageResult<SysOperationLogDTO> listOperationLogs(int pageNum, int pageSize, Long userId, String module) {
+        int offset = (pageNum - 1) * pageSize;
+        List<SysOperationLog> logs = sysOperationLogMapper.selectByCondition(userId, module, offset, pageSize);
+        int total = sysOperationLogMapper.countByCondition(userId, module);
+        List<SysOperationLogDTO> dtoList = logs.stream().map(this::toOpLogDTO).collect(Collectors.toList());
+        return new PageResult<>(pageNum, pageSize, (long) total, dtoList);
+    }
+
+    @Override
+    public List<SysOperationLogDTO> listUserRecentOps(Long userId, int limit) {
+        return sysOperationLogMapper.selectUserRecentOps(userId, limit).stream()
+                .map(this::toOpLogDTO).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<SysOperationLogDTO> listFailedOps(int hours, int limit) {
+        return sysOperationLogMapper.selectFailedOps(hours, limit).stream()
+                .map(this::toOpLogDTO).collect(Collectors.toList());
+    }
+
+    @Override
+    public int countTodayOps() {
+        return sysOperationLogMapper.countTodayOps();
+    }
+
     // ========== 转换方法 ==========
 
     private SysUserDTO toSysUserDTO(SysUser user) {
@@ -219,6 +253,12 @@ public class SystemServiceImpl implements SystemService {
     private SysNotificationDTO toSysNotificationDTO(SysMessage message) {
         SysNotificationDTO dto = new SysNotificationDTO();
         BeanUtils.copyProperties(message, dto);
+        return dto;
+    }
+
+    private SysOperationLogDTO toOpLogDTO(SysOperationLog log) {
+        SysOperationLogDTO dto = new SysOperationLogDTO();
+        BeanUtils.copyProperties(log, dto);
         return dto;
     }
 }

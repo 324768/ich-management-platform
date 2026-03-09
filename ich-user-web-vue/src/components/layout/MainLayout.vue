@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import AppHeader from './AppHeader.vue'
+import OmnitrixFloat from '../OmnitrixFloat.vue'
 
 const route = useRoute()
 
@@ -48,6 +49,7 @@ const breadcrumb = computed(() => {
         <p>© 2025 非物质文化遗产管理平台 — 传承千年匠心 · 守护文化瑰宝</p>
       </div>
     </footer>
+    <OmnitrixFloat />
   </div>
 </template>
 

@@ -84,6 +84,7 @@ public class UserServiceImpl implements UserService {
 
         user.setLastLoginTime(new Date());
         userMapper.updateById(user);
+        userMapper.updateOnlineStatus(user.getId(), 1);
 
         String token = JwtUtils.generateToken(user.getId(), user.getUsername());
         log.info("用户登录成功: {}", user.getUsername());
@@ -203,6 +204,53 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserDTO findByNickname(String nickname) {
+        User user = userMapper.selectByNickname(nickname);
+        if (user == null) return null;
+        return toUserDTO(user);
+    }
+
+    @Override
+    public void deleteUser(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ResultCode.USER_NOT_FOUND);
+        }
+        userMapper.deleteById(userId);
+        log.info("用户已删除(Ultra): userId={}", userId);
+    }
+
+    @Override
+    public List<Long> listOnlineUserIds() {
+        return userMapper.selectRecentLoginUserIds(30);
+    }
+
+    @Override
+    public List<UserDTO> listOnlineUsers() {
+        List<User> users = userMapper.selectOnlineUsers();
+        List<UserDTO> dtoList = new ArrayList<>();
+        for (User u : users) {
+            dtoList.add(toUserDTO(u));
+        }
+        return dtoList;
+    }
+
+    @Override
+    public void setOnlineStatus(Long userId, boolean online) {
+        userMapper.updateOnlineStatus(userId, online ? 1 : 0);
+        log.debug("用户在线状态更新: userId={}, online={}", userId, online);
+    }
+
+    @Override
+    public int clearInactiveUsers(int timeoutMinutes) {
+        int count = userMapper.clearInactiveUsers(timeoutMinutes);
+        if (count > 0) {
+            log.info("清理不活跃用户在线状态: {} 人 (超时{}分钟)", count, timeoutMinutes);
+        }
+        return count;
+    }
+
+    @Override
     public long countUsers() {
         return userMapper.countAll();
     }
@@ -281,6 +329,8 @@ public class UserServiceImpl implements UserService {
         dto.setHeritageFlag(user.getHeritageFlag());
         dto.setLastLoginTime(user.getLastLoginTime());
         dto.setLastLoginIp(user.getLastLoginIp());
+        dto.setIsOnline(user.getIsOnline());
+        dto.setLastActiveTime(user.getLastActiveTime());
         dto.setCreateTime(user.getCreateTime());
         dto.setUpdateTime(user.getUpdateTime());
         return dto;

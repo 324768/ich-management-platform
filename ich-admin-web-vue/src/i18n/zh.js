@@ -1,7 +1,7 @@
 export default {
   navbar: {
     dashboard: '仪表盘', content: '内容管理', activity: '非遗活动', products: '文创商品',
-    orders: '订单管理', users: '用户管理', system: '系统设置',
+    orders: '订单管理', users: '用户管理', ai: 'AI 平台', system: '系统设置',
     switchToDark: '切换到深色模式', switchToLight: '切换到浅色模式',
     switchLang: '切换语言', signOut: '退出登录',
     signOutConfirm: '确定要退出登录吗？', confirm: '确认', cancel: '取消',

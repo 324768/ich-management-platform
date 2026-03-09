@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyang.ich.user.mapper.common.BrowseHistoryMapper">
+
+    <resultMap id="BaseResultMap" type="com.hyang.ich.user.entity.BrowseHistory">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="target_type" property="targetType"/>
+        <result column="target_id" property="targetId"/>
+        <result column="target_title" property="targetTitle"/>
+        <result column="browse_date" property="browseDate"/>
+        <result column="browse_time" property="browseTime"/>
+        <result column="duration_seconds" property="durationSeconds"/>
+        <result column="source" property="source"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <sql id="All_Columns">
+        id, user_id, target_type, target_id, target_title,
+        browse_date, browse_time, duration_seconds, source, create_time
+    </sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO browse_history (user_id, target_type, target_id, target_title,
+            browse_date, browse_time, duration_seconds, source, create_time)
+        VALUES (#{userId}, #{targetType}, #{targetId}, #{targetTitle},
+            CURDATE(), NOW(), #{durationSeconds}, #{source}, NOW())
+    </insert>
+
+    <select id="selectByDate" resultMap="BaseResultMap">
+        SELECT <include refid="All_Columns"/>
+        FROM browse_history
+        WHERE user_id = #{userId} AND browse_date = #{date}
+        ORDER BY browse_time DESC
+    </select>
+
+    <select id="selectRecent" resultMap="BaseResultMap">
+        SELECT <include refid="All_Columns"/>
+        FROM browse_history
+        WHERE user_id = #{userId}
+        AND browse_date >= DATE_SUB(CURDATE(), INTERVAL #{days} DAY)
+        ORDER BY browse_time DESC
+    </select>
+
+    <select id="selectByType" resultMap="BaseResultMap">
+        SELECT <include refid="All_Columns"/>
+        FROM browse_history
+        WHERE user_id = #{userId} AND target_type = #{targetType}
+        ORDER BY browse_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="countByDate" resultType="int">
+        SELECT COUNT(*) FROM browse_history
+        WHERE user_id = #{userId} AND browse_date = #{date}
+    </select>
+
+    <select id="selectBrowseDates" resultType="string">
+        SELECT DISTINCT DATE_FORMAT(browse_date, '%Y-%m-%d')
+        FROM browse_history
+        WHERE user_id = #{userId}
+        AND browse_date >= DATE_SUB(CURDATE(), INTERVAL #{days} DAY)
+        ORDER BY browse_date DESC
+    </select>
+</mapper>

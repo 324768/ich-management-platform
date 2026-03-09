@@ -13,6 +13,8 @@
         <result column="status" property="status"/>
         <result column="last_login_time" property="lastLoginTime"/>
         <result column="last_login_ip" property="lastLoginIp"/>
+        <result column="is_online" property="isOnline"/>
+        <result column="last_active_time" property="lastActiveTime"/>
         <result column="heritage_flag" property="heritageFlag"/>
         <result column="qualification_id" property="qualificationId"/>
         <result column="is_deleted" property="isDeleted"/>
@@ -23,12 +25,14 @@
 
     <sql id="Base_Column_List">
         id, username, password, nickname, email, phone, status,
-        last_login_time, last_login_ip, is_deleted, version, create_time, update_time
+        last_login_time, last_login_ip, is_online, last_active_time,
+        is_deleted, version, create_time, update_time
     </sql>
 
     <sql id="All_Column_List">
         id, username, password, nickname, avatar, email, phone, status,
-        last_login_time, last_login_ip, heritage_flag, qualification_id,
+        last_login_time, last_login_ip, is_online, last_active_time,
+        heritage_flag, qualification_id,
         is_deleted, version, create_time, update_time
     </sql>
 
@@ -88,5 +92,42 @@
 
     <update id="updateHeritageFlag">
         UPDATE user SET heritage_flag = #{heritageFlag}, update_time = NOW() WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <select id="selectByNickname" resultMap="BaseResultMap">
+        SELECT <include refid="All_Column_List"/> FROM user WHERE nickname = #{nickname} AND is_deleted = 0 LIMIT 1
+    </select>
+
+    <update id="deleteById">
+        UPDATE user SET is_deleted = 1, update_time = NOW() WHERE id = #{id}
+    </update>
+
+    <select id="selectRecentLoginUserIds" resultType="long">
+        SELECT id FROM user
+        WHERE is_deleted = 0 AND status = 1
+        AND last_login_time >= DATE_SUB(NOW(), INTERVAL #{minutes} MINUTE)
+        ORDER BY last_login_time DESC
+    </select>
+
+    <update id="updateOnlineStatus">
+        UPDATE user
+        SET is_online = #{isOnline},
+            last_active_time = NOW(),
+            update_time = NOW()
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <select id="selectOnlineUsers" resultMap="BaseResultMap">
+        SELECT <include refid="All_Column_List"/>
+        FROM user
+        WHERE is_deleted = 0 AND is_online = 1
+        ORDER BY last_active_time DESC
+    </select>
+
+    <update id="clearInactiveUsers">
+        UPDATE user
+        SET is_online = 0, update_time = NOW()
+        WHERE is_deleted = 0 AND is_online = 1
+        AND last_active_time &lt; DATE_SUB(NOW(), INTERVAL #{timeoutMinutes} MINUTE)
     </update>
 </mapper>

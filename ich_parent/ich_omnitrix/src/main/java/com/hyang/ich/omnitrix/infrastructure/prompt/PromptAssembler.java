@@ -43,6 +43,17 @@ public class PromptAssembler {
     public String assemble(AgentContext context, SubAgent subAgent,
                            AgentQueryResult queryResult, String summary,
                            String userProfile) {
+        return assemble(context, subAgent, queryResult, summary, userProfile, null);
+    }
+
+    /**
+     * 组装完整的 System Prompt（含用户画像 + 系统记忆L4）
+     *
+     * @param systemMemory 系统全局记忆文本（可为null，来自 SystemMemoryService）
+     */
+    public String assemble(AgentContext context, SubAgent subAgent,
+                           AgentQueryResult queryResult, String summary,
+                           String userProfile, String systemMemory) {
 
         StringBuilder sb = new StringBuilder();
 
@@ -66,9 +77,14 @@ public class PromptAssembler {
             }
         }
 
-        // 层级2b+: 用户画像（跨会话长期记忆）
+        // 层级2b+: 用户画像（跨会话L3长期记忆）
         if (StringUtils.isNotBlank(userProfile)) {
             sb.append("\n\n## 用户画像（你对这位用户的了解）\n").append(userProfile);
+        }
+
+        // 层级4: 系统全局记忆（L4）
+        if (StringUtils.isNotBlank(systemMemory)) {
+            sb.append("\n\n## 系统全局记忆\n").append(systemMemory);
         }
 
         // 层级2c: 历史对话摘要

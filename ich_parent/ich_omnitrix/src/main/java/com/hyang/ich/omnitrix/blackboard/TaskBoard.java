@@ -120,6 +120,49 @@ public class TaskBoard {
         log.warn("黑板 fail: [{}] 失败: {}", taskId, errorMsg);
     }
 
+    // ========== 取消操作 ==========
+
+    /** 是否已取消 */
+    private volatile boolean cancelled = false;
+
+    /**
+     * 取消所有未完成的任务
+     * @return 被取消的任务数量
+     */
+    public int cancel() {
+        this.cancelled = true;
+        int count = 0;
+        for (TaskNode node : nodes.values()) {
+            if (node.getStatus() == TaskNode.Status.PENDING
+                    || node.getStatus() == TaskNode.Status.READY) {
+                node.setStatus(TaskNode.Status.FAILED);
+                node.setResult("任务已取消");
+                count++;
+            }
+        }
+        log.info("黑板取消: {} 个任务被取消", count);
+        return count;
+    }
+
+    /**
+     * 取消单个任务
+     */
+    public void cancelTask(String taskId) {
+        TaskNode node = nodes.get(taskId);
+        if (node == null) return;
+        if (node.getStatus() == TaskNode.Status.PENDING
+                || node.getStatus() == TaskNode.Status.READY) {
+            node.setStatus(TaskNode.Status.FAILED);
+            node.setResult("任务已取消");
+            log.info("黑板取消单任务: [{}]", taskId);
+        }
+    }
+
+    /** 是否已被取消 */
+    public boolean isCancelled() {
+        return cancelled;
+    }
+
     // ========== 状态查询 ==========
 
     /**

@@ -1,5 +1,6 @@
 package com.hyang.ich.omnitrix.config;
 
+import com.hyang.ich.common.BrowseHistoryService;
 import com.hyang.ich.content.ContentService;
 import com.hyang.ich.order.OrderService;
 import com.hyang.ich.product.ProductService;
@@ -27,6 +28,9 @@ public class DubboConsumerConfig {
     @DubboReference(check = false, timeout = 5000, retries = 1)
     private SystemService systemService;
 
+    @DubboReference(check = false, timeout = 5000, retries = 1)
+    private BrowseHistoryService browseHistoryService;
+
     @Bean
     public ContentService contentService() {
         return contentService;
@@ -50,5 +54,10 @@ public class DubboConsumerConfig {
     @Bean
     public SystemService systemService() {
         return systemService;
+    }
+
+    @Bean
+    public BrowseHistoryService browseHistoryService() {
+        return browseHistoryService;
     }
 }

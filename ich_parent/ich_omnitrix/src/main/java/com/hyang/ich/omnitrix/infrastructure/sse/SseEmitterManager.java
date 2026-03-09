@@ -99,6 +99,39 @@ public class SseEmitterManager {
         }
     }
 
+    /**
+     * 发送 L2 黑板任务进度事件
+     */
+    public void sendL2TaskProgress(SseEmitter emitter, String taskId, String agentCode,
+                                    String status, String query) {
+        try {
+            L2TaskEvent event = new L2TaskEvent();
+            event.setTaskId(taskId);
+            event.setAgent(agentCode);
+            event.setStatus(status);
+            event.setQuery(query);
+            emitter.send(SseEmitter.event().name("l2_task")
+                    .data(objectMapper.writeValueAsString(event)));
+        } catch (IOException e) {
+            log.debug("SSE 发送 l2_task 失败: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * 发送 L2 黑板总览事件（开始/完成）
+     */
+    public void sendL2BoardStatus(SseEmitter emitter, String status, int taskCount) {
+        try {
+            L2BoardEvent event = new L2BoardEvent();
+            event.setStatus(status);
+            event.setTaskCount(taskCount);
+            emitter.send(SseEmitter.event().name("l2_board")
+                    .data(objectMapper.writeValueAsString(event)));
+        } catch (IOException e) {
+            log.debug("SSE 发送 l2_board 失败: {}", e.getMessage());
+        }
+    }
+
     // ========== SSE 事件 DTO ==========
 
     @Data
@@ -116,5 +149,19 @@ public class SseEmitterManager {
     @Data
     static class ErrorEvent {
         private String message;
+    }
+
+    @Data
+    static class L2TaskEvent {
+        private String taskId;
+        private String agent;
+        private String status;
+        private String query;
+    }
+
+    @Data
+    static class L2BoardEvent {
+        private String status;
+        private int taskCount;
     }
 }

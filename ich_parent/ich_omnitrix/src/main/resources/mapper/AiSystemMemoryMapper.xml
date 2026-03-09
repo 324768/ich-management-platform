@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyang.ich.omnitrix.mapper.AiSystemMemoryMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_system_memory (memory_type, memory_key, memory_value, created_by, confidence)
+        VALUES (#{memoryType}, #{memoryKey}, #{memoryValue}, #{createdBy}, #{confidence})
+    </insert>
+
+    <update id="updateValue">
+        UPDATE ai_system_memory
+        SET memory_value = #{memoryValue}, confidence = #{confidence}, update_time = NOW()
+        WHERE id = #{id} AND is_active = 1
+    </update>
+
+    <update id="incrementHitCount">
+        UPDATE ai_system_memory SET hit_count = hit_count + 1 WHERE id = #{id}
+    </update>
+
+    <update id="deactivate">
+        UPDATE ai_system_memory SET is_active = 0, update_time = NOW() WHERE id = #{id}
+    </update>
+
+    <select id="selectAll" resultType="com.hyang.ich.omnitrix.entity.AiSystemMemory">
+        SELECT id, memory_type, memory_key, memory_value, created_by, confidence,
+               hit_count, is_active, create_time, update_time
+        FROM ai_system_memory
+        ORDER BY confidence DESC, update_time DESC
+    </select>
+
+    <select id="selectByType" resultType="com.hyang.ich.omnitrix.entity.AiSystemMemory">
+        SELECT id, memory_type, memory_key, memory_value, created_by, confidence,
+               hit_count, is_active, create_time, update_time
+        FROM ai_system_memory
+        WHERE memory_type = #{memoryType} AND is_active = 1
+        ORDER BY confidence DESC, update_time DESC
+    </select>
+
+    <select id="selectActive" resultType="com.hyang.ich.omnitrix.entity.AiSystemMemory">
+        SELECT id, memory_type, memory_key, memory_value, created_by, confidence,
+               hit_count, is_active, create_time, update_time
+        FROM ai_system_memory
+        WHERE is_active = 1
+        ORDER BY confidence DESC, update_time DESC
+        LIMIT 30
+    </select>
+
+    <select id="selectByKey" resultType="com.hyang.ich.omnitrix.entity.AiSystemMemory">
+        SELECT id, memory_type, memory_key, memory_value, created_by, confidence,
+               hit_count, is_active, create_time, update_time
+        FROM ai_system_memory
+        WHERE memory_key = #{memoryKey} AND is_active = 1
+        LIMIT 1
+    </select>
+
+    <select id="countActive" resultType="int">
+        SELECT COUNT(*) FROM ai_system_memory WHERE is_active = 1
+    </select>
+
+</mapper>

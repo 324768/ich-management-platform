@@ -35,6 +35,7 @@ public class TaskDecomposer {
             "- content_assistant: 非遗项目/传承人/活动 搜索、报名活动、点赞/收藏/评论动态\n" +
             "- commerce_assistant: 商品搜索、购物车操作、订单操作\n" +
             "- user_assistant: 个人信息、地址、认证、通知\n" +
+            "- browse_history_assistant: 浏览历史记录查询\n" +
             "- recommend_assistant: 推荐内容/商品\n" +
             "- knowledge_assistant: 非遗知识问答\n" +
             "- general_assistant: 通用闲聊\n\n" +

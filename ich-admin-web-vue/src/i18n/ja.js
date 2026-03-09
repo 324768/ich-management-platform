@@ -1,7 +1,7 @@
 export default {
   navbar: {
     dashboard: '儀表盤', content: '內容管理', activity: '非遺活動', products: '文創商品',
-    orders: '訂單管理', users: '用戶管理', system: '系統設定',
+    orders: '訂單管理', users: '用戶管理', ai: 'AI 平台', system: '系統設定',
     switchToDark: '切換到深色模式', switchToLight: '切換到淺色模式',
     switchLang: '切換語言', signOut: '退出登入',
     signOutConfirm: '確定要退出登入嗎？', confirm: '確認', cancel: '取消',

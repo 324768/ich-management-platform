@@ -6,12 +6,15 @@ import com.hyang.ich.omnitrix.agent.SubAgentRegistry;
 import com.hyang.ich.omnitrix.blackboard.TaskBoard;
 import com.hyang.ich.omnitrix.blackboard.TaskDecomposer;
 import com.hyang.ich.omnitrix.blackboard.TaskNode;
+import com.hyang.ich.omnitrix.blackboard.UltraTaskDecomposer;
 import com.hyang.ich.omnitrix.dto.AgentQueryResult;
 import com.hyang.ich.omnitrix.dto.ChatResponse;
 import com.hyang.ich.omnitrix.dto.PendingAction;
 import com.hyang.ich.omnitrix.dto.StreamResult;
 import com.hyang.ich.omnitrix.entity.AiConversation;
 import com.hyang.ich.omnitrix.entity.AiMessage;
+import com.hyang.ich.omnitrix.entity.AiUserAiConfig;
+import com.hyang.ich.omnitrix.mapper.AiUserAiConfigMapper;
 import com.hyang.ich.omnitrix.infrastructure.guardrails.GuardrailsFilter;
 import com.hyang.ich.omnitrix.infrastructure.guardrails.RateLimiter;
 import com.hyang.ich.omnitrix.infrastructure.guardrails.TokenBudget;
@@ -27,7 +30,9 @@ import com.hyang.ich.omnitrix.infrastructure.sse.SseEmitterManager;
 import com.hyang.ich.omnitrix.infrastructure.telemetry.AiSelfEvaluator;
 import com.hyang.ich.omnitrix.infrastructure.telemetry.TelemetryTracer;
 import com.hyang.ich.omnitrix.infrastructure.telemetry.TitleGenerator;
+import com.hyang.ich.user.UserService;
 import com.hyang.ich.omnitrix.service.ConversationService;
+import com.hyang.ich.omnitrix.service.SystemMemoryService;
 import com.hyang.ich.omnitrix.service.UserMemoryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -57,6 +62,7 @@ public class OrchestratorService {
     private final TokenBudget tokenBudget;
     private final IntentRouter intentRouter;
     private final AdminIntentRouter adminIntentRouter;
+    private final UltraIntentRouter ultraIntentRouter;
     private final SubAgentRegistry subAgentRegistry;
     private final PromptAssembler promptAssembler;
     private final LlmClient llmClient;
@@ -66,6 +72,7 @@ public class OrchestratorService {
     private final MemoryExtractor memoryExtractor;
     private final MemorySummarizer memorySummarizer;
     private final UserMemoryService userMemoryService;
+    private final SystemMemoryService systemMemoryService;
     private final LlmStreamHandler llmStreamHandler;
     private final SseEmitterManager sseEmitterManager;
     private final TelemetryTracer telemetryTracer;
@@ -74,6 +81,10 @@ public class OrchestratorService {
     private final StringRedisTemplate redisTemplate;
     private final Executor agentExecutor;
     private final TaskDecomposer taskDecomposer;
+    private final UltraTaskDecomposer ultraTaskDecomposer;
+    private final AiUserAiConfigMapper aiUserAiConfigMapper;
+    private final UserService userService;
+    private final Executor l2BoardExecutor;
 
     public OrchestratorService(ActionExecutor actionExecutor,
                                GuardrailsFilter guardrailsFilter,
@@ -81,6 +92,7 @@ public class OrchestratorService {
                                TokenBudget tokenBudget,
                                IntentRouter intentRouter,
                                AdminIntentRouter adminIntentRouter,
+                               UltraIntentRouter ultraIntentRouter,
                                SubAgentRegistry subAgentRegistry,
                                PromptAssembler promptAssembler,
                                LlmClient llmClient,
@@ -90,6 +102,7 @@ public class OrchestratorService {
                                MemoryExtractor memoryExtractor,
                                MemorySummarizer memorySummarizer,
                                UserMemoryService userMemoryService,
+                               SystemMemoryService systemMemoryService,
                                LlmStreamHandler llmStreamHandler,
                                SseEmitterManager sseEmitterManager,
                                TelemetryTracer telemetryTracer,
@@ -97,13 +110,18 @@ public class OrchestratorService {
                                TitleGenerator titleGenerator,
                                StringRedisTemplate redisTemplate,
                                TaskDecomposer taskDecomposer,
-                               @org.springframework.beans.factory.annotation.Qualifier("aiAsyncExecutor") Executor agentExecutor) {
+                               UltraTaskDecomposer ultraTaskDecomposer,
+                               AiUserAiConfigMapper aiUserAiConfigMapper,
+                               UserService userService,
+                               @org.springframework.beans.factory.annotation.Qualifier("aiAsyncExecutor") Executor agentExecutor,
+                               @org.springframework.beans.factory.annotation.Qualifier("l2BoardExecutor") Executor l2BoardExecutor) {
         this.actionExecutor = actionExecutor;
         this.guardrailsFilter = guardrailsFilter;
         this.rateLimiter = rateLimiter;
         this.tokenBudget = tokenBudget;
         this.intentRouter = intentRouter;
         this.adminIntentRouter = adminIntentRouter;
+        this.ultraIntentRouter = ultraIntentRouter;
         this.subAgentRegistry = subAgentRegistry;
         this.promptAssembler = promptAssembler;
         this.llmClient = llmClient;
@@ -113,6 +131,7 @@ public class OrchestratorService {
         this.memoryExtractor = memoryExtractor;
         this.memorySummarizer = memorySummarizer;
         this.userMemoryService = userMemoryService;
+        this.systemMemoryService = systemMemoryService;
         this.llmStreamHandler = llmStreamHandler;
         this.sseEmitterManager = sseEmitterManager;
         this.telemetryTracer = telemetryTracer;
@@ -120,18 +139,33 @@ public class OrchestratorService {
         this.titleGenerator = titleGenerator;
         this.redisTemplate = redisTemplate;
         this.taskDecomposer = taskDecomposer;
+        this.ultraTaskDecomposer = ultraTaskDecomposer;
+        this.aiUserAiConfigMapper = aiUserAiConfigMapper;
+        this.userService = userService;
         this.agentExecutor = agentExecutor;
+        this.l2BoardExecutor = l2BoardExecutor;
     }
 
     // ========== 公共入口 ==========
 
     /** 用户同步聊天 */
     public ChatResponse chat(Long userId, String sessionId, String userMessage) {
+        String aiCheck = checkUserAiAccess(userId);
+        if (aiCheck != null) {
+            return ChatResponse.of(null, sessionId, aiCheck, "access_denied", 0);
+        }
+        refreshOnlineHeartbeat(userId);
         return doChatSync(userId, sessionId, userMessage, "user", false);
     }
 
     /** 用户流式聊天 (SSE) */
     public void chatStream(Long userId, String sessionId, String userMessage, SseEmitter emitter) {
+        String aiCheck = checkUserAiAccess(userId);
+        if (aiCheck != null) {
+            sseEmitterManager.sendError(emitter, aiCheck);
+            return;
+        }
+        refreshOnlineHeartbeat(userId);
         doChatStreamCore(userId, sessionId, userMessage, emitter, "user", false);
     }
 
@@ -143,6 +177,16 @@ public class OrchestratorService {
     /** 管理员流式聊天 */
     public void adminChatStream(Long adminId, String sessionId, String userMessage, SseEmitter emitter) {
         doChatStreamCore(adminId, sessionId, userMessage, emitter, "admin", true);
+    }
+
+    /** Ultra AI 同步聊天 */
+    public ChatResponse ultraChat(Long adminId, String sessionId, String userMessage) {
+        return doUltraChatSync(adminId, sessionId, userMessage);
+    }
+
+    /** Ultra AI 流式聊天 */
+    public void ultraChatStream(Long adminId, String sessionId, String userMessage, SseEmitter emitter) {
+        doUltraChatStreamCore(adminId, sessionId, userMessage, emitter);
     }
 
     // ========== 核心同步流程 ==========
@@ -636,6 +680,24 @@ public class OrchestratorService {
         }
     }
 
+    /**
+     * 检查用户AI访问权限（Ultra可禁用用户的AI）
+     * @return null=允许访问，非null=拒绝消息
+     */
+    private String checkUserAiAccess(Long userId) {
+        try {
+            AiUserAiConfig config = aiUserAiConfigMapper.selectByUserId(userId);
+            if (config != null && config.getAiEnabled() != null && config.getAiEnabled() == 0) {
+                String reason = config.getDisabledReason() != null ? config.getDisabledReason() : "管理员已禁用";
+                log.info("用户AI访问被拒绝: userId={}, reason={}", userId, reason);
+                return "抱歉，您的AI功能已被管理员禁用。原因：" + reason;
+            }
+        } catch (Exception e) {
+            log.debug("检查用户AI访问权限失败: {}", e.getMessage());
+        }
+        return null;
+    }
+
     private void saveLastAgentCode(String sessionId, String agentCode) {
         try {
             redisTemplate.opsForValue().set(
@@ -643,5 +705,288 @@ public class OrchestratorService {
         } catch (Exception e) {
             log.debug("保存 lastAgentCode 失败: {}", e.getMessage());
         }
+    }
+
+    // ========== Ultra AI 专用流程 ==========
+
+    private ChatResponse doUltraChatSync(Long adminId, String sessionId, String userMessage) {
+        long startTime = System.currentTimeMillis();
+
+        // Ultra 不受普通限流约束，但仍做安全过滤
+        String inputRejection = guardrailsFilter.validateInput(userMessage);
+        if (inputRejection != null) {
+            log.warn("Ultra输入被安全护栏拦截: adminId={}, reason={}", adminId, inputRejection);
+            return ChatResponse.of(null, sessionId, inputRejection, "guardrails", 0);
+        }
+
+        AiConversation conversation = conversationService.findOrCreate(sessionId, adminId);
+        AgentContext context = AgentContext.of(adminId, sessionId, conversation.getId(), "ultra");
+        log.info("Ultra聊天开始: adminId={}, sessionId={}", adminId, sessionId);
+
+        // 待确认操作
+        ChatResponse pendingResult = handlePendingActionSync(adminId, sessionId, userMessage, conversation);
+        if (pendingResult != null) return pendingResult;
+
+        List<Map<String, String>> history = memoryManager.loadHistory(sessionId);
+        String summary = memoryManager.getSummary(sessionId);
+        if (summary == null) summary = conversation.getSummary();
+
+        // ===== L2 黑板路径：复杂指令走多元代理并行 =====
+        AgentQueryResult queryResult;
+        String agentCode;
+        SubAgent subAgent;
+
+        if (ultraTaskDecomposer.isComplexUltraQuery(userMessage)) {
+            TaskBoard l2Board = ultraTaskDecomposer.decompose(userMessage);
+            if (l2Board != null) {
+                log.info("Ultra L2黑板启动: {} 个元代理任务", l2Board.size());
+                String boardResults = executeL2Blackboard(l2Board, context);
+                agentCode = "ultra_l2_blackboard";
+                subAgent = subAgentRegistry.getOrDefault("general_assistant");
+                queryResult = AgentQueryResult.success(boardResults, agentCode);
+            } else {
+                // L2 分解失败，回退单Agent
+                String lastAgentCode = getLastAgentCode(sessionId);
+                agentCode = ultraIntentRouter.route(userMessage, lastAgentCode);
+                subAgent = subAgentRegistry.getOrDefault(agentCode);
+                queryResult = executeAgent(subAgent, userMessage, context);
+            }
+        } else {
+            // 简单指令：单Agent快速路径
+            String lastAgentCode = getLastAgentCode(sessionId);
+            agentCode = ultraIntentRouter.route(userMessage, lastAgentCode);
+            subAgent = subAgentRegistry.getOrDefault(agentCode);
+            log.info("Ultra意图路由: '{}' → {} ({})", userMessage, subAgent.getCode(), subAgent.getName());
+            queryResult = executeAgent(subAgent, userMessage, context);
+        }
+
+        // 组装 Prompt（含 L4 系统记忆）
+        String systemMemory = systemMemoryService.buildSystemMemoryPrompt();
+        String systemPrompt = promptAssembler.assemble(context, subAgent, queryResult, summary, null, systemMemory);
+
+        // 调用 LLM
+        LlmResponse llmResponse;
+        String usedModel;
+        try {
+            llmResponse = llmClient.chat(systemPrompt, history, userMessage);
+            usedModel = llmProperties.getPrimaryConfig().getModel();
+        } catch (Exception e) {
+            log.warn("Ultra主模型失败，降级辅助: {}", e.getMessage());
+            try {
+                llmResponse = llmClient.chatWithConfig(
+                        llmProperties.getAuxiliaryConfig(), systemPrompt, history, userMessage);
+                usedModel = llmProperties.getAuxiliaryConfig().getModel();
+            } catch (Exception ex) {
+                log.error("Ultra辅助模型也失败: {}", ex.getMessage(), ex);
+                String errorContent = "Ultra AI 服务暂时不可用，请稍后再试。";
+                AiMessage errMsg = conversationService.saveMessage(
+                        conversation.getId(), sessionId, "assistant", errorContent, 0,
+                        llmProperties.getPrimaryConfig().getModel(), subAgent.getCode(), 0);
+                return ChatResponse.of(errMsg.getId(), sessionId, errorContent, subAgent.getCode(), 0);
+            }
+        }
+
+        String aiContent = guardrailsFilter.sanitizeOutput(llmResponse.getContent());
+        int latencyMs = (int) (System.currentTimeMillis() - startTime);
+
+        AiMessage assistantMsg = saveAndPostProcess(
+                conversation, sessionId, adminId, userMessage, aiContent,
+                llmResponse.getOutputTokens(), usedModel, subAgent, agentCode,
+                llmResponse.getInputTokens(), llmResponse.getOutputTokens(), latencyMs, queryResult);
+
+        log.info("Ultra处理完成: latency={}ms, agent={}", latencyMs, subAgent.getCode());
+        return ChatResponse.of(assistantMsg.getId(), sessionId, aiContent, subAgent.getCode(), latencyMs);
+    }
+
+    private void doUltraChatStreamCore(Long adminId, String sessionId, String userMessage, SseEmitter emitter) {
+        long startTime = System.currentTimeMillis();
+
+        String inputRejection = guardrailsFilter.validateInput(userMessage);
+        if (inputRejection != null) {
+            sseEmitterManager.sendError(emitter, inputRejection);
+            return;
+        }
+
+        try {
+            AiConversation conversation = conversationService.findOrCreate(sessionId, adminId);
+            AgentContext context = AgentContext.of(adminId, sessionId, conversation.getId(), "ultra");
+
+            if (handlePendingActionStream(adminId, sessionId, userMessage, conversation, emitter)) {
+                return;
+            }
+
+            List<Map<String, String>> history = memoryManager.loadHistory(sessionId);
+            String summary = memoryManager.getSummary(sessionId);
+            if (summary == null) summary = conversation.getSummary();
+
+            // ===== L2 黑板路径 =====
+            AgentQueryResult queryResult;
+            String agentCode;
+            SubAgent subAgent;
+
+            if (ultraTaskDecomposer.isComplexUltraQuery(userMessage)) {
+                TaskBoard l2Board = ultraTaskDecomposer.decompose(userMessage);
+                if (l2Board != null) {
+                    log.info("Ultra流式 L2黑板启动: {} 个元代理任务", l2Board.size());
+                    sseEmitterManager.sendAgentInfo(emitter, "ultra_l2_blackboard");
+                    String boardResults = executeL2Blackboard(l2Board, context, emitter);
+                    agentCode = "ultra_l2_blackboard";
+                    subAgent = subAgentRegistry.getOrDefault("general_assistant");
+                    queryResult = AgentQueryResult.success(boardResults, agentCode);
+                } else {
+                    String lastAgentCode = getLastAgentCode(sessionId);
+                    agentCode = ultraIntentRouter.route(userMessage, lastAgentCode);
+                    subAgent = subAgentRegistry.getOrDefault(agentCode);
+                    sseEmitterManager.sendAgentInfo(emitter, subAgent.getCode());
+                    queryResult = executeAgent(subAgent, userMessage, context);
+                }
+            } else {
+                String lastAgentCode = getLastAgentCode(sessionId);
+                agentCode = ultraIntentRouter.route(userMessage, lastAgentCode);
+                subAgent = subAgentRegistry.getOrDefault(agentCode);
+                sseEmitterManager.sendAgentInfo(emitter, subAgent.getCode());
+                queryResult = executeAgent(subAgent, userMessage, context);
+            }
+
+            String systemMemory = systemMemoryService.buildSystemMemoryPrompt();
+            String systemPrompt = promptAssembler.assemble(context, subAgent, queryResult, summary, null, systemMemory);
+
+            // 流式 LLM
+            StreamResult streamResult;
+            String usedModel;
+            try {
+                streamResult = llmStreamHandler.streamChat(emitter, systemPrompt, history, userMessage);
+                usedModel = llmProperties.getPrimaryConfig().getModel();
+            } catch (Exception streamEx) {
+                log.warn("Ultra流式主模型失败，降级辅助: {}", streamEx.getMessage());
+                streamResult = llmStreamHandler.streamChatWithConfig(
+                        llmProperties.getAuxiliaryConfig(), emitter, systemPrompt, history, userMessage);
+                usedModel = llmProperties.getAuxiliaryConfig().getModel();
+            }
+
+            String aiContent = guardrailsFilter.sanitizeOutput(streamResult.getContent());
+            int latencyMs = (int) (System.currentTimeMillis() - startTime);
+
+            AiMessage assistantMsg = saveAndPostProcess(
+                    conversation, sessionId, adminId, userMessage, aiContent,
+                    streamResult.getEstimatedOutputTokens(), usedModel, subAgent, agentCode,
+                    streamResult.getEstimatedInputTokens(), streamResult.getEstimatedOutputTokens(),
+                    latencyMs, queryResult);
+
+            log.info("Ultra流式完成: latency={}ms, agent={}", latencyMs, subAgent.getCode());
+            sseEmitterManager.sendDone(emitter, assistantMsg.getId(), latencyMs, usedModel);
+
+        } catch (Exception e) {
+            log.error("Ultra流式聊天异常: {}", e.getMessage(), e);
+            sseEmitterManager.sendError(emitter, "Ultra AI 服务暂时不可用");
+        }
+    }
+
+    // ========== L2 黑板执行引擎 ==========
+
+    /** 同步场景（无 SSE 进度推送） */
+    private String executeL2Blackboard(TaskBoard l2Board, AgentContext context) {
+        return executeL2Blackboard(l2Board, context, null);
+    }
+
+    /**
+     * 执行 L2 黑板上的多元代理任务。
+     * 元代理（user_ai_meta / admin_ai_meta）内部会启动各自的 L1 流程。
+     * Ultra 专属代理直接执行。
+     *
+     * @param emitter 非 null 时会通过 SSE 推送 L2 任务进度事件
+     */
+    private String executeL2Blackboard(TaskBoard l2Board, AgentContext context, SseEmitter emitter) {
+        if (emitter != null) {
+            sseEmitterManager.sendL2BoardStatus(emitter, "started", l2Board.size());
+            // 发送每个任务的初始状态
+            for (TaskNode node : l2Board.getAllNodes()) {
+                sseEmitterManager.sendL2TaskProgress(emitter, node.getId(), node.getAgentCode(),
+                        "pending", node.getTaskQuery());
+            }
+        }
+
+        for (int round = 0; round < BLACKBOARD_MAX_ROUNDS && !l2Board.isAllDone(); round++) {
+            List<TaskNode> readyTasks = l2Board.ready();
+            if (readyTasks.isEmpty()) {
+                log.debug("L2黑板 round {} 无就绪任务", round);
+                break;
+            }
+
+            log.info("L2黑板 round {}: {} 个就绪任务", round, readyTasks.size());
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+            for (TaskNode task : readyTasks) {
+                task.setStatus(TaskNode.Status.RUNNING);
+                if (emitter != null) {
+                    sseEmitterManager.sendL2TaskProgress(emitter, task.getId(), task.getAgentCode(),
+                            "running", task.getTaskQuery());
+                }
+                futures.add(CompletableFuture.runAsync(() -> {
+                    if (l2Board.isCancelled()) return;
+                    long start = System.currentTimeMillis();
+                    try {
+                        SubAgent metaAgent = subAgentRegistry.getOrDefault(task.getAgentCode());
+                        AgentContext l2Context = context.withL2(task.getTaskQuery(), task.getId(), task.getAgentCode());
+                        log.info("L2黑板执行: [{}] → {} ({})", task.getId(), metaAgent.getCode(), task.getTaskQuery());
+                        AgentQueryResult result = metaAgent.execute(task.getTaskQuery(), l2Context);
+                        int latency = (int) (System.currentTimeMillis() - start);
+                        if (result.getStatus() == AgentQueryResult.Status.ERROR) {
+                            l2Board.fail(task.getId(), result.getData());
+                            if (emitter != null) {
+                                sseEmitterManager.sendL2TaskProgress(emitter, task.getId(),
+                                        task.getAgentCode(), "failed", task.getTaskQuery());
+                            }
+                        } else {
+                            l2Board.close(task.getId(), result.getData() != null ? result.getData() : "", latency);
+                            if (emitter != null) {
+                                sseEmitterManager.sendL2TaskProgress(emitter, task.getId(),
+                                        task.getAgentCode(), "done", task.getTaskQuery());
+                            }
+                        }
+                    } catch (Exception e) {
+                        log.error("L2黑板任务 [{}] 异常: {}", task.getId(), e.getMessage(), e);
+                        l2Board.fail(task.getId(), "执行异常: " + e.getMessage());
+                        if (emitter != null) {
+                            sseEmitterManager.sendL2TaskProgress(emitter, task.getId(),
+                                    task.getAgentCode(), "failed", task.getTaskQuery());
+                        }
+                    }
+                }, l2BoardExecutor));
+            }
+
+            try {
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                        .get(AGENT_TIMEOUT_SECONDS * 3L, TimeUnit.SECONDS);
+            } catch (TimeoutException te) {
+                log.warn("L2黑板 round {} 超时，取消剩余任务", round);
+                l2Board.cancel();
+                break;
+            } catch (Exception e) {
+                log.warn("L2黑板 round {} 异常: {}", round, e.getMessage());
+                l2Board.cancel();
+                break;
+            }
+        }
+
+        if (emitter != null) {
+            sseEmitterManager.sendL2BoardStatus(emitter, "completed", l2Board.size());
+        }
+
+        String results = l2Board.collectResults();
+        log.info("L2黑板执行完毕:\n{}", l2Board);
+        return results;
+    }
+
+    /** 异步刷新用户在线心跳 */
+    private void refreshOnlineHeartbeat(Long userId) {
+        if (userId == null) return;
+        CompletableFuture.runAsync(() -> {
+            try {
+                userService.setOnlineStatus(userId, true);
+            } catch (Exception e) {
+                log.debug("刷新在线心跳失败: userId={}, error={}", userId, e.getMessage());
+            }
+        }, agentExecutor);
     }
 }

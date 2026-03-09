@@ -1,7 +1,7 @@
 export default {
   navbar: {
     dashboard: 'Dashboard', content: 'Content', activity: 'Activities', products: 'Products',
-    orders: 'Orders', users: 'Users', system: 'System',
+    orders: 'Orders', users: 'Users', ai: 'AI Platform', system: 'System',
     switchToDark: 'Switch to Dark', switchToLight: 'Switch to Light',
     switchLang: 'Switch Language', signOut: 'Sign Out',
     signOutConfirm: 'Are you sure you want to sign out?', confirm: 'Confirm', cancel: 'Cancel',

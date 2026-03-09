@@ -28,4 +28,21 @@ public class AsyncConfig {
         executor.initialize();
         return executor;
     }
+
+    /** L2 黑板专用线程池（与普通 AI 线程池隔离，防止 Ultra 并发请求饱和普通线程池） */
+    @Bean("l2BoardExecutor")
+    public Executor l2BoardExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(2);
+        executor.setMaxPoolSize(6);
+        executor.setQueueCapacity(20);
+        executor.setThreadNamePrefix("l2-board-");
+        executor.setKeepAliveSeconds(60);
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(30);
+        executor.initialize();
+        log.info("L2黑板专用线程池初始化: core=2, max=6, queue=20");
+        return executor;
+    }
 }

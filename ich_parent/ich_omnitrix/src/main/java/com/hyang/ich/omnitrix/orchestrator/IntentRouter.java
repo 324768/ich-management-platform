@@ -80,7 +80,13 @@ public class IntentRouter {
                 "默认地址", "删除地址", "通知", "消息"
         });
 
-        // 优先级4: 推荐
+        // 优先级4: 浏览历史
+        ROUTE_RULES.put("browse_history_assistant", new String[]{
+                "浏览记录", "浏览历史", "看过什么", "看过的", "浏览了什么",
+                "今天看了", "昨天看了", "最近看了", "历史记录"
+        });
+
+        // 优先级5: 推荐
         ROUTE_RULES.put("recommend_assistant", new String[]{
                 "推荐", "有什么好看", "类似的", "相关的", "感兴趣", "猜你喜欢"
         });

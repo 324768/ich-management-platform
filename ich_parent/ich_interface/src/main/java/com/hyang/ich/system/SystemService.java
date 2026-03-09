@@ -3,6 +3,7 @@ package com.hyang.ich.system;
 import com.hyang.ich.common.vo.PageResult;
 import com.hyang.ich.system.dto.SysLoginDTO;
 import com.hyang.ich.system.dto.SysNotificationDTO;
+import com.hyang.ich.system.dto.SysOperationLogDTO;
 import com.hyang.ich.system.dto.SysRoleDTO;
 import com.hyang.ich.system.dto.SysUserDTO;
 
@@ -63,4 +64,18 @@ public interface SystemService {
 
     /** 为管理员分配角色 */
     void assignRoles(Long adminId, List<Long> roleIds);
+
+    // ========== 操作日志 / 安全审计 (Ultra) ==========
+
+    /** 查询最近的操作日志 */
+    PageResult<SysOperationLogDTO> listOperationLogs(int pageNum, int pageSize, Long userId, String module);
+
+    /** 查询某用户最近的操作记录 */
+    List<SysOperationLogDTO> listUserRecentOps(Long userId, int limit);
+
+    /** 查询失败操作（可疑行为检测） */
+    List<SysOperationLogDTO> listFailedOps(int hours, int limit);
+
+    /** 统计今日操作数 */
+    int countTodayOps();
 }

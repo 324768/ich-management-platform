@@ -9,6 +9,9 @@ import com.hyang.ich.omnitrix.dto.PendingAction;
 import com.hyang.ich.order.OrderService;
 import com.hyang.ich.order.dto.OrderCreateDTO;
 import com.hyang.ich.order.dto.OrderDTO;
+import com.hyang.ich.omnitrix.entity.AiUserAiConfig;
+import com.hyang.ich.omnitrix.mapper.AiUserAiConfigMapper;
+import com.hyang.ich.omnitrix.service.SystemMemoryService;
 import com.hyang.ich.product.ProductService;
 import com.hyang.ich.product.dto.ProductDTO;
 import com.hyang.ich.system.SystemService;
@@ -40,6 +43,8 @@ public class ActionExecutor {
     private final ContentService contentService;
     private final UserService userService;
     private final SystemService systemService;
+    private final AiUserAiConfigMapper aiConfigMapper;
+    private final SystemMemoryService systemMemoryService;
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
 
@@ -48,12 +53,16 @@ public class ActionExecutor {
                           ContentService contentService,
                           UserService userService,
                           SystemService systemService,
+                          AiUserAiConfigMapper aiConfigMapper,
+                          SystemMemoryService systemMemoryService,
                           StringRedisTemplate redisTemplate) {
         this.productService = productService;
         this.orderService = orderService;
         this.contentService = contentService;
         this.userService = userService;
         this.systemService = systemService;
+        this.aiConfigMapper = aiConfigMapper;
+        this.systemMemoryService = systemMemoryService;
         this.redisTemplate = redisTemplate;
         this.objectMapper = new ObjectMapper();
     }
@@ -176,6 +185,23 @@ public class ActionExecutor {
                     return doPublishNotification(action);
                 case "update_activity_status":
                     return doUpdateActivityStatus(action);
+                // ---------- Ultra 操作 ----------
+                case "ultra_disable_user_ai":
+                    return doUltraDisableUserAi(action, userId);
+                case "ultra_enable_user_ai":
+                    return doUltraEnableUserAi(action, userId);
+                case "ultra_cross_add_cart":
+                    return doUltraCrossAddCart(action);
+                case "ultra_cross_remove_cart":
+                    return doUltraCrossRemoveCart(action);
+                case "ultra_cross_clear_cart":
+                    return doUltraCrossClearCart(action);
+                case "ultra_delete_user":
+                    return doUltraDeleteUser(action, userId);
+                case "ultra_ban_user":
+                    return doUltraBanUser(action);
+                case "ultra_unban_user":
+                    return doUltraUnbanUser(action);
                 default:
                     return "[操作失败] 不支持的操作类型: " + action.getActionType();
             }
@@ -399,5 +425,96 @@ public class ActionExecutor {
         Integer status = action.getParamAsInt("status");
         contentService.updateActivityStatus(activityId, status != null ? status : 1);
         return "[操作成功] 活动状态已更新";
+    }
+
+    // ---------- Ultra 操作 ----------
+
+    private String doUltraDisableUserAi(PendingAction action, Long adminId) {
+        Long targetUserId = action.getParamAsLong("targetUserId");
+        String reason = action.getParam("disabledReason");
+        AiUserAiConfig config = aiConfigMapper.selectByUserId(targetUserId);
+        if (config == null) {
+            config = new AiUserAiConfig();
+            config.setUserId(targetUserId);
+            config.setAiEnabled(0);
+            config.setDisabledReason(reason);
+            config.setDisabledBy(adminId);
+            config.setMaxDailyQueries(100);
+            aiConfigMapper.insert(config);
+        } else {
+            aiConfigMapper.updateAiEnabled(targetUserId, 0, reason, adminId);
+        }
+        // 记录到系统记忆
+        UserDTO user = userService.findById(targetUserId);
+        String userName = user != null ? user.getNickname() : "ID:" + targetUserId;
+        systemMemoryService.saveDirective("disable_ai_" + targetUserId,
+                "已禁用用户「" + userName + "」的AI功能，原因: " + reason, String.valueOf(adminId));
+        return "[操作成功] 已禁用用户「" + userName + "」的AI功能";
+    }
+
+    private String doUltraEnableUserAi(PendingAction action, Long adminId) {
+        Long targetUserId = action.getParamAsLong("targetUserId");
+        aiConfigMapper.updateAiEnabled(targetUserId, 1, null, adminId);
+        UserDTO user = userService.findById(targetUserId);
+        String userName = user != null ? user.getNickname() : "ID:" + targetUserId;
+        // 清除系统记忆中的禁用指令
+        systemMemoryService.saveDirective("disable_ai_" + targetUserId,
+                "已恢复用户「" + userName + "」的AI功能", String.valueOf(adminId));
+        return "[操作成功] 已恢复用户「" + userName + "」的AI功能";
+    }
+
+    private String doUltraCrossAddCart(PendingAction action) {
+        Long targetUserId = action.getParamAsLong("targetUserId");
+        Long productId = action.getParamAsLong("productId");
+        Integer quantity = action.getParamAsInt("quantity");
+        if (quantity == null) quantity = 1;
+        productService.addToCart(targetUserId, productId, quantity);
+        ProductDTO product = productService.getProductById(productId);
+        String name = product != null ? product.getName() : "商品ID:" + productId;
+        UserDTO user = userService.findById(targetUserId);
+        String userName = user != null ? user.getNickname() : "ID:" + targetUserId;
+        return "[操作成功] 已为用户「" + userName + "」的购物车添加「" + name + "」×" + quantity;
+    }
+
+    private String doUltraCrossRemoveCart(PendingAction action) {
+        Long targetUserId = action.getParamAsLong("targetUserId");
+        Long productId = action.getParamAsLong("productId");
+        productService.removeFromCart(targetUserId, productId);
+        return "[操作成功] 已从目标用户购物车移除该商品";
+    }
+
+    private String doUltraCrossClearCart(PendingAction action) {
+        Long targetUserId = action.getParamAsLong("targetUserId");
+        productService.clearCart(targetUserId);
+        UserDTO user = userService.findById(targetUserId);
+        String userName = user != null ? user.getNickname() : "ID:" + targetUserId;
+        return "[操作成功] 已清空用户「" + userName + "」的购物车";
+    }
+
+    private String doUltraDeleteUser(PendingAction action, Long adminId) {
+        Long targetUserId = action.getParamAsLong("targetUserId");
+        UserDTO user = userService.findById(targetUserId);
+        String userName = user != null ? user.getNickname() : "ID:" + targetUserId;
+        userService.deleteUser(targetUserId);
+        systemMemoryService.saveDirective("delete_user_" + targetUserId,
+                "管理员已删除用户「" + userName + "」", String.valueOf(adminId));
+        return "[操作成功] 已删除用户「" + userName + "」";
+    }
+
+    private String doUltraBanUser(PendingAction action) {
+        Long targetUserId = action.getParamAsLong("targetUserId");
+        userService.updateUserStatus(targetUserId, 0);
+        UserDTO user = null;
+        try { user = userService.findById(targetUserId); } catch (Exception ignored) {}
+        String userName = user != null ? user.getNickname() : "ID:" + targetUserId;
+        return "[操作成功] 已封禁用户「" + userName + "」";
+    }
+
+    private String doUltraUnbanUser(PendingAction action) {
+        Long targetUserId = action.getParamAsLong("targetUserId");
+        userService.updateUserStatus(targetUserId, 1);
+        UserDTO user = userService.findById(targetUserId);
+        String userName = user != null ? user.getNickname() : "ID:" + targetUserId;
+        return "[操作成功] 已解封用户「" + userName + "」";
     }
 }

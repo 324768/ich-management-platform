@@ -26,4 +26,16 @@ public interface UserMapper {
     long countAll();
 
     int updateHeritageFlag(@Param("id") Long id, @Param("heritageFlag") Integer heritageFlag);
+
+    User selectByNickname(@Param("nickname") String nickname);
+
+    int deleteById(@Param("id") Long id);
+
+    List<Long> selectRecentLoginUserIds(@Param("minutes") int minutes);
+
+    int updateOnlineStatus(@Param("id") Long id, @Param("isOnline") Integer isOnline);
+
+    List<User> selectOnlineUsers();
+
+    int clearInactiveUsers(@Param("timeoutMinutes") int timeoutMinutes);
 }
