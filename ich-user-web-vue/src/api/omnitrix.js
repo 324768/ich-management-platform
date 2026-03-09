@@ -1,14 +1,48 @@
-// 简单占位 API 封装，后续可替换为 axios 并抽取 baseURL
+import request from './index'
 
-export async function chat(messages) {
-  // TODO: 调用后端 /api/omnitrix/chat
-  return { reply: `Echo: ${messages[messages.length - 1]?.text || ''}` }
+/** 同步聊天 */
+export function chat(sessionId, message, userId) {
+  return request.post('/ai/chat', { sessionId, message }, { params: { userId }, timeout: 60000 })
 }
 
-export async function analyze(content) {
-  // TODO: 调用后端 /api/omnitrix/analyze
-  return { summary: `长度：${(content || '').length}` }
+/** SSE 流式聊天 — 返回 EventSource */
+export function chatStream(sessionId, message, userId) {
+  const params = new URLSearchParams({ sessionId, message, userId: userId || '1' })
+  return new EventSource(`/api/ai/chat/stream?${params.toString()}`)
 }
 
+/** 创建对话 */
+export function createConversation(userId, title) {
+  return request.post('/ai/conversation/create', title ? { title } : null, { params: { userId } })
+}
 
+/** 获取对话列表 */
+export function listConversations(userId) {
+  return request.get('/ai/conversation/list', { params: { userId } })
+}
 
+/** 获取对话详情 */
+export function getConversation(id, userId) {
+  return request.get(`/ai/conversation/${id}`, { params: { userId } })
+}
+
+/** 删除对话 */
+export function deleteConversation(id, userId) {
+  return request.delete(`/ai/conversation/${id}`, { params: { userId } })
+}
+
+/** 用户反馈：点赞/踩 */
+export function sendFeedback(messageId, feedback) {
+  return request.post(`/ai/feedback/${messageId}`, null, { params: { feedback } })
+}
+
+/** 重新生成（流式） — 返回 EventSource */
+export function regenerateStream(sessionId, userId) {
+  const params = new URLSearchParams({ sessionId, userId: userId || '1' })
+  return new EventSource(`/api/ai/chat/regenerate?${params.toString()}`)
+}
+
+/** 导出对话为 Markdown */
+export function exportConversation(id, userId) {
+  return request.get(`/ai/conversation/${id}/export`, { params: { userId } })
+}

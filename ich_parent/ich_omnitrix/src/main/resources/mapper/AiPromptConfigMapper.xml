@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyang.ich.omnitrix.mapper.AiPromptConfigMapper">
+
+    <select id="selectContentByKey" resultType="java.lang.String">
+        SELECT content FROM ai_prompt_config
+        WHERE prompt_key = #{promptKey} AND status = 1
+        LIMIT 1
+    </select>
+
+    <select id="selectAll" resultType="com.hyang.ich.omnitrix.entity.AiPromptConfig">
+        SELECT * FROM ai_prompt_config ORDER BY category, prompt_key
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_prompt_config (prompt_key, prompt_name, content, category, description, status)
+        VALUES (#{promptKey}, #{promptName}, #{content}, #{category}, #{description}, #{status})
+    </insert>
+
+    <update id="update">
+        UPDATE ai_prompt_config
+        SET prompt_name = #{promptName}, content = #{content}, category = #{category},
+            description = #{description}, status = #{status}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM ai_prompt_config WHERE id = #{id}
+    </delete>
+
+</mapper>

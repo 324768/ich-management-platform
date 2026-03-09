@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyang.ich.omnitrix.mapper.AiTraceLogMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_trace_log (trace_id, conversation_id, user_id, user_query, intent,
+                                   sub_agent, model, input_tokens, output_tokens, latency_ms,
+                                   self_score, status, error_message)
+        VALUES (#{traceId}, #{conversationId}, #{userId}, #{userQuery}, #{intent},
+                #{subAgent}, #{model}, #{inputTokens}, #{outputTokens}, #{latencyMs},
+                #{selfScore}, #{status}, #{errorMessage})
+    </insert>
+
+    <update id="updateSelfScore">
+        UPDATE ai_trace_log SET self_score = #{selfScore} WHERE trace_id = #{traceId}
+    </update>
+
+    <update id="updateMultiDimensionScore">
+        UPDATE ai_trace_log
+        SET self_score = #{selfScore},
+            accuracy_score = #{accuracyScore},
+            completeness_score = #{completenessScore},
+            safety_score = #{safetyScore}
+        WHERE trace_id = #{traceId}
+    </update>
+
+    <select id="selectPage" resultType="com.hyang.ich.omnitrix.entity.AiTraceLog">
+        SELECT * FROM ai_trace_log
+        <where>
+            <if test="startDate != null and startDate != ''">
+                AND create_time &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND create_time &lt;= #{endDate}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM ai_trace_log
+        <where>
+            <if test="startDate != null and startDate != ''">
+                AND create_time &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND create_time &lt;= #{endDate}
+            </if>
+        </where>
+    </select>
+
+    <select id="countTotalConversations" resultType="int">
+        SELECT COUNT(*) FROM ai_conversation WHERE status != 0
+    </select>
+
+    <select id="countTotalMessages" resultType="int">
+        SELECT COUNT(*) FROM ai_message
+    </select>
+
+    <select id="countTodayMessages" resultType="int">
+        SELECT COUNT(*) FROM ai_message WHERE DATE(create_time) = CURDATE()
+    </select>
+
+    <select id="avgSelfScore" resultType="java.lang.Double">
+        SELECT AVG(self_score) FROM ai_trace_log WHERE self_score IS NOT NULL
+    </select>
+
+    <select id="avgLatencyMs" resultType="java.lang.Double">
+        SELECT AVG(latency_ms) FROM ai_trace_log WHERE latency_ms > 0
+    </select>
+
+    <select id="topAgents" resultType="java.util.Map">
+        SELECT sub_agent AS agent, COUNT(*) AS count
+        FROM ai_trace_log
+        WHERE sub_agent IS NOT NULL
+        GROUP BY sub_agent
+        ORDER BY count DESC
+        LIMIT 10
+    </select>
+
+    <select id="scoreDistribution" resultType="java.util.Map">
+        SELECT
+            SUM(CASE WHEN self_score >= 8 THEN 1 ELSE 0 END) AS excellent,
+            SUM(CASE WHEN self_score >= 6 AND self_score &lt; 8 THEN 1 ELSE 0 END) AS good,
+            SUM(CASE WHEN self_score >= 4 AND self_score &lt; 6 THEN 1 ELSE 0 END) AS fair,
+            SUM(CASE WHEN self_score &lt; 4 THEN 1 ELSE 0 END) AS poor
+        FROM ai_trace_log
+        WHERE self_score IS NOT NULL
+    </select>
+
+    <update id="updateUserFeedback">
+        UPDATE ai_trace_log SET user_feedback = #{userFeedback} WHERE trace_id = #{traceId}
+    </update>
+
+    <select id="selectTraceIdByMessageId" resultType="java.lang.String">
+        SELECT t.trace_id FROM ai_trace_log t
+        INNER JOIN ai_message m ON t.conversation_id = m.conversation_id
+            AND t.user_query = (SELECT m2.content FROM ai_message m2
+                                WHERE m2.conversation_id = m.conversation_id
+                                AND m2.role = 'user' AND m2.id &lt; m.id
+                                ORDER BY m2.id DESC LIMIT 1)
+        WHERE m.id = #{messageId}
+        ORDER BY t.create_time DESC LIMIT 1
+    </select>
+
+</mapper>

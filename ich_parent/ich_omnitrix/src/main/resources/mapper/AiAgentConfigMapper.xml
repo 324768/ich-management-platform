@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyang.ich.omnitrix.mapper.AiAgentConfigMapper">
+
+    <select id="selectEnabled" resultType="com.hyang.ich.omnitrix.entity.AiAgentConfig">
+        SELECT * FROM ai_agent_config WHERE status = 1 ORDER BY sort ASC
+    </select>
+
+    <select id="selectByCode" resultType="com.hyang.ich.omnitrix.entity.AiAgentConfig">
+        SELECT * FROM ai_agent_config WHERE agent_code = #{agentCode} AND status = 1
+    </select>
+
+    <select id="selectVersionByCode" resultType="java.lang.Long">
+        SELECT version FROM ai_agent_config WHERE agent_code = #{agentCode} AND status = 1
+    </select>
+
+    <select id="selectPage" resultType="com.hyang.ich.omnitrix.entity.AiAgentConfig">
+        SELECT * FROM ai_agent_config
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (agent_code LIKE CONCAT('%', #{keyword}, '%')
+                     OR agent_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY sort ASC, id DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM ai_agent_config
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (agent_code LIKE CONCAT('%', #{keyword}, '%')
+                     OR agent_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_agent_config (agent_code, agent_name, icon, description, system_prompt,
+                                      routing_keywords, knowledge_base_id, fallback_strategy, sort, status, version)
+        VALUES (#{agentCode}, #{agentName}, #{icon}, #{description}, #{systemPrompt},
+                #{routingKeywords}, #{knowledgeBaseId}, #{fallbackStrategy}, #{sort}, #{status}, #{version})
+    </insert>
+
+    <update id="update">
+        UPDATE ai_agent_config
+        SET agent_name = #{agentName}, icon = #{icon}, description = #{description},
+            system_prompt = #{systemPrompt}, routing_keywords = #{routingKeywords},
+            knowledge_base_id = #{knowledgeBaseId}, fallback_strategy = #{fallbackStrategy},
+            sort = #{sort}, status = #{status}, version = version + 1
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM ai_agent_config WHERE id = #{id}
+    </delete>
+
+    <update id="updateStatus">
+        UPDATE ai_agent_config SET status = #{status}, version = version + 1 WHERE id = #{id}
+    </update>
+
+</mapper>

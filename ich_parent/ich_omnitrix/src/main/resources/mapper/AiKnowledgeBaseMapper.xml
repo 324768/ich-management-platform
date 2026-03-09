@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyang.ich.omnitrix.mapper.AiKnowledgeBaseMapper">
+
+    <select id="searchByKeyword" resultType="com.hyang.ich.omnitrix.entity.AiKnowledgeBase">
+        SELECT * FROM ai_knowledge_base
+        WHERE status = 1
+          AND (keywords LIKE CONCAT('%', #{keyword}, '%')
+               OR question LIKE CONCAT('%', #{keyword}, '%'))
+        ORDER BY hit_count DESC
+        LIMIT 3
+    </select>
+
+    <select id="searchByTokens" resultType="com.hyang.ich.omnitrix.entity.AiKnowledgeBase">
+        SELECT *, (
+            <foreach collection="tokens" item="token" separator=" + ">
+                (CASE WHEN keywords LIKE CONCAT('%', #{token}, '%') THEN 2 ELSE 0 END
+                 + CASE WHEN question LIKE CONCAT('%', #{token}, '%') THEN 1 ELSE 0 END
+                 + CASE WHEN answer LIKE CONCAT('%', #{token}, '%') THEN 1 ELSE 0 END)
+            </foreach>
+        ) AS relevance_score
+        FROM ai_knowledge_base
+        WHERE status = 1
+          AND (
+            <foreach collection="tokens" item="token" separator=" OR ">
+                keywords LIKE CONCAT('%', #{token}, '%')
+                OR question LIKE CONCAT('%', #{token}, '%')
+            </foreach>
+          )
+        HAVING relevance_score > 0
+        ORDER BY relevance_score DESC, hit_count DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectAll" resultType="com.hyang.ich.omnitrix.entity.AiKnowledgeBase">
+        SELECT * FROM ai_knowledge_base ORDER BY id DESC
+    </select>
+
+    <select id="selectPage" resultType="com.hyang.ich.omnitrix.entity.AiKnowledgeBase">
+        SELECT * FROM ai_knowledge_base
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (question LIKE CONCAT('%', #{keyword}, '%')
+                     OR keywords LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY id DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM ai_knowledge_base
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (question LIKE CONCAT('%', #{keyword}, '%')
+                     OR keywords LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_knowledge_base (question, answer, category_id, keywords, hit_count, status)
+        VALUES (#{question}, #{answer}, #{categoryId}, #{keywords}, #{hitCount}, #{status})
+    </insert>
+
+    <update id="update">
+        UPDATE ai_knowledge_base
+        SET question = #{question}, answer = #{answer}, category_id = #{categoryId},
+            keywords = #{keywords}, status = #{status}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM ai_knowledge_base WHERE id = #{id}
+    </delete>
+
+    <update id="incrementHitCount">
+        UPDATE ai_knowledge_base SET hit_count = hit_count + 1 WHERE id = #{id}
+    </update>
+
+    <select id="searchByKeywordAndCategory" resultType="com.hyang.ich.omnitrix.entity.AiKnowledgeBase">
+        SELECT * FROM ai_knowledge_base
+        WHERE status = 1
+          AND category_id = #{categoryId}
+          AND (keywords LIKE CONCAT('%', #{keyword}, '%')
+               OR question LIKE CONCAT('%', #{keyword}, '%'))
+        ORDER BY hit_count DESC
+        LIMIT 3
+    </select>
+
+</mapper>

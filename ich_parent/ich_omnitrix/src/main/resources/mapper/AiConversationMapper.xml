@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyang.ich.omnitrix.mapper.AiConversationMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_conversation (user_id, session_id, title, message_count, summary, status)
+        VALUES (#{userId}, #{sessionId}, #{title}, #{messageCount}, #{summary}, #{status})
+    </insert>
+
+    <select id="selectById" resultType="com.hyang.ich.omnitrix.entity.AiConversation">
+        SELECT * FROM ai_conversation WHERE id = #{id} AND status != 0
+    </select>
+
+    <select id="selectBySessionId" resultType="com.hyang.ich.omnitrix.entity.AiConversation">
+        SELECT * FROM ai_conversation WHERE session_id = #{sessionId} AND status != 0
+    </select>
+
+    <select id="selectByUserId" resultType="com.hyang.ich.omnitrix.entity.AiConversation">
+        SELECT * FROM ai_conversation
+        WHERE user_id = #{userId} AND status != 0
+        ORDER BY update_time DESC
+    </select>
+
+    <update id="updateTitle">
+        UPDATE ai_conversation SET title = #{title} WHERE id = #{id}
+    </update>
+
+    <update id="updateSummary">
+        UPDATE ai_conversation SET summary = #{summary} WHERE id = #{id}
+    </update>
+
+    <update id="updateMessageCount">
+        UPDATE ai_conversation SET message_count = #{messageCount} WHERE id = #{id}
+    </update>
+
+    <update id="incrementMessageCount">
+        UPDATE ai_conversation SET message_count = message_count + 1, update_time = NOW() WHERE id = #{id}
+    </update>
+
+    <update id="softDelete">
+        UPDATE ai_conversation SET status = 0 WHERE id = #{id}
+    </update>
+
+    <select id="selectAll" resultType="com.hyang.ich.omnitrix.entity.AiConversation">
+        SELECT * FROM ai_conversation
+        WHERE status != 0
+        ORDER BY update_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+</mapper>

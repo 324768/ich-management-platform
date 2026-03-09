@@ -8,6 +8,10 @@ spring:
     url: jdbc:mysql://127.0.0.1:3306/ai_service?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
     password: 123456
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    database: 1
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
@@ -27,7 +31,41 @@ dubbo:
   scan:
     base-packages: com.hyang.ich.omnitrix
 
+omnitrix:
+  llm:
+    # 向后兼容：顶层配置 = primary 模型
+    api-url: http://localhost:11434/v1/chat/completions
+    model: qwen2.5:3b
+    # api-key:                          # 商业模型需要填写 API Key
+    timeout-seconds: 60
+    max-tokens: 2048
+    temperature: 0.7
+    # ---- 双模型配置（可选，不配则 auxiliary 自动复用 primary）----
+    # primary:                          # 主聊天模型（高质量）
+    #   api-url: https://api.deepseek.com/v1/chat/completions
+    #   model: deepseek-chat
+    #   api-key: sk-xxx
+    #   timeout-seconds: 60
+    #   max-tokens: 4096
+    #   temperature: 0.7
+    # auxiliary:                        # 辅助任务模型（评分/标题/意图/摘要，更快更便宜）
+    #   api-url: http://localhost:11434/v1/chat/completions
+    #   model: qwen2.5:1.5b
+    #   timeout-seconds: 30
+    #   max-tokens: 512
+    #   temperature: 0.3
+  memory:
+    max-messages: 20
+    redis-ttl-hours: 24
+    summary-enabled: true
+  evaluation:
+    enabled: true
+    async: true
+  prompts:
+    master-brain-system: ""
+
 logging:
   level:
     root: info
+    com.hyang.ich.omnitrix: debug
 

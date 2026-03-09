@@ -68,6 +68,21 @@
         </el-menu-item>
 
         <div class="sidebar-section menu-section" v-show="!collapsed">
+          <span class="section-label">AI</span>
+        </div>
+
+        <el-sub-menu index="ai">
+          <template #title>
+            <el-icon><Cpu /></el-icon>
+            <span>Omnitrix AI</span>
+          </template>
+          <el-menu-item index="/ai/dashboard">Dashboard</el-menu-item>
+          <el-menu-item index="/ai/knowledge">Knowledge Base</el-menu-item>
+          <el-menu-item index="/ai/agent">Agent Config</el-menu-item>
+          <el-menu-item index="/ai/prompt">Prompt Config</el-menu-item>
+        </el-sub-menu>
+
+        <div class="sidebar-section menu-section" v-show="!collapsed">
           <span class="section-label">SETTINGS</span>
         </div>
 

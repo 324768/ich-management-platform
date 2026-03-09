@@ -144,6 +144,30 @@ const routes = [
         meta: { title: 'Order Management', icon: 'List' }
       },
       {
+        path: 'ai/dashboard',
+        name: 'AiDashboard',
+        component: () => import('@/views/ai/AiDashboard.vue'),
+        meta: { title: 'AI Dashboard', icon: 'DataAnalysis', parent: 'Omnitrix AI' }
+      },
+      {
+        path: 'ai/knowledge',
+        name: 'AiKnowledge',
+        component: () => import('@/views/ai/AiKnowledgeList.vue'),
+        meta: { title: 'Knowledge Base', icon: 'Reading', parent: 'Omnitrix AI' }
+      },
+      {
+        path: 'ai/agent',
+        name: 'AiAgent',
+        component: () => import('@/views/ai/AiAgentList.vue'),
+        meta: { title: 'Agent Config', icon: 'Cpu', parent: 'Omnitrix AI' }
+      },
+      {
+        path: 'ai/prompt',
+        name: 'AiPrompt',
+        component: () => import('@/views/ai/AiPromptList.vue'),
+        meta: { title: 'Prompt Config', icon: 'EditPen', parent: 'Omnitrix AI' }
+      },
+      {
         path: 'system/admin',
         name: 'AdminManage',
         component: () => import('@/views/system/AdminList.vue'),

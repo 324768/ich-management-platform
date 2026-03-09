@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyang.ich.omnitrix.mapper.AiUserMemoryMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_user_memory (user_id, memory_type, memory_key, memory_value, confidence, source)
+        VALUES (#{userId}, #{memoryType}, #{memoryKey}, #{memoryValue}, #{confidence}, #{source})
+    </insert>
+
+    <update id="updateValue">
+        UPDATE ai_user_memory
+        SET memory_value = #{memoryValue}, confidence = #{confidence}, update_time = NOW()
+        WHERE id = #{id} AND status = 1
+    </update>
+
+    <update id="incrementHitCount">
+        UPDATE ai_user_memory SET hit_count = hit_count + 1 WHERE id = #{id}
+    </update>
+
+    <update id="deactivate">
+        UPDATE ai_user_memory SET status = 0, update_time = NOW() WHERE id = #{id}
+    </update>
+
+    <select id="selectByUserId" resultType="com.hyang.ich.omnitrix.entity.AiUserMemory">
+        SELECT id, user_id, memory_type, memory_key, memory_value, confidence, source, hit_count,
+               status, create_time, update_time
+        FROM ai_user_memory
+        WHERE user_id = #{userId} AND status = 1
+        ORDER BY confidence DESC, update_time DESC
+        LIMIT 20
+    </select>
+
+    <select id="selectByUserIdAndType" resultType="com.hyang.ich.omnitrix.entity.AiUserMemory">
+        SELECT id, user_id, memory_type, memory_key, memory_value, confidence, source, hit_count,
+               status, create_time, update_time
+        FROM ai_user_memory
+        WHERE user_id = #{userId} AND memory_type = #{memoryType} AND status = 1
+        ORDER BY confidence DESC, update_time DESC
+    </select>
+
+    <select id="selectByUserIdAndKey" resultType="com.hyang.ich.omnitrix.entity.AiUserMemory">
+        SELECT id, user_id, memory_type, memory_key, memory_value, confidence, source, hit_count,
+               status, create_time, update_time
+        FROM ai_user_memory
+        WHERE user_id = #{userId} AND memory_key = #{memoryKey} AND status = 1
+        LIMIT 1
+    </select>
+
+    <select id="countByUserId" resultType="int">
+        SELECT COUNT(*) FROM ai_user_memory WHERE user_id = #{userId} AND status = 1
+    </select>
+
+</mapper>
