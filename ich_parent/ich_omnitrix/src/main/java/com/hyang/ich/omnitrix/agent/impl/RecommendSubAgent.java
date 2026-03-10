@@ -10,6 +10,7 @@ import com.hyang.ich.omnitrix.agent.AgentUtils;
 import com.hyang.ich.omnitrix.agent.SubAgent;
 import com.hyang.ich.omnitrix.agent.tool.AgentTool;
 import com.hyang.ich.omnitrix.agent.tool.ToolCallResult;
+import com.hyang.ich.omnitrix.agent.tool.HintGenerator;
 import com.hyang.ich.omnitrix.agent.tool.ToolSelector;
 import com.hyang.ich.omnitrix.dto.AgentQueryResult;
 import com.hyang.ich.omnitrix.service.RecommendService;
@@ -94,9 +95,10 @@ public class RecommendSubAgent implements SubAgent {
             }
 
             if (data.length() == 0) {
-                return AgentQueryResult.empty(getCode());
+                return HintGenerator.applyHints(AgentQueryResult.empty(getCode()), getCode(), "recommend");
             }
-            return AgentQueryResult.success(data.toString(), getCode());
+            return HintGenerator.applyHints(
+                    AgentQueryResult.success(data.toString(), getCode()), getCode(), "recommend");
 
         } catch (Exception e) {
             log.error("RecommendSubAgent 执行异常: {}", e.getMessage(), e);

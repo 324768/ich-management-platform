@@ -217,6 +217,63 @@ public class TaskBoard {
         return node != null ? node.getResult() : null;
     }
 
+    /**
+     * 获取所有已完成任务的摘要（供主脑再规划时审视中间结果）
+     * 格式：[agent_code] query → 结果摘要
+     */
+    public String getCompletedSummary() {
+        StringBuilder sb = new StringBuilder();
+        for (String taskId : executionOrder) {
+            TaskNode node = nodes.get(taskId);
+            if (node == null) continue;
+            if (node.getStatus() == TaskNode.Status.DONE && node.getResult() != null) {
+                sb.append("[").append(node.getAgentCode()).append("] ")
+                        .append(node.getTaskQuery()).append(" → ");
+                String result = node.getResult();
+                if (result.length() > 200) {
+                    sb.append(result, 0, 200).append("...");
+                } else {
+                    sb.append(result);
+                }
+                sb.append("\n");
+            } else if (node.getStatus() == TaskNode.Status.FAILED) {
+                sb.append("[" ).append(node.getAgentCode()).append("] ")
+                        .append(node.getTaskQuery()).append(" → 失败: ")
+                        .append(node.getResult() != null ? node.getResult() : "未知错误")
+                        .append("\n");
+            }
+        }
+        return sb.toString().trim();
+    }
+
+    /**
+     * 获取尚未完成的任务数量（PENDING / READY / RUNNING）
+     */
+    public int getPendingCount() {
+        int count = 0;
+        for (TaskNode node : nodes.values()) {
+            if (node.getStatus() != TaskNode.Status.DONE
+                    && node.getStatus() != TaskNode.Status.FAILED) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /**
+     * 获取已完成（含失败）的任务数量
+     */
+    public int getCompletedCount() {
+        int count = 0;
+        for (TaskNode node : nodes.values()) {
+            if (node.getStatus() == TaskNode.Status.DONE
+                    || node.getStatus() == TaskNode.Status.FAILED) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("TaskBoard {\n");

@@ -164,4 +164,63 @@ public class SseEmitterManager {
         private String status;
         private int taskCount;
     }
+
+    // ========== 子代理实时推送事件 ==========
+
+    /**
+     * 发送子代理调度事件（主脑开始调用子代理时）
+     * 事件名: agent_dispatch
+     */
+    public void sendAgentDispatch(SseEmitter emitter, String agentCode, String agentName, String query) {
+        try {
+            AgentDispatchEvent event = new AgentDispatchEvent();
+            event.setAgent(agentCode);
+            event.setAgentName(agentName);
+            event.setQuery(query);
+            event.setTimestamp(System.currentTimeMillis());
+            emitter.send(SseEmitter.event().name("agent_dispatch")
+                    .data(objectMapper.writeValueAsString(event)));
+        } catch (IOException e) {
+            log.debug("SSE 发送 agent_dispatch 失败: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * 发送子代理结果事件（子代理执行完成后）
+     * 事件名: agent_result
+     */
+    public void sendAgentResult(SseEmitter emitter, String agentCode, String agentName,
+                                String result, String status, int latencyMs) {
+        try {
+            AgentResultEvent event = new AgentResultEvent();
+            event.setAgent(agentCode);
+            event.setAgentName(agentName);
+            event.setResult(result);
+            event.setStatus(status);
+            event.setLatencyMs(latencyMs);
+            event.setTimestamp(System.currentTimeMillis());
+            emitter.send(SseEmitter.event().name("agent_result")
+                    .data(objectMapper.writeValueAsString(event)));
+        } catch (IOException e) {
+            log.debug("SSE 发送 agent_result 失败: {}", e.getMessage());
+        }
+    }
+
+    @Data
+    static class AgentDispatchEvent {
+        private String agent;
+        private String agentName;
+        private String query;
+        private long timestamp;
+    }
+
+    @Data
+    static class AgentResultEvent {
+        private String agent;
+        private String agentName;
+        private String result;
+        private String status;
+        private int latencyMs;
+        private long timestamp;
+    }
 }

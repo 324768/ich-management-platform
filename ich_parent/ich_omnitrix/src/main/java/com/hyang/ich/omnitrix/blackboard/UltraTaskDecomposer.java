@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 public class UltraTaskDecomposer {
 
     private static final String ULTRA_DECOMPOSE_PROMPT =
-            "你是 Ultra AI 的二级任务分解器。Ultra 拥有最高管理权限，可以同时操控用户端AI和管理端AI。\n\n" +
+            "你是 Omnitrix AI Ultra版 的二级任务分解器。Ultra 拥有最高管理权限，可以同时操控用户端AI和管理端AI。\n\n" +
             "可用的元代理（meta-agents）：\n" +
             "- user_ai_meta: 用户端AI，可执行用户侧操作（浏览非遗、购物、下单、收藏等），需指定目标用户\n" +
             "- admin_ai_meta: 管理员普通AI，可执行管理端操作（数据统计、审批、发货、发布通知等）\n" +
@@ -68,6 +68,33 @@ public class UltraTaskDecomposer {
             {"\u6d4f\u89c8\u8bb0\u5f55", "\u7edf\u8ba1"}, {"\u6d4f\u89c8", "\u8d2d\u7269\u8f66"}, {"\u884c\u4e3a", "\u5c01\u7981"},
             {"\u505a\u4e86\u4ec0\u4e48", "\u5728\u7ebf"}, {"\u6d4f\u89c8", "\u5ba1\u6279"}, {"\u8bb0\u5f55", "\u6570\u636e"},
     };
+
+    /** Ultra L2 再规划提示词 */
+    private static final String ULTRA_REPLAN_PROMPT =
+            "你是 Omnitrix AI Ultra版 的二级任务再规划器。审视已完成任务的结果，判断是否需要追加新任务。\n\n" +
+            "可用的元代理（meta-agents）：\n" +
+            "- user_ai_meta: 用户端AI，可执行用户侧操作\n" +
+            "- admin_ai_meta: 管理员普通AI，可执行管理端操作\n" +
+            "- ultra_user_control: 控制用户的AI开关\n" +
+            "- ultra_cross_user: 代替指定用户执行操作\n" +
+            "- ultra_system: 系统级用户管理\n" +
+            "- ultra_analytics: 用户分析\n" +
+            "- ultra_browse_history: 查看用户浏览记录\n" +
+            "- ultra_security: 安全审计\n\n" +
+            "原始Ultra指令：%s\n\n" +
+            "已完成的任务及结果：\n%s\n\n" +
+            "判断规则：\n" +
+            "1. 对照原始指令，检查是否所有意图都已被覆盖\n" +
+            "2. 如果已完成的结果中包含可用于后续操作的具体信息（如用户ID、名称），可以追加更精确的后续任务\n" +
+            "3. 不要重复已完成的任务\n" +
+            "4. 最多追加3个新任务\n\n" +
+            "输出格式（严格JSON）：\n" +
+            "无需追加: {\"replan\":false}\n" +
+            "需要追加: {\"replan\":true,\"tasks\":[\n" +
+            "  {\"agent\":\"ultra_user_control\",\"query\":\"禁用用户ID=5的AI\"}\n" +
+            "]}";
+
+    private static final int MAX_REPLAN_TASKS = 3;
 
     private static final Pattern JSON_PATTERN = Pattern.compile("\\{.*}", Pattern.DOTALL);
 
@@ -200,6 +227,79 @@ public class UltraTaskDecomposer {
         } catch (Exception e) {
             log.warn("Ultra主脑L2分解失败，回退单Agent: {}", e.getMessage());
             return null;
+        }
+    }
+
+    /**
+     * Ultra L2 再规划：审视已完成的元代理任务结果，决定是否追加新任务。
+     *
+     * @param l2Board     当前 L2 黑板
+     * @param userQuery   用户原始 Ultra 指令
+     * @return 新追加的任务数，0表示无需再规划
+     */
+    public int replan(TaskBoard l2Board, String userQuery) {
+        if (l2Board == null || l2Board.getPendingCount() > 0) {
+            return 0;
+        }
+
+        String completedSummary = l2Board.getCompletedSummary();
+        if (completedSummary.isEmpty()) {
+            return 0;
+        }
+
+        try {
+            String prompt = String.format(ULTRA_REPLAN_PROMPT, userQuery, completedSummary);
+            LlmResponse response = llmClient.chatAuxiliaryJson(prompt, new ArrayList<>(), "L2再规划");
+            String content = response.getContent();
+
+            if (content == null || content.isEmpty()) {
+                log.debug("Ultra主脑再规划: LLM返回空，无需追加");
+                return 0;
+            }
+
+            String json = extractJson(content);
+            if (json == null) return 0;
+
+            Map<String, Object> parsed = objectMapper.readValue(json,
+                    new TypeReference<Map<String, Object>>() {});
+
+            Object replanFlag = parsed.get("replan");
+            if (replanFlag == null || !Boolean.TRUE.equals(replanFlag)) {
+                log.debug("Ultra主脑再规划: 判定无需追加");
+                return 0;
+            }
+
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> newTasks = (List<Map<String, Object>>) parsed.get("tasks");
+            if (newTasks == null || newTasks.isEmpty()) {
+                return 0;
+            }
+
+            if (newTasks.size() > MAX_REPLAN_TASKS) {
+                newTasks = newTasks.subList(0, MAX_REPLAN_TASKS);
+            }
+
+            int added = 0;
+            for (Map<String, Object> taskDef : newTasks) {
+                String agent = (String) taskDef.get("agent");
+                String query = (String) taskDef.get("query");
+                if (agent == null || query == null) continue;
+                if (!VALID_L2_AGENTS.contains(agent)) {
+                    log.warn("Ultra再规划: 无效agent '{}', 跳过", agent);
+                    continue;
+                }
+                l2Board.create(agent, query);
+                added++;
+            }
+
+            if (added > 0) {
+                log.info("Ultra主脑再规划(L2): 追加了 {} 个新任务\n{}", added, l2Board);
+            }
+            return added;
+
+        } catch (Exception e) {
+            log.warn("Ultra主脑再规划失败: {}", e.getMessage());
+            return 0;
         }
     }
 

@@ -34,6 +34,7 @@ public class UserAiMetaAgent implements SubAgent {
 
     private static final int L1_TIMEOUT_SECONDS = 8;
     private static final int L1_MAX_ROUNDS = 3;
+    private static final int L1_MAX_REPLANS = 1;
 
     private final IntentRouter intentRouter;
     private final SubAgentRegistry subAgentRegistry;
@@ -73,7 +74,7 @@ public class UserAiMetaAgent implements SubAgent {
             if (taskDecomposer.isComplexQuery(userQuery)) {
                 TaskBoard board = taskDecomposer.decompose(userQuery, false);
                 if (board != null) {
-                    String result = executeL1Blackboard(board, context);
+                    String result = executeL1Blackboard(board, context, userQuery);
                     if (result != null && !result.isEmpty()) {
                         log.info("UserAiMetaAgent L1黑板完成: {} 个子任务", board.size());
                         return AgentQueryResult.success(result, getCode());
@@ -99,10 +100,21 @@ public class UserAiMetaAgent implements SubAgent {
     /**
      * 执行 L1 黑板多 Agent 协作
      */
-    private String executeL1Blackboard(TaskBoard board, AgentContext context) {
+    private String executeL1Blackboard(TaskBoard board, AgentContext context, String userQuery) {
+        int replanCount = 0;
         for (int round = 0; round < L1_MAX_ROUNDS && !board.isAllDone(); round++) {
             List<TaskNode> readyTasks = board.ready();
-            if (readyTasks.isEmpty()) break;
+            if (readyTasks.isEmpty()) {
+                if (replanCount < L1_MAX_REPLANS && board.isAllDone()) {
+                    int added = taskDecomposer.replan(board, userQuery, false);
+                    if (added > 0) {
+                        replanCount++;
+                        log.info("UserAiMetaAgent L1再规划: 追加{}个任务", added);
+                        continue;
+                    }
+                }
+                break;
+            }
 
             List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (TaskNode task : readyTasks) {
@@ -126,6 +138,15 @@ public class UserAiMetaAgent implements SubAgent {
             } catch (Exception e) {
                 log.warn("UserAiMetaAgent L1黑板轮次 {} 超时: {}", round, e.getMessage());
                 break;
+            }
+
+            // 本轮完毕，尝试再规划
+            if (board.isAllDone() && replanCount < L1_MAX_REPLANS) {
+                int added = taskDecomposer.replan(board, userQuery, false);
+                if (added > 0) {
+                    replanCount++;
+                    log.info("UserAiMetaAgent L1再规划: 追加{}个任务", added);
+                }
             }
         }
 

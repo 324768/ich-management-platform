@@ -47,6 +47,15 @@ public class PromptAssembler {
     }
 
     /**
+     * 组装完整的 System Prompt（含用户画像 + 笔记）
+     */
+    public String assemble(AgentContext context, SubAgent subAgent,
+                           AgentQueryResult queryResult, String summary,
+                           String userProfile, String sessionNotes) {
+        return doAssemble(context, subAgent, queryResult, summary, userProfile, null, sessionNotes);
+    }
+
+    /**
      * 组装完整的 System Prompt（含用户画像 + 系统记忆L4）
      *
      * @param systemMemory 系统全局记忆文本（可为null，来自 SystemMemoryService）
@@ -54,6 +63,15 @@ public class PromptAssembler {
     public String assemble(AgentContext context, SubAgent subAgent,
                            AgentQueryResult queryResult, String summary,
                            String userProfile, String systemMemory) {
+        return doAssemble(context, subAgent, queryResult, summary, userProfile, systemMemory, null);
+    }
+
+    /**
+     * 实际组装逻辑
+     */
+    private String doAssemble(AgentContext context, SubAgent subAgent,
+                              AgentQueryResult queryResult, String summary,
+                              String userProfile, String systemMemory, String sessionNotes) {
 
         StringBuilder sb = new StringBuilder();
 

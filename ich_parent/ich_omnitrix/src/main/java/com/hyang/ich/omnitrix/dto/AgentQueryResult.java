@@ -18,12 +18,32 @@ public class AgentQueryResult {
     private String agentCode;
     private PendingAction pendingAction;
 
+    /** hint 三元组：建议主脑执行的动作（如"向用户展示搜索结果并推荐第一个"） */
+    private String actionHint;
+    /** hint 三元组：给出此建议的原因（如"用户明确要求搜索剪纸活动"） */
+    private String reasonHint;
+    /** hint 三元组：禁忌事项（如"不要编造不存在的活动信息"） */
+    private String doNotHint;
+
     public static AgentQueryResult success(String data, String agentCode) {
         AgentQueryResult r = new AgentQueryResult();
         r.setStatus(Status.SUCCESS);
         r.setData(data);
         r.setAgentCode(agentCode);
         return r;
+    }
+
+    /**
+     * 链式设置 hint 三元组（KortexAI SubAgentResultWrapper 模式）
+     * @param action  建议主脑对用户做什么
+     * @param reason  为什么这样建议
+     * @param doNot   主脑不应该做什么
+     */
+    public AgentQueryResult withHints(String action, String reason, String doNot) {
+        this.actionHint = action;
+        this.reasonHint = reason;
+        this.doNotHint = doNot;
+        return this;
     }
 
     public static AgentQueryResult empty(String agentCode) {
@@ -61,27 +81,51 @@ public class AgentQueryResult {
      * 生成注入到 Prompt 的文本段
      */
     public String toPromptInjection() {
+        StringBuilder sb = new StringBuilder();
+
         switch (status) {
             case SUCCESS:
                 if (data != null && !data.isEmpty()) {
-                    return "[查询结果]\n" + data;
+                    sb.append("[查询结果]\n").append(data);
                 }
-                return "";
+                break;
             case ACTION_PROPOSED:
                 if (data != null && !data.isEmpty()) {
-                    return "[查询结果]\n" + data + "\n[系统提示: 用户希望执行操作，请根据查询结果向用户确认操作详情，" +
-                           "列出关键信息（商品名称/价格/活动名称/时间等），然后询问用户是否确认执行。" +
-                           "不要自行执行，等待用户确认。]";
+                    sb.append("[查询结果]\n").append(data)
+                      .append("\n[系统提示: 用户希望执行操作，请根据查询结果向用户确认操作详情，")
+                      .append("列出关键信息（商品名称/价格/活动名称/时间等），然后询问用户是否确认执行。")
+                      .append("不要自行执行，等待用户确认。]");
+                } else {
+                    sb.append("[系统提示: 未找到可操作的目标，请告知用户并建议更明确的描述]");
                 }
-                return "[系统提示: 未找到可操作的目标，请告知用户并建议更明确的描述]";
+                break;
             case EMPTY:
-                return "[系统提示: 未在平台数据库中找到相关内容，请基于你的知识回答，并告知用户平台暂无收录]";
+                sb.append("[系统提示: 未在平台数据库中找到相关内容，请基于你的知识回答，并告知用户平台暂无收录]");
+                break;
             case ERROR:
-                return "[系统提示: 数据查询服务暂时不可用，请基于你的知识尽力回答，并提示用户稍后再试]";
+                sb.append("[系统提示: 数据查询服务暂时不可用，请基于你的知识尽力回答，并提示用户稍后再试]");
+                break;
             case NO_AUTH:
-                return "[系统提示: 该功能仅限管理员使用，请礼貌告知用户]";
+                sb.append("[系统提示: 该功能仅限管理员使用，请礼貌告知用户]");
+                break;
             default:
-                return "";
+                break;
         }
+
+        // 附加 hint 三元组（引导主脑 LLM 的行为）
+        if (actionHint != null || reasonHint != null || doNotHint != null) {
+            sb.append("\n\n[智能体建议]");
+            if (actionHint != null) {
+                sb.append("\n- ACTION: ").append(actionHint);
+            }
+            if (reasonHint != null) {
+                sb.append("\n- REASON: ").append(reasonHint);
+            }
+            if (doNotHint != null) {
+                sb.append("\n- DO_NOT: ").append(doNotHint);
+            }
+        }
+
+        return sb.toString();
     }
 }

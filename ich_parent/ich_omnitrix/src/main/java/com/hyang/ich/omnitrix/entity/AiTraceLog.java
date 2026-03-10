@@ -26,5 +26,7 @@ public class AiTraceLog {
     private String status;
     private String errorMessage;
     private Integer userFeedback;
+    /** 本次请求成本（人民币元） */
+    private BigDecimal costRmb;
     private Date createTime;
 }

@@ -4,7 +4,7 @@
 
     <select id="selectContentByKey" resultType="java.lang.String">
         SELECT content FROM ai_prompt_config
-        WHERE prompt_key = #{promptKey} AND status = 1
+        WHERE prompt_key = #{promptKey} AND status = 1 AND is_active = 1
         LIMIT 1
     </select>
 
@@ -13,19 +13,38 @@
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO ai_prompt_config (prompt_key, prompt_name, content, category, description, status)
-        VALUES (#{promptKey}, #{promptName}, #{content}, #{category}, #{description}, #{status})
+        INSERT INTO ai_prompt_config (prompt_key, prompt_name, content, category, description, status, version, is_active)
+        VALUES (#{promptKey}, #{promptName}, #{content}, #{category}, #{description}, #{status},
+                #{version}, #{isActive})
     </insert>
 
     <update id="update">
         UPDATE ai_prompt_config
         SET prompt_name = #{promptName}, content = #{content}, category = #{category},
-            description = #{description}, status = #{status}
+            description = #{description}, status = #{status}, version = #{version}, is_active = #{isActive}
         WHERE id = #{id}
     </update>
 
     <delete id="deleteById">
         DELETE FROM ai_prompt_config WHERE id = #{id}
     </delete>
+
+    <select id="selectVersionsByKey" resultType="com.hyang.ich.omnitrix.entity.AiPromptConfig">
+        SELECT * FROM ai_prompt_config
+        WHERE prompt_key = #{promptKey}
+        ORDER BY version DESC
+    </select>
+
+    <select id="selectMaxVersion" resultType="java.lang.Integer">
+        SELECT MAX(version) FROM ai_prompt_config WHERE prompt_key = #{promptKey}
+    </select>
+
+    <update id="deactivateAllVersions">
+        UPDATE ai_prompt_config SET is_active = 0 WHERE prompt_key = #{promptKey}
+    </update>
+
+    <update id="activateVersion">
+        UPDATE ai_prompt_config SET is_active = 1 WHERE id = #{id}
+    </update>
 
 </mapper>

@@ -12,6 +12,8 @@ import com.hyang.ich.omnitrix.infrastructure.guardrails.RateLimiter;
 import com.hyang.ich.omnitrix.infrastructure.guardrails.TokenBudget;
 import com.hyang.ich.omnitrix.infrastructure.llm.LlmCircuitBreaker;
 import com.hyang.ich.omnitrix.infrastructure.sse.SseEmitterManager;
+import com.hyang.ich.omnitrix.infrastructure.telemetry.CostTracker;
+import com.hyang.ich.omnitrix.infrastructure.telemetry.TelemetryTracer;
 import com.hyang.ich.omnitrix.service.ConversationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -35,6 +37,8 @@ public class AiAdminController {
     private final LlmCircuitBreaker circuitBreaker;
     private final RateLimiter rateLimiter;
     private final TokenBudget tokenBudget;
+    private final TelemetryTracer telemetryTracer;
+    private final CostTracker costTracker;
     private final Executor aiAsyncExecutor;
 
     public AiAdminController(AiTraceLogMapper traceLogMapper,
@@ -45,6 +49,8 @@ public class AiAdminController {
                              LlmCircuitBreaker circuitBreaker,
                              RateLimiter rateLimiter,
                              TokenBudget tokenBudget,
+                             TelemetryTracer telemetryTracer,
+                             CostTracker costTracker,
                              @org.springframework.beans.factory.annotation.Qualifier("aiAsyncExecutor") Executor aiAsyncExecutor) {
         this.traceLogMapper = traceLogMapper;
         this.conversationMapper = conversationMapper;
@@ -54,6 +60,8 @@ public class AiAdminController {
         this.circuitBreaker = circuitBreaker;
         this.rateLimiter = rateLimiter;
         this.tokenBudget = tokenBudget;
+        this.telemetryTracer = telemetryTracer;
+        this.costTracker = costTracker;
         this.aiAsyncExecutor = aiAsyncExecutor;
     }
 
@@ -179,7 +187,41 @@ public class AiAdminController {
             stats.setScoreDistribution(scoreDist.get(0));
         }
 
+        // Agent 性能统计（最近 7 天）
+        stats.setAgentPerformance(telemetryTracer.getAgentPerformanceStats(7));
+        stats.setSpanTypeStats(telemetryTracer.getSpanTypeStats(7));
+
         return Result.success(stats);
+    }
+
+    /**
+     * Agent 性能统计仪表板（可指定时间范围）
+     */
+    @GetMapping("/agent-stats")
+    public Result<Map<String, Object>> agentPerformanceStats(
+            @RequestParam(defaultValue = "7") int days) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("agentPerformance", telemetryTracer.getAgentPerformanceStats(days));
+        result.put("spanTypeStats", telemetryTracer.getSpanTypeStats(days));
+        result.put("days", days);
+        return Result.success(result);
+    }
+
+    /**
+     * 成本统计仪表板（Token→RMB，按模型/按天统计）
+     */
+    @GetMapping("/cost-stats")
+    public Result<Map<String, Object>> costStats(
+            @RequestParam(defaultValue = "7") int days) {
+        return Result.success(costTracker.getCostStats(days));
+    }
+
+    /**
+     * 查看某个请求的完整 Span 链（调试用）
+     */
+    @GetMapping("/traces/{traceId}/spans")
+    public Result<List<?>> getTraceSpans(@PathVariable String traceId) {
+        return Result.success(telemetryTracer.getSpansByTraceId(traceId));
     }
 
     /**

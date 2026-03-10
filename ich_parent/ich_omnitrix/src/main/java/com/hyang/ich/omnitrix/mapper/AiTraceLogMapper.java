@@ -44,4 +44,19 @@ public interface AiTraceLogMapper {
     int updateUserFeedback(@Param("traceId") String traceId, @Param("userFeedback") int userFeedback);
 
     String selectTraceIdByMessageId(@Param("messageId") Long messageId);
+
+    /** 更新成本 */
+    int updateCostRmb(@Param("traceId") String traceId, @Param("costRmb") BigDecimal costRmb);
+
+    /** 最近 N 天总成本 */
+    BigDecimal sumCostRmb(@Param("days") int days);
+
+    /** 最近 N 天平均每请求成本 */
+    BigDecimal avgCostRmb(@Param("days") int days);
+
+    /** 按模型分组的成本统计 */
+    List<Map<String, Object>> costByModel(@Param("days") int days);
+
+    /** 按天统计成本 */
+    List<Map<String, Object>> dailyCost(@Param("days") int days);
 }

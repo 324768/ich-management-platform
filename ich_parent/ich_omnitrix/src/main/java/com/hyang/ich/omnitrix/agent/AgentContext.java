@@ -16,6 +16,8 @@ public class AgentContext {
     private String parentQuery;
     /** L2 元数据（任务ID、来源Agent等） */
     private Map<String, String> l2Metadata;
+    /** Agent 执行耗时（毫秒），供 Span 追踪使用 */
+    private int agentDurationMs;
 
     public static AgentContext of(Long userId, String sessionId, Long conversationId, String userRole) {
         AgentContext ctx = new AgentContext();

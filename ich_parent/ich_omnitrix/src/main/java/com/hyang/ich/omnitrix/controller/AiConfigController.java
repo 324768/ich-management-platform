@@ -74,6 +74,16 @@ public class AiConfigController {
         if (config.getId() != null) {
             promptConfigMapper.update(config);
         } else {
+            // 新建时自动分配版本号
+            Integer maxVersion = promptConfigMapper.selectMaxVersion(config.getPromptKey());
+            config.setVersion(maxVersion != null ? maxVersion + 1 : 1);
+            if (config.getIsActive() == null) {
+                config.setIsActive(1);
+            }
+            // 新版本激活时，先停用旧版本
+            if (Integer.valueOf(1).equals(config.getIsActive())) {
+                promptConfigMapper.deactivateAllVersions(config.getPromptKey());
+            }
             promptConfigMapper.insert(config);
         }
         // 主动失效 Prompt 缓存
@@ -84,6 +94,22 @@ public class AiConfigController {
     @DeleteMapping("/prompt/{id}")
     public Result<Void> deletePrompt(@PathVariable Long id) {
         promptConfigMapper.deleteById(id);
+        return Result.success();
+    }
+
+    /** 查看某个 promptKey 的所有版本历史 */
+    @GetMapping("/prompt/versions")
+    public Result<List<AiPromptConfig>> listPromptVersions(@RequestParam String promptKey) {
+        return Result.success(promptConfigMapper.selectVersionsByKey(promptKey));
+    }
+
+    /** 激活指定版本（停用同 key 其他版本） */
+    @PostMapping("/prompt/activate/{id}")
+    public Result<Void> activatePromptVersion(@PathVariable Long id,
+                                               @RequestParam String promptKey) {
+        promptConfigMapper.deactivateAllVersions(promptKey);
+        promptConfigMapper.activateVersion(id);
+        promptManager.invalidateCache(promptKey);
         return Result.success();
     }
 }

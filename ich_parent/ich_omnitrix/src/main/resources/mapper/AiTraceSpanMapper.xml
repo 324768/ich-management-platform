@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyang.ich.omnitrix.mapper.AiTraceSpanMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_trace_span (trace_id, span_id, parent_span_id, span_type,
+                                    span_name, duration_ms, status, metadata)
+        VALUES (#{traceId}, #{spanId}, #{parentSpanId}, #{spanType},
+                #{spanName}, #{durationMs}, #{status}, #{metadata})
+    </insert>
+
+    <select id="selectByTraceId" resultType="com.hyang.ich.omnitrix.entity.AiTraceSpan">
+        SELECT id, trace_id, span_id, parent_span_id, span_type,
+               span_name, duration_ms, status, metadata, create_time
+        FROM ai_trace_span
+        WHERE trace_id = #{traceId}
+        ORDER BY create_time ASC
+    </select>
+
+    <select id="agentPerformanceStats" resultType="java.util.Map">
+        SELECT span_name AS agent,
+               COUNT(*) AS totalCalls,
+               ROUND(AVG(duration_ms)) AS avgLatencyMs,
+               ROUND(SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) AS successRate,
+               MIN(duration_ms) AS minLatencyMs,
+               MAX(duration_ms) AS maxLatencyMs
+        FROM ai_trace_span
+        WHERE span_type = 'AGENT'
+          AND create_time >= DATE_SUB(NOW(), INTERVAL #{days} DAY)
+        GROUP BY span_name
+        ORDER BY totalCalls DESC
+    </select>
+
+    <select id="spanTypeStats" resultType="java.util.Map">
+        SELECT span_type AS type,
+               COUNT(*) AS count,
+               ROUND(AVG(duration_ms)) AS avgLatencyMs
+        FROM ai_trace_span
+        WHERE create_time >= DATE_SUB(NOW(), INTERVAL #{days} DAY)
+        GROUP BY span_type
+        ORDER BY count DESC
+    </select>
+
+</mapper>

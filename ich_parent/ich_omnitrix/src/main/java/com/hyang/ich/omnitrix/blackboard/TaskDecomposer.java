@@ -72,6 +72,50 @@ public class TaskDecomposer {
             "dependsOn 中的数字是 tasks 数组的索引（0-based）。\n" +
             "管理员请求: %s";
 
+    /** 再规划提示词：主脑审视中间结果后决定是否追加任务 */
+    private static final String REPLAN_PROMPT =
+            "你是任务再规划器。用户的原始请求和已完成任务的结果如下，请判断是否需要追加新任务。\n\n" +
+            "可用的子智能体：\n" +
+            "- content_assistant: 非遗项目/传承人/活动 搜索、报名活动、点赞/收藏/评论动态\n" +
+            "- commerce_assistant: 商品搜索、购物车操作、订单操作\n" +
+            "- user_assistant: 个人信息、地址、认证、通知\n" +
+            "- recommend_assistant: 推荐内容/商品\n" +
+            "- knowledge_assistant: 非遗知识问答\n\n" +
+            "原始用户请求：%s\n\n" +
+            "已完成的任务及结果：\n%s\n\n" +
+            "判断规则：\n" +
+            "1. 对照原始请求，检查是否所有意图都已被覆盖\n" +
+            "2. 如果已完成的结果中包含可用于后续操作的具体信息（如ID、名称），可以追加更精确的后续任务\n" +
+            "3. 不要重复已完成的任务\n" +
+            "4. 最多追加3个新任务\n\n" +
+            "输出格式（严格JSON）：\n" +
+            "无需追加: {\"replan\":false}\n" +
+            "需要追加: {\"replan\":true,\"tasks\":[\n" +
+            "  {\"agent\":\"content_assistant\",\"query\":\"报名ID=42的剪纸活动\"}\n" +
+            "]}";
+
+    /** 管理员版本的再规划提示词 */
+    private static final String ADMIN_REPLAN_PROMPT =
+            "你是管理后台任务再规划器。管理员的原始请求和已完成任务的结果如下，请判断是否需要追加新任务。\n\n" +
+            "可用的子智能体：\n" +
+            "- admin_data_agent: 数据统计、分析、报表\n" +
+            "- admin_action_agent: 审批活动、发货、发布通知等管理操作\n" +
+            "- knowledge_assistant: 非遗知识问答\n\n" +
+            "原始管理员请求：%s\n\n" +
+            "已完成的任务及结果：\n%s\n\n" +
+            "判断规则：\n" +
+            "1. 对照原始请求，检查是否所有意图都已被覆盖\n" +
+            "2. 如果已完成的结果中包含可用于后续操作的具体信息（如ID、名称），可以追加更精确的后续任务\n" +
+            "3. 不要重复已完成的任务\n" +
+            "4. 最多追加3个新任务\n\n" +
+            "输出格式（严格JSON）：\n" +
+            "无需追加: {\"replan\":false}\n" +
+            "需要追加: {\"replan\":true,\"tasks\":[\n" +
+            "  {\"agent\":\"admin_action_agent\",\"query\":\"审批通过ID=10的活动\"}\n" +
+            "]}";
+
+    private static final int MAX_REPLAN_TASKS = 3;
+
     /** 快速判断是否可能是复杂查询的关键词组合 */
     private static final String[][] CROSS_DOMAIN_HINTS = {
             // {领域A关键词, 领域B关键词} - 同时出现则可能跨域
@@ -205,6 +249,85 @@ public class TaskDecomposer {
         } catch (Exception e) {
             log.warn("主脑任务分解失败，回退单Agent路径: {}", e.getMessage());
             return null;
+        }
+    }
+
+    /**
+     * 主脑再规划：审视已完成任务的中间结果，决定是否追加新任务。
+     *
+     * 工作流程：
+     * 1. 收集已完成任务的摘要
+     * 2. 调用辅助 LLM 判断是否需要追加任务
+     * 3. 将新任务铉在黑板上
+     *
+     * @param board       当前黑板
+     * @param userQuery   用户原始请求
+     * @param isAdmin     是否管理员
+     * @return 新追加的任务数，0表示无需再规划
+     */
+    public int replan(TaskBoard board, String userQuery, boolean isAdmin) {
+        if (board == null || board.getPendingCount() > 0) {
+            // 还有未完成的任务，等它们完成后再再规划
+            return 0;
+        }
+
+        String completedSummary = board.getCompletedSummary();
+        if (completedSummary.isEmpty()) {
+            return 0;
+        }
+
+        try {
+            String prompt = String.format(
+                    isAdmin ? ADMIN_REPLAN_PROMPT : REPLAN_PROMPT,
+                    userQuery, completedSummary);
+            LlmResponse response = llmClient.chatAuxiliaryJson(prompt, new ArrayList<>(), "再规划");
+            String content = response.getContent();
+
+            if (content == null || content.isEmpty()) {
+                log.debug("主脑再规划: LLM返回空，无需追加");
+                return 0;
+            }
+
+            String json = extractJson(content);
+            if (json == null) return 0;
+
+            Map<String, Object> parsed = objectMapper.readValue(json,
+                    new TypeReference<Map<String, Object>>() {});
+
+            Object replanFlag = parsed.get("replan");
+            if (replanFlag == null || !Boolean.TRUE.equals(replanFlag)) {
+                log.debug("主脑再规划: 判定无需追加任务");
+                return 0;
+            }
+
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> newTasks = (List<Map<String, Object>>) parsed.get("tasks");
+            if (newTasks == null || newTasks.isEmpty()) {
+                return 0;
+            }
+
+            // 截断保护
+            if (newTasks.size() > MAX_REPLAN_TASKS) {
+                newTasks = newTasks.subList(0, MAX_REPLAN_TASKS);
+            }
+
+            int added = 0;
+            for (Map<String, Object> taskDef : newTasks) {
+                String agent = (String) taskDef.get("agent");
+                String query = (String) taskDef.get("query");
+                if (agent == null || query == null) continue;
+                board.create(agent, query);
+                added++;
+            }
+
+            if (added > 0) {
+                log.info("主脑再规划: 追加了 {} 个新任务\n{}", added, board);
+            }
+            return added;
+
+        } catch (Exception e) {
+            log.warn("主脑再规划失败: {}", e.getMessage());
+            return 0;
         }
     }
 

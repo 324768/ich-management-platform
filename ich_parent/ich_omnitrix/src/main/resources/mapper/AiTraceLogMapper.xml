@@ -104,4 +104,45 @@
         ORDER BY t.create_time DESC LIMIT 1
     </select>
 
+    <update id="updateCostRmb">
+        UPDATE ai_trace_log SET cost_rmb = #{costRmb} WHERE trace_id = #{traceId}
+    </update>
+
+    <select id="sumCostRmb" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(cost_rmb), 0) FROM ai_trace_log
+        WHERE create_time >= DATE_SUB(NOW(), INTERVAL #{days} DAY)
+          AND cost_rmb IS NOT NULL
+    </select>
+
+    <select id="avgCostRmb" resultType="java.math.BigDecimal">
+        SELECT COALESCE(AVG(cost_rmb), 0) FROM ai_trace_log
+        WHERE create_time >= DATE_SUB(NOW(), INTERVAL #{days} DAY)
+          AND cost_rmb IS NOT NULL
+    </select>
+
+    <select id="costByModel" resultType="java.util.Map">
+        SELECT model,
+               COUNT(*) AS requestCount,
+               ROUND(SUM(cost_rmb), 4) AS totalCost,
+               ROUND(AVG(cost_rmb), 6) AS avgCost
+        FROM ai_trace_log
+        WHERE create_time >= DATE_SUB(NOW(), INTERVAL #{days} DAY)
+          AND cost_rmb IS NOT NULL AND model IS NOT NULL
+        GROUP BY model
+        ORDER BY totalCost DESC
+    </select>
+
+    <select id="dailyCost" resultType="java.util.Map">
+        SELECT DATE(create_time) AS date,
+               COUNT(*) AS requestCount,
+               ROUND(SUM(cost_rmb), 4) AS totalCost,
+               SUM(input_tokens) AS totalInputTokens,
+               SUM(output_tokens) AS totalOutputTokens
+        FROM ai_trace_log
+        WHERE create_time >= DATE_SUB(NOW(), INTERVAL #{days} DAY)
+          AND cost_rmb IS NOT NULL
+        GROUP BY DATE(create_time)
+        ORDER BY date DESC
+    </select>
+
 </mapper>
