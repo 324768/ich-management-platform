@@ -27,9 +27,9 @@ import javax.annotation.PostConstruct;
 public class LlmProperties {
 
     // ---- 向后兼容的顶层字段 ----
-    private String apiUrl = "http://localhost:11434/v1/chat/completions";
-    private String model = "qwen2.5:3b";
-    private String apiKey;
+    private String apiUrl = "https://api.siliconflow.cn/v1/chat/completions";
+    private String model = "deepseek-ai/DeepSeek-V3";
+    private String apiKey = "sk-utgmwknrslowgyfkjtpqfllzclvzeyaevaayqqubpcmlmglw";
     private int timeoutSeconds = 60;
     private int maxTokens = 2048;
     private double temperature = 0.7;

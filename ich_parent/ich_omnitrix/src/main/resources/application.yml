@@ -34,23 +34,23 @@ dubbo:
 omnitrix:
   llm:
     # 向后兼容：顶层配置 = primary 模型
-    api-url: http://localhost:11434/v1/chat/completions
-    model: qwen2.5:3b
-    # api-key:                          # 商业模型需要填写 API Key
+    api-url: https://api.siliconflow.cn/v1/chat/completions
+    model: deepseek-ai/DeepSeek-V3
+    api-key: sk-utgmwknrslowgyfkjtpqfllzclvzeyaevaayqqubpcmlmglw
     timeout-seconds: 60
     max-tokens: 2048
     temperature: 0.7
     # ---- 双模型配置（可选，不配则 auxiliary 自动复用 primary）----
     # primary:                          # 主聊天模型（高质量）
-    #   api-url: https://api.deepseek.com/v1/chat/completions
-    #   model: deepseek-chat
-    #   api-key: sk-xxx
+    #   api-url: https://api.siliconflow.cn/v1/chat/completions
+    #   model: deepseek-ai/DeepSeek-V3
+    #   api-key: sk-utgmwknrslowgyfkjtpqfllzclvzeyaevaayqqubpcmlmglw
     #   timeout-seconds: 60
     #   max-tokens: 4096
     #   temperature: 0.7
     # auxiliary:                        # 辅助任务模型（评分/标题/意图/摘要，更快更便宜）
-    #   api-url: http://localhost:11434/v1/chat/completions
-    #   model: qwen2.5:1.5b
+    #   api-url: https://api.siliconflow.cn/v1/chat/completions
+    #   model: deepseek-ai/DeepSeek-V3
     #   timeout-seconds: 30
     #   max-tokens: 512
     #   temperature: 0.3

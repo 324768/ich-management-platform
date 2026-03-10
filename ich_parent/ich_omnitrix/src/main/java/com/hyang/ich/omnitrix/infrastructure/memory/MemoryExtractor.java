@@ -294,11 +294,18 @@ public class MemoryExtractor {
             String jsonStr = matcher.find() ? matcher.group() : content.trim();
 
             // 尝试两种格式：{"notes":[...]} 或 直接 [...]
-            Map<String, Object> root = objectMapper.readValue(jsonStr, new TypeReference<Map<String, Object>>() {});
-            if (root.containsKey("notes")) {
-                return (List<Map<String, Object>>) root.get("notes");
+            try {
+                // 优先尝试直接解析为数组
+                return objectMapper.readValue(jsonStr, new TypeReference<List<Map<String, Object>>>() {});
+            } catch (Exception e1) {
+                // 如果失败，尝试解析为对象并提取 notes 字段
+                Map<String, Object> root = objectMapper.readValue(jsonStr, new TypeReference<Map<String, Object>>() {});
+                if (root.containsKey("notes")) {
+                    return (List<Map<String, Object>>) root.get("notes");
+                }
+                // 如果既不是数组也没有 notes 字段，返回空列表
+                return new ArrayList<>();
             }
-            return root;
 
         } catch (Exception e) {
             log.debug("笔记JSON解析失败: {}", e.getMessage());

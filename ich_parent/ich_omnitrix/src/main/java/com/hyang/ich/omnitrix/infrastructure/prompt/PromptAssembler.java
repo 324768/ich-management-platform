@@ -60,7 +60,7 @@ public class PromptAssembler {
      *
      * @param systemMemory 系统全局记忆文本（可为null，来自 SystemMemoryService）
      */
-    public String assemble(AgentContext context, SubAgent subAgent,
+    public String assembleWithSystemMemory(AgentContext context, SubAgent subAgent,
                            AgentQueryResult queryResult, String summary,
                            String userProfile, String systemMemory) {
         return doAssemble(context, subAgent, queryResult, summary, userProfile, systemMemory, null);

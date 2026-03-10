@@ -11,7 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 使用辅助 LLM 模型（如 qwen2.5:3b）来选择工具并提取参数。
+ * 使用辅助 LLM 模型（如 deepseek-ai/DeepSeek-V3）来选择工具并提取参数。
  * 替代 SubAgent 中硬编码的 if(query.contains(...)) 逻辑。
  */
 @Slf4j

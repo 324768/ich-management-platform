@@ -28,6 +28,7 @@
         <dubbo.version>2.7.8</dubbo.version>
         <mybatis.spring.boot.version>2.2.2</mybatis.spring.boot.version>
         <guava.version>31.1-jre</guava.version>
+        <lombok.version>1.18.30</lombok.version>
     </properties>
 
 
@@ -106,6 +107,15 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.8.1</version>
+                    <configuration>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>

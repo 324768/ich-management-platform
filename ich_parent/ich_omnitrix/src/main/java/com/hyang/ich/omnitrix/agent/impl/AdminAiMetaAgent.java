@@ -9,6 +9,7 @@ import com.hyang.ich.omnitrix.blackboard.TaskNode;
 import com.hyang.ich.omnitrix.dto.AgentQueryResult;
 import com.hyang.ich.omnitrix.orchestrator.IntentRouter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -37,7 +38,7 @@ public class AdminAiMetaAgent implements SubAgent {
     private final Executor agentExecutor;
 
     public AdminAiMetaAgent(IntentRouter intentRouter,
-                            SubAgentRegistry subAgentRegistry,
+                            @Lazy SubAgentRegistry subAgentRegistry,
                             TaskDecomposer taskDecomposer,
                             @org.springframework.beans.factory.annotation.Qualifier("aiAsyncExecutor") Executor agentExecutor) {
         this.intentRouter = intentRouter;

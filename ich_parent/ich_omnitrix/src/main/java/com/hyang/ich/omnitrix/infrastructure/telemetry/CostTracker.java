@@ -27,6 +27,7 @@ public class CostTracker {
 
     static {
         // DeepSeek 系列
+        PRICING.put("deepseek-v3", new double[]{0.001, 0.002});
         PRICING.put("deepseek-chat", new double[]{0.001, 0.002});
         PRICING.put("deepseek-reasoner", new double[]{0.004, 0.016});
         PRICING.put("deepseek", new double[]{0.001, 0.002});

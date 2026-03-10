@@ -533,9 +533,9 @@ public class OrchestratorService {
             List<TaskNode> readyTasks = board.ready();
             if (readyTasks.isEmpty()) {
                 if (replanCount < MAX_REPLANS && board.isAllDone()) {
-                    var replanResult = masterBrain.replan(userMessage, board.getCompletedSummary());
+                    MasterBrain.ReplanResult replanResult = masterBrain.replan(userMessage, board.getCompletedSummary());
                     if (replanResult.isNeedReplan()) {
-                        for (var task : replanResult.getNewTasks()) {
+                        for (MasterBrain.Decision.Task task : replanResult.getNewTasks()) {
                             board.create(task.getAgent(), task.getQuery());
                         }
                         replanCount++;
@@ -579,9 +579,9 @@ public class OrchestratorService {
 
             // 尝试再规划
             if (board.isAllDone() && replanCount < MAX_REPLANS) {
-                var replanResult = masterBrain.replan(userMessage, board.getCompletedSummary());
+                MasterBrain.ReplanResult replanResult = masterBrain.replan(userMessage, board.getCompletedSummary());
                 if (replanResult.isNeedReplan()) {
-                    for (var task : replanResult.getNewTasks()) {
+                    for (MasterBrain.Decision.Task task : replanResult.getNewTasks()) {
                         board.create(task.getAgent(), task.getQuery());
                     }
                     replanCount++;
@@ -650,9 +650,9 @@ public class OrchestratorService {
             List<TaskNode> readyTasks = board.ready();
             if (readyTasks.isEmpty()) {
                 if (replanCount < MAX_REPLANS && board.isAllDone()) {
-                    var replanResult = masterBrain.replan(userMessage, board.getCompletedSummary());
+                    MasterBrain.ReplanResult replanResult = masterBrain.replan(userMessage, board.getCompletedSummary());
                     if (replanResult.isNeedReplan()) {
-                        for (var task : replanResult.getNewTasks()) {
+                        for (MasterBrain.Decision.Task task : replanResult.getNewTasks()) {
                             board.create(task.getAgent(), task.getQuery());
                         }
                         replanCount++;
@@ -708,9 +708,9 @@ public class OrchestratorService {
             }
 
             if (board.isAllDone() && replanCount < MAX_REPLANS) {
-                var replanResult = masterBrain.replan(userMessage, board.getCompletedSummary());
+                MasterBrain.ReplanResult replanResult = masterBrain.replan(userMessage, board.getCompletedSummary());
                 if (replanResult.isNeedReplan()) {
-                    for (var task : replanResult.getNewTasks()) {
+                    for (MasterBrain.Decision.Task task : replanResult.getNewTasks()) {
                         board.create(task.getAgent(), task.getQuery());
                     }
                     replanCount++;
@@ -1211,7 +1211,7 @@ public class OrchestratorService {
 
         // 组装 Prompt（含 L4 系统记忆）
         String systemMemory = systemMemoryService.buildSystemMemoryPrompt();
-        String systemPrompt = promptAssembler.assemble(context, subAgent, queryResult, summary, null, systemMemory);
+        String systemPrompt = promptAssembler.assembleWithSystemMemory(context, subAgent, queryResult, summary, null, systemMemory);
 
         // 调用 LLM
         LlmResponse llmResponse;
@@ -1306,7 +1306,7 @@ public class OrchestratorService {
             }
 
             String systemMemory = systemMemoryService.buildSystemMemoryPrompt();
-            String systemPrompt = promptAssembler.assemble(context, subAgent, queryResult, summary, null, systemMemory);
+            String systemPrompt = promptAssembler.assembleWithSystemMemory(context, subAgent, queryResult, summary, null, systemMemory);
 
             // 流式 LLM
             StreamResult streamResult;
