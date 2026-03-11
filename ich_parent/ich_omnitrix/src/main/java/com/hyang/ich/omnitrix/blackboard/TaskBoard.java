@@ -31,7 +31,7 @@ public class TaskBoard {
     // ========== 主脑操作 (Write-Only) ==========
 
     /**
-     * bd create —— 在黑板上创建一个新任务
+     * bd create —— 在黑板上创建一个新任务（无Skills）
      * 只有主脑（TaskDecomposer）可以调用
      *
      * @param agentCode 指定哪个子智能体来处理
@@ -39,11 +39,24 @@ public class TaskBoard {
      * @return 创建的任务节点
      */
     public TaskNode create(String agentCode, String taskQuery) {
+        return create(agentCode, taskQuery, null);
+    }
+
+    /**
+     * bd create —— 在黑板上创建一个新任务（带Skills）
+     * 只有主脑（TaskDecomposer）可以调用
+     *
+     * @param agentCode 指定哪个子智能体来处理
+     * @param taskQuery 任务的具体指令
+     * @param requiredSkills 当前任务需要的Skills（可null）
+     * @return 创建的任务节点
+     */
+    public TaskNode create(String agentCode, String taskQuery, List<String> requiredSkills) {
         String taskId = "task_" + (++idCounter);
-        TaskNode node = TaskNode.create(taskId, agentCode, taskQuery);
+        TaskNode node = TaskNode.create(taskId, agentCode, taskQuery, requiredSkills);
         nodes.put(taskId, node);
         executionOrder.add(taskId);
-        log.debug("黑板 create: [{}] → {} ({})", taskId, agentCode, taskQuery);
+        log.debug("黑板 create: [{}] → {} ({}) skills={}", taskId, agentCode, taskQuery, requiredSkills);
         return node;
     }
 

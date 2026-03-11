@@ -38,6 +38,9 @@ public class TaskNode {
     /** 任务具体指令（传给子智能体的查询） */
     private String taskQuery;
 
+    /** 当前任务需要的Skills（由主脑判断，SubAgent执行时注入） */
+    private List<String> requiredSkills;
+
     /** 前置依赖任务ID列表 */
     private List<String> dependsOn;
 
@@ -54,13 +57,25 @@ public class TaskNode {
     private long createdAt;
 
     /**
-     * 主脑创建任务节点
+     * 主脑创建任务节点（无Skills）
      */
     public static TaskNode create(String id, String agentCode, String taskQuery) {
+        return create(id, agentCode, taskQuery, null);
+    }
+
+    /**
+     * 主脑创建任务节点（带Skills）
+     * @param id 任务ID
+     * @param agentCode 目标Agent编码
+     * @param taskQuery 任务指令
+     * @param requiredSkills 当前任务需要的Skills（可null）
+     */
+    public static TaskNode create(String id, String agentCode, String taskQuery, List<String> requiredSkills) {
         TaskNode node = new TaskNode();
         node.setId(id);
         node.setAgentCode(agentCode);
         node.setTaskQuery(taskQuery);
+        node.setRequiredSkills(requiredSkills);
         node.setDependsOn(new ArrayList<>());
         node.setStatus(Status.READY); // 无依赖时默认 READY
         node.setCreatedAt(System.currentTimeMillis());

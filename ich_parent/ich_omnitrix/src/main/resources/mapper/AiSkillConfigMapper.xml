@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hyang.ich.omnitrix.mapper.AiSkillConfigMapper">
+
+    <select id="selectEnabled" resultType="com.hyang.ich.omnitrix.entity.AiSkillConfig">
+        SELECT * FROM ai_skill_config WHERE enabled = 1 ORDER BY display_order ASC
+    </select>
+
+    <select id="selectAll" resultType="com.hyang.ich.omnitrix.entity.AiSkillConfig">
+        SELECT * FROM ai_skill_config ORDER BY display_order ASC
+    </select>
+
+    <select id="selectById" resultType="com.hyang.ich.omnitrix.entity.AiSkillConfig">
+        SELECT * FROM ai_skill_config WHERE skill_id = #{skillId}
+    </select>
+
+    <select id="selectVersionById" resultType="java.lang.Integer">
+        SELECT version FROM ai_skill_config WHERE skill_id = #{skillId}
+    </select>
+
+    <select id="selectPage" resultType="com.hyang.ich.omnitrix.entity.AiSkillConfig">
+        SELECT * FROM ai_skill_config
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (skill_id LIKE CONCAT('%', #{keyword}, '%')
+                     OR skill_name LIKE CONCAT('%', #{keyword}, '%')
+                     OR description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY display_order ASC, skill_id DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM ai_skill_config
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (skill_id LIKE CONCAT('%', #{keyword}, '%')
+                     OR skill_name LIKE CONCAT('%', #{keyword}, '%')
+                     OR description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert">
+        INSERT INTO ai_skill_config (skill_id, skill_name, description, system_prompt, keywords,
+                                      enabled, display_order, created_by, updated_by, version)
+        VALUES (#{skillId}, #{skillName}, #{description}, #{systemPrompt}, #{keywords},
+                #{enabled}, #{displayOrder}, #{createdBy}, #{updatedBy}, #{version})
+    </insert>
+
+    <update id="update">
+        UPDATE ai_skill_config
+        SET skill_name = #{skillName}, description = #{description},
+            system_prompt = #{systemPrompt}, keywords = #{keywords},
+            enabled = #{enabled}, display_order = #{displayOrder},
+            updated_by = #{updatedBy}, version = version + 1
+        WHERE skill_id = #{skillId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM ai_skill_config WHERE skill_id = #{skillId}
+    </delete>
+
+    <update id="updateEnabled">
+        UPDATE ai_skill_config SET enabled = #{enabled}, version = version + 1 WHERE skill_id = #{skillId}
+    </update>
+
+    <update id="batchUpdateEnabled">
+        UPDATE ai_skill_config
+        SET enabled = #{enabled}, version = version + 1
+        WHERE skill_id IN
+        <foreach collection="skillIds" item="skillId" open="(" separator="," close=")">
+            #{skillId}
+        </foreach>
+    </update>
+
+</mapper>

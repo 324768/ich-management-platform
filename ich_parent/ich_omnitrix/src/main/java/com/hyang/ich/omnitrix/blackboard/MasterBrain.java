@@ -47,12 +47,13 @@ public class MasterBrain {
 
     private static final Pattern JSON_PATTERN = Pattern.compile("\\{.*}", Pattern.DOTALL);
 
-    /** 智能决策 Prompt：让 LLM 决定执行策略 */
+    /** 智能决策 Prompt：让 LLM 决定执行策略（升级版 - 支持DIRECT_SKILL） */
     private static final String DECISION_PROMPT =
             "你是一个智能任务规划专家。分析用户请求，决定最佳执行策略。\n\n" +
-            "【可用的执行路径】\n" +
-            "1. quick_path：单 Agent 直接执行（简单查询、闲聊）\n" +
-            "2. blackboard：多 Agent 协作（复杂任务、需要多步操作）\n\n" +
+            "【可用的执行路径】（重要：必须选择最适合的路径）\n" +
+            "1. quick_path：单Agent直接执行 + Skill增强（需要查询数据）\n" +
+            "2. blackboard：多Agent协作（复杂任务、需要多步操作）\n" +
+            "3. direct_skill：LLM直接基于Skill回答（纯知识问答，不需要执行操作）\n\n" +
             "【可用的子智能体】\n" +
             "- content_assistant: 非遗项目/传承人/活动 搜索、报名活动、点赞/收藏/评论动态\n" +
             "- commerce_assistant: 商品搜索、购物车操作、订单操作\n" +
@@ -61,35 +62,57 @@ public class MasterBrain {
             "- recommend_assistant: 推荐内容/商品\n" +
             "- knowledge_assistant: 非遗知识问答\n" +
             "- general_assistant: 通用闲聊\n\n" +
-            "【决策规则】\n" +
-            "- 如果请求只涉及单一领域且意图明确 → quick_path\n" +
-            "- 如果请求跨越多个领域或有多个步骤 → blackboard\n" +
+            "【可用的Skills】\n" +
+            "- heritage_master: 非遗文化大师（回答非遗、传统文化、历史典故）\n" +
+            "- shopping_advisor: 购物顾问（商品推荐、选购建议）\n" +
+            "- customer_service: 客服话术师（投诉、售后、退换货）\n" +
+            "- knowledge_expert: 知识百科达人（知识库问答、平台使用指南）\n" +
+            "- recommend_expert: 推荐解读者（解读推荐逻辑、分析兴趣偏好）\n" +
+            "- security_audit: 安全审核员（内容安全审核）\n" +
+            "- quality_evaluator: 质量评估师（回答质量评估）\n\n" +
+            "【决策规则】（重要！）\n" +
+            "- 如果问题只需要Skill能力回答，不需要查询数据 → direct_skill\n" +
+            "- 如果问题需要执行操作（搜索、查询、下单）→ quick_path\n" +
+            "- 如果问题跨越多个领域或有多个步骤 → blackboard\n" +
             "- 如果请求包含\"然后\"、\"接着\"、\"同时\"等连接词 → blackboard\n" +
             "- 如果请求需要先获取信息再做决策 → blackboard\n\n" +
+            "【决策示例】\n" +
+            "用户: \"什么是昆曲\" → {\"path\":\"direct_skill\",\"skills\":[\"heritage_master\"],\"reason\":\"纯知识问答，不需要查询数据\"}\n" +
+            "用户: \"帮我找剪纸活动\" → {\"path\":\"quick_path\",\"agent\":\"content_assistant\",\"query\":\"搜索剪纸活动\",\"skills\":[\"heritage_master\"],\"reason\":\"需要查询活动数据\"}\n" +
+            "用户: \"这个商品怎么样\" → {\"path\":\"quick_path\",\"agent\":\"commerce_assistant\",\"query\":\"查看商品详情\",\"skills\":[\"shopping_advisor\"],\"reason\":\"需要查询商品数据\"}\n" +
+            "用户: \"推荐一些内容\" → {\"path\":\"quick_path\",\"agent\":\"recommend_assistant\",\"query\":\"获取推荐内容\",\"skills\":[\"recommend_expert\"],\"reason\":\"需要查询推荐数据\"}\n\n" +
             "【输出格式】（严格JSON）\n" +
-            "快速路径: {\"path\":\"quick_path\",\"agent\":\"content_assistant\",\"reason\":\"单领域简单查询\"}\n" +
-            "多Agent路径: {\"path\":\"blackboard\",\"tasks\":[\n" +
-            "  {\"agent\":\"content_assistant\",\"query\":\"搜索剪纸活动\",\"dependsOn\":[]},\n" +
-            "  {\"agent\":\"commerce_assistant\",\"query\":\"搜索剪纸文创商品\",\"dependsOn\":[]}\n" +
+            "direct_skill: {\"path\":\"direct_skill\",\"skills\":[\"heritage_master\"],\"reason\":\"纯知识问答\"}\n" +
+            "quick_path: {\"path\":\"quick_path\",\"agent\":\"content_assistant\",\"query\":\"搜索剪纸活动\",\"skills\":[\"heritage_master\"],\"reason\":\"需要查询数据\"}\n" +
+            "blackboard: {\"path\":\"blackboard\",\"tasks\":[\n" +
+            "  {\"agent\":\"content_assistant\",\"query\":\"搜索剪纸活动\",\"dependsOn\":[],\"skills\":[\"heritage_master\"]},\n" +
+            "  {\"agent\":\"commerce_assistant\",\"query\":\"搜索剪纸文创商品\",\"dependsOn\":[],\"skills\":[\"shopping_advisor\"]}\n" +
             "],\"reason\":\"跨领域查询\"}\n\n" +
             "【用户请求】\n%s\n\n" +
             "JSON:";
 
-    /** 管理员版本的决策 Prompt */
+    /** 管理员版本的决策 Prompt（支持Ultra Skill控制） */
     private static final String ADMIN_DECISION_PROMPT =
             "你是一个智能任务规划专家。分析管理员请求，决定最佳执行策略。\n\n" +
             "【可用的执行路径】\n" +
-            "1. quick_path：单 Agent 直接执行\n" +
-            "2. blackboard：多 Agent 协作\n\n" +
+            "1. quick_path：单Agent直接执行\n" +
+            "2. blackboard：多Agent协作\n\n" +
             "【可用的子智能体】\n" +
             "- admin_data_agent: 数据统计、分析、报表\n" +
             "- admin_action_agent: 审批活动、发货、发布通知等管理操作\n" +
+            "- ultra_skill_control: 技能配置管理（仅Ultra管理员可用，Skill的开启/关闭）\n" +
             "- knowledge_assistant: 非遗知识问答\n" +
             "- general_assistant: 通用闲聊\n\n" +
             "【决策规则】\n" +
+            "- 如果是管理Skills（开启/关闭/查看状态）→ ultra_skill_control\n" +
             "- 单一操作 → quick_path\n" +
             "- 多个操作、需要先查数据再做操作 → blackboard\n\n" +
+            "【决策示例】\n" +
+            "管理员: \"显示所有技能\" → {\"path\":\"quick_path\",\"agent\":\"ultra_skill_control\",\"query\":\"显示所有技能\",\"reason\":\"查询Skills列表\"}\n" +
+            "管理员: \"启用非遗文化大师\" → {\"path\":\"quick_path\",\"agent\":\"ultra_skill_control\",\"query\":\"启用非遗文化大师\",\"reason\":\"启用指定Skill\"}\n" +
+            "管理员: \"关闭客服话术师\" → {\"path\":\"quick_path\",\"agent\":\"ultra_skill_control\",\"query\":\"关闭客服话术师\",\"reason\":\"禁用指定Skill\"}\n\n" +
             "【输出格式】（严格JSON）\n" +
+            "Skill管理: {\"path\":\"quick_path\",\"agent\":\"ultra_skill_control\",\"query\":\"启用heritage_master\",\"reason\":\"管理Skills\"}\n" +
             "快速路径: {\"path\":\"quick_path\",\"agent\":\"admin_data_agent\",\"reason\":\"数据查询\"}\n" +
             "多Agent路径: {\"path\":\"blackboard\",\"tasks\":[\n" +
             "  {\"agent\":\"admin_data_agent\",\"query\":\"查看待审批活动\",\"dependsOn\":[]},\n" +
@@ -208,13 +231,29 @@ public class MasterBrain {
                     tasks = tasks.subList(0, MAX_TASKS);
                 }
                 return Decision.blackboard(tasks, reason);
+            } else if ("direct_skill".equals(path)) {
+                // direct_skill: LLM直接基于Skill回答
+                @SuppressWarnings("unchecked")
+                List<Object> skillsObj = (List<Object>) parsed.get("skills");
+                List<String> skills = new ArrayList<>();
+                if (skillsObj != null) {
+                    for (Object skill : skillsObj) {
+                        if (skill instanceof String) {
+                            skills.add((String) skill);
+                        }
+                    }
+                }
+                return Decision.directSkill(skills, reason);
             } else {
                 // quick_path
                 String agent = (String) parsed.get("agent");
                 if (agent == null) {
                     agent = "general_assistant";
                 }
-                return Decision.quickPath(agent, reason);
+                String query = (String) parsed.get("query");
+                Decision d = Decision.quickPath(agent, reason);
+                d.setQuery(query);
+                return d;
             }
 
         } catch (Exception e) {
@@ -279,7 +318,8 @@ public class MasterBrain {
 
         List<TaskNode> createdNodes = new ArrayList<>();
         for (Decision.Task task : decision.getTasks()) {
-            TaskNode node = board.create(task.getAgent(), task.getQuery());
+            // 传递 skills 给 TaskNode
+            TaskNode node = board.create(task.getAgent(), task.getQuery(), task.getSkills());
             createdNodes.add(node);
         }
 
@@ -314,10 +354,11 @@ public class MasterBrain {
      */
     @Data
     public static class Decision {
-        public enum Path { QUICK_PATH, BLACKBOARD }
+        public enum Path { QUICK_PATH, BLACKBOARD, DIRECT_SKILL }
 
         private Path path;
         private String agent;          // quick_path 时使用
+        private String query;          // direct_skill 时使用（传给LLM的问题）
         private List<Task> tasks;      // blackboard 时使用
         private String reason;
 
@@ -326,6 +367,18 @@ public class MasterBrain {
             d.path = Path.QUICK_PATH;
             d.agent = agent;
             d.reason = reason;
+            return d;
+        }
+
+        public static Decision directSkill(List<String> skills, String reason) {
+            Decision d = new Decision();
+            d.path = Path.DIRECT_SKILL;
+            d.reason = reason;
+            // 创建单个Task来存储skills
+            Task t = new Task();
+            t.setSkills(skills);
+            d.tasks = new ArrayList<>();
+            d.tasks.add(t);
             return d;
         }
 
@@ -349,6 +402,17 @@ public class MasterBrain {
                         }
                     }
                 }
+                // 解析 skills 字段
+                Object skillsObj = taskDef.get("skills");
+                if (skillsObj instanceof List) {
+                    @SuppressWarnings("unchecked")
+                    List<Object> skills = (List<Object>) skillsObj;
+                    for (Object skill : skills) {
+                        if (skill instanceof String) {
+                            t.getSkills().add((String) skill);
+                        }
+                    }
+                }
                 d.tasks.add(t);
             }
             return d;
@@ -362,11 +426,27 @@ public class MasterBrain {
             return path == Path.BLACKBOARD;
         }
 
+        public boolean isDirectSkill() {
+            return path == Path.DIRECT_SKILL;
+        }
+
+        /**
+         * 获取direct_skill路径下的skills列表
+         */
+        public List<String> getDirectSkillSkills() {
+            if (path == Path.DIRECT_SKILL && tasks != null && !tasks.isEmpty()) {
+                return tasks.get(0).getSkills();
+            }
+            return new ArrayList<>();
+        }
+
         @Data
         public static class Task {
             private String agent;
             private String query;
             private List<Integer> dependsOn = new ArrayList<>();
+            /** 当前任务需要的Skills（Skill ID列表，如 heritage_master） */
+            private List<String> skills = new ArrayList<>();
         }
     }
 

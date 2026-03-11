@@ -15,6 +15,7 @@ import com.hyang.ich.omnitrix.agent.tool.HintGenerator;
 import com.hyang.ich.omnitrix.agent.tool.ToolSelector;
 import com.hyang.ich.omnitrix.dto.AgentQueryResult;
 import com.hyang.ich.omnitrix.dto.PendingAction;
+import com.hyang.ich.omnitrix.infrastructure.prompt.HeritageSkillPrompt;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -66,12 +67,17 @@ public class ContentSubAgent implements SubAgent {
 
     @Override
     public String getAgentPrompt() {
-        return "## 当前任务模式: 非遗文化助手\n" +
-                "你现在专注于回答非物质文化遗产相关问题。\n" +
+        // 继承HeritageSkill基础
+        String heritageSkill = HeritageSkillPrompt.getHeritageMasterPrompt();
+
+        // 业务上下文 - Skill由主脑动态注入，不再这里静态引入
+        String businessContext = "## 当前任务模式: 非遗内容助手\n" +
                 "系统已为你查询了平台数据库中的相关信息，请基于 [查询结果] 回答。\n" +
                 "- 如果查到了具体非遗项目/传承人/活动，请自然地融入回答\n" +
                 "- 如果用户问的内容超出查询结果，可以结合你的知识补充，但要注明\"据我所知\"\n" +
                 "- 提及平台中存在的项目时，可以引导用户\"您可以在平台上查看详情\"";
+
+        return heritageSkill + "\n\n" + businessContext;
     }
 
     @Override
