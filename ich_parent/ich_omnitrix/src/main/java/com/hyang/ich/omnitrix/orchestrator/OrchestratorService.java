@@ -224,7 +224,7 @@ public class OrchestratorService {
 
         // Step 1: 对话管理
         AiConversation conversation = conversationService.findOrCreate(sessionId, userId);
-        AgentContext context = AgentContext.of(userId, sessionId, conversation.getId(), role);
+        AgentContext context = AgentContext.of(userId, sessionId, conversation.getId(), role, userMessage);
         log.info("{}聊天开始: userId={}, sessionId={}", isAdmin ? "管理员" : "用户", userId, sessionId);
 
         // Step 1.5: 检查待确认操作
@@ -345,7 +345,7 @@ public class OrchestratorService {
 
         try {
             AiConversation conversation = conversationService.findOrCreate(sessionId, userId);
-            AgentContext context = AgentContext.of(userId, sessionId, conversation.getId(), role);
+            AgentContext context = AgentContext.of(userId, sessionId, conversation.getId(), role, userMessage);
 
             // 检查待确认操作
             if (handlePendingActionStream(userId, sessionId, userMessage, conversation, emitter)) {
