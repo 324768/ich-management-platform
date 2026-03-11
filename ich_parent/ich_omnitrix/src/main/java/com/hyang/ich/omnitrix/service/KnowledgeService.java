@@ -69,7 +69,9 @@ public class KnowledgeService {
     private List<String> tokenize(String text) {
         if (text == null || text.trim().isEmpty()) return Collections.emptyList();
 
-        String cleaned = text.replaceAll("[\\p{Punct}\\p{IsGeneral_Category=Open_Punctuation}\\p{IsGeneral_Category=Close_Punctuation}\\s\uff0c\u3002\uff1f\uff01\u3001\uff1b\uff1a\u201c\u201d\u2018\u2019\u3010\u3011\uff08\uff09\u300a\u300b]+", " ").trim();
+        // Java 8 不支持 \p{IsGeneral_Category=xxx} 语法，改用直接列举Unicode码点
+        // 标点符号: \p{Punct} + 中文标点 + 全角标点
+        String cleaned = text.replaceAll("[\\p{Punct}\\s\uff0c\u3002\uff1f\uff01\u3001\uff1b\uff1a\u201c\u201d\u2018\u2019\u3010\u3011\uff08\uff09\u300a\u300b]+", " ").trim();
 
         List<String> tokens = new ArrayList<>();
 

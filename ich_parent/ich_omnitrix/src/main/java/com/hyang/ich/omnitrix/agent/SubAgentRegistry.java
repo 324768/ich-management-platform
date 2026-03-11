@@ -5,6 +5,7 @@ import com.hyang.ich.omnitrix.entity.AiAgentConfig;
 import com.hyang.ich.omnitrix.mapper.AiAgentConfigMapper;
 import com.hyang.ich.omnitrix.service.KnowledgeService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -31,22 +32,38 @@ public class SubAgentRegistry {
 
     private final AiAgentConfigMapper agentConfigMapper;
     private final KnowledgeService knowledgeService;
+    private final ObjectProvider<SubAgent> subAgentObjectProvider;
 
-    public SubAgentRegistry(List<SubAgent> agents,
+    public SubAgentRegistry(ObjectProvider<SubAgent> subAgentObjectProvider,
                             AiAgentConfigMapper agentConfigMapper,
                             KnowledgeService knowledgeService) {
+        this.subAgentObjectProvider = subAgentObjectProvider;
         this.agentConfigMapper = agentConfigMapper;
         this.knowledgeService = knowledgeService;
-
-        // 注册系统内置代理
-        for (SubAgent agent : agents) {
-            systemAgents.put(agent.getCode(), agent);
-            log.info("注册系统代理: [{}] {}", agent.getCode(), agent.getName());
-        }
     }
 
     @PostConstruct
-    public void loadDynamicAgents() {
+    public void loadSystemAndDynamicAgents() {
+        // 延迟获取所有 SubAgent，避免循环依赖
+        List<SubAgent> agents = subAgentObjectProvider.orderedStream().toList();
+
+        // 注册系统内置代理
+        for (SubAgent agent : agents) {
+            // 排除动态代理本身（DynamicSubAgent 是内部类，不通过此路径注册）
+            if (!(agent instanceof DynamicSubAgent)) {
+                systemAgents.put(agent.getCode(), agent);
+                log.info("注册系统代理: [{}] {}", agent.getCode(), agent.getName());
+            }
+        }
+
+        // 加载动态代理
+        loadDynamicAgents();
+    }
+
+    /**
+     * 从数据库加载动态代理
+     */
+    private void loadDynamicAgents() {
         try {
             List<AiAgentConfig> configs = agentConfigMapper.selectEnabled();
             for (AiAgentConfig config : configs) {
