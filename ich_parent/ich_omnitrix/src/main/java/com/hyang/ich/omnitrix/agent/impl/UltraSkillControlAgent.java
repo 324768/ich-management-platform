@@ -4,6 +4,7 @@ import com.hyang.ich.omnitrix.agent.AgentContext;
 import com.hyang.ich.omnitrix.agent.SubAgent;
 import com.hyang.ich.omnitrix.agent.tool.AgentTool;
 import com.hyang.ich.omnitrix.agent.tool.ToolCallResult;
+import com.hyang.ich.omnitrix.dto.AgentQueryResult;
 import com.hyang.ich.omnitrix.entity.AiSkillConfig;
 import com.hyang.ich.omnitrix.service.SkillConfigService;
 import lombok.extern.slf4j.Slf4j;
@@ -46,64 +47,67 @@ public class UltraSkillControlAgent implements SubAgent {
 
     @Override
     public String getAgentPrompt() {
-        return """
-                ## 当前任务模式: Ultra 技能配置管理
-                你现在是Omnitrix AI Ultra版的"技能配置管理员"。
-
-                【你的职责】
-                - 帮助超级管理员通过对话方式管理AI Skills的启用/禁用状态
-                - 可以查询当前所有Skills的状态
-                - 可以一键启用或禁用指定的Skills
-
-                【可管理的Skills】
-                - heritage_master: 非遗文化大师
-                - shopping_advisor: 购物顾问
-                - customer_service: 客服话术师
-                - knowledge_expert: 知识百科达人
-                - recommend_expert: 推荐解读者
-                - security_audit: 安全审核员
-                - quality_evaluator: 质量评估师
-
-                【对话示例】
-                用户: "显示所有技能"
-                → 调用 list_all_skills 返回所有Skills状态
-
-                用户: "启用非遗文化大师"
-                → 调用 enable_skill("heritage_master")
-
-                用户: "关闭客服话术师"
-                → 调用 disable_skill("customer_service")
-
-                用户: "同时启用购物顾问和质量评估师"
-                → 调用 batch_enable_skills(["shopping_advisor", "quality_evaluator"])
-
-                用户: "查看技能详情"
-                → 调用 get_skill_detail("heritage_master")
-
-                【重要规则】
-                - 必须调用对应的工具来完成操作，不能只是回答
-                - 操作完成后要告知用户结果
-                - 如果用户请求不明确，要先列出所有Skills让用户选择
-                """;
+        return "## 当前任务模式: Ultra 技能配置管理\n" +
+                "你现在是Omnitrix AI Ultra版的\"技能配置管理员\"。\n" +
+                "\n" +
+                "【你的职责】\n" +
+                "- 帮助超级管理员通过对话方式管理AI Skills的启用/禁用状态\n" +
+                "- 可以查询当前所有Skills的状态\n" +
+                "- 可以一键启用或禁用指定的Skills\n" +
+                "\n" +
+                "【可管理的Skills】\n" +
+                "- heritage_master: 非遗文化大师\n" +
+                "- shopping_advisor: 购物顾问\n" +
+                "- customer_service: 客服话术师\n" +
+                "- knowledge_expert: 知识百科达人\n" +
+                "- recommend_expert: 推荐解读者\n" +
+                "- security_audit: 安全审核员\n" +
+                "- quality_evaluator: 质量评估师\n" +
+                "\n" +
+                "【对话示例】\n" +
+                "用户: \"显示所有技能\"\n" +
+                "→ 调用 list_all_skills 返回所有Skills状态\n" +
+                "\n" +
+                "用户: \"启用非遗文化大师\"\n" +
+                "→ 调用 enable_skill(\"heritage_master\")\n" +
+                "\n" +
+                "用户: \"关闭客服话术师\"\n" +
+                "→ 调用 disable_skill(\"customer_service\")\n" +
+                "\n" +
+                "用户: \"同时启用购物顾问和质量评估师\"\n" +
+                "→ 调用 batch_enable_skills([\"shopping_advisor\", \"quality_evaluator\"])\n" +
+                "\n" +
+                "用户: \"查看技能详情\"\n" +
+                "→ 调用 get_skill_detail(\"heritage_master\")\n" +
+                "\n" +
+                "【重要规则】\n" +
+                "- 必须调用对应的工具来完成操作，不能只是回答\n" +
+                "- 操作完成后要告知用户结果\n" +
+                "- 如果用户请求不明确，要先列出所有Skills让用户选择\n";
     }
 
-    @Override
     public List<AgentTool> getTools() {
         return TOOLS;
     }
 
-    @Override
     public ToolCallResult callTool(String toolName, Map<String, Object> args, AgentContext context) {
         try {
-            return switch (toolName) {
-                case "list_all_skills" -> handleListAllSkills();
-                case "enable_skill" -> handleEnableSkill(args);
-                case "disable_skill" -> handleDisableSkill(args);
-                case "batch_enable_skills" -> handleBatchEnableSkills(args);
-                case "batch_disable_skills" -> handleBatchDisableSkills(args);
-                case "get_skill_detail" -> handleGetSkillDetail(args);
-                default -> ToolCallResult.error("未知工具: " + toolName);
-            };
+            switch (toolName) {
+                case "list_all_skills":
+                    return handleListAllSkills();
+                case "enable_skill":
+                    return handleEnableSkill(args);
+                case "disable_skill":
+                    return handleDisableSkill(args);
+                case "batch_enable_skills":
+                    return handleBatchEnableSkills(args);
+                case "batch_disable_skills":
+                    return handleBatchDisableSkills(args);
+                case "get_skill_detail":
+                    return handleGetSkillDetail(args);
+                default:
+                    return ToolCallResult.error("未知工具: " + toolName);
+            }
         } catch (Exception e) {
             log.error("UltraSkillControlAgent 调用工具失败: tool={}, error={}", toolName, e.getMessage(), e);
             return ToolCallResult.error("执行失败: " + e.getMessage());
@@ -117,7 +121,7 @@ public class UltraSkillControlAgent implements SubAgent {
         sb.append(String.format("%-20s %-15s %-10s %s\n", "Skill ID", "名称", "状态", "描述"));
         sb.append("─────────────────────────────────────────────────────────────\n");
         for (AiSkillConfig skill : skills) {
-            String status = (skill.getEnabled() != null && skill.getEnabled() == 1) ? "✅ 启用" : "❌ 禁用";
+            String status = (skill.getEnabled() != null && skill.getEnabled() == 1) ? "启用" : "禁用";
             String desc = skill.getDescription() != null ?
                 (skill.getDescription().length() > 20 ? skill.getDescription().substring(0, 20) + "..." : skill.getDescription()) : "";
             sb.append(String.format("%-20s %-15s %-10s %s\n",
@@ -137,7 +141,7 @@ public class UltraSkillControlAgent implements SubAgent {
         if (success) {
             AiSkillConfig skill = skillConfigService.getSkillById(skillId);
             String skillName = skill != null ? skill.getSkillName() : skillId;
-            return ToolCallResult.success("✅ 已成功启用技能 [" + skillName + "]");
+            return ToolCallResult.success("已成功启用技能 [" + skillName + "]");
         } else {
             return ToolCallResult.error("启用失败，Skill ID不存在: " + skillId);
         }
@@ -153,7 +157,7 @@ public class UltraSkillControlAgent implements SubAgent {
         if (success) {
             AiSkillConfig skill = skillConfigService.getSkillById(skillId);
             String skillName = skill != null ? skill.getSkillName() : skillId;
-            return ToolCallResult.success("✅ 已成功禁用技能 [" + skillName + "]");
+            return ToolCallResult.success("已成功禁用技能 [" + skillName + "]");
         } else {
             return ToolCallResult.error("禁用失败，Skill ID不存在: " + skillId);
         }
@@ -174,7 +178,7 @@ public class UltraSkillControlAgent implements SubAgent {
         }
 
         int count = skillConfigService.batchUpdateEnabled(skillIds, 1);
-        return ToolCallResult.success("✅ 成功启用 " + count + " 个Skills: " + skillIds);
+        return ToolCallResult.success("成功启用 " + count + " 个Skills: " + skillIds);
     }
 
     @SuppressWarnings("unchecked")
@@ -192,7 +196,7 @@ public class UltraSkillControlAgent implements SubAgent {
         }
 
         int count = skillConfigService.batchUpdateEnabled(skillIds, 0);
-        return ToolCallResult.success("✅ 成功禁用 " + count + " 个Skills: " + skillIds);
+        return ToolCallResult.success("成功禁用 " + count + " 个Skills: " + skillIds);
     }
 
     private ToolCallResult handleGetSkillDetail(Map<String, Object> args) {
@@ -223,10 +227,8 @@ public class UltraSkillControlAgent implements SubAgent {
     }
 
     @Override
-    public Map<String, Object> execute(String query, AgentContext context) {
-        Map<String, Object> result = new HashMap<>();
-        result.put("success", true);
-        result.put("message", "UltraSkillControlAgent 处理完成");
-        return result;
+    public AgentQueryResult execute(String query, AgentContext context) {
+        // UltraSkillControlAgent 主要用于工具调用，不直接处理用户查询
+        return AgentQueryResult.success("UltraSkillControlAgent 处理完成，请使用工具进行技能管理操作", getCode());
     }
 }

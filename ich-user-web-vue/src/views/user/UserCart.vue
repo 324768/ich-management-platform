@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getUserInfo } from '@/utils/token'
 import { listCart, updateQuantity, removeFromCart, clearCart, checkItem, checkAll } from '@/api/cart'
@@ -9,6 +9,22 @@ const user = getUserInfo()
 const cartItems = ref([])
 const loading = ref(false)
 const allChecked = ref(false)
+
+// 监听购物车更新事件
+function handleCartUpdate() {
+  loadCart()
+}
+
+onMounted(() => {
+  loadCart()
+  window.addEventListener('storage', handleCartUpdate)
+  window.addEventListener('cart_updated', handleCartUpdate)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('storage', handleCartUpdate)
+  window.removeEventListener('cart_updated', handleCartUpdate)
+})
 
 const loadCart = async () => {
   if (!user?.id) return

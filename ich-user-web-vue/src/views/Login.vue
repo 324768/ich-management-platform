@@ -92,9 +92,12 @@ const handleLogin = async () => {
       try {
         const userRes = await getUserInfo(userId)
         setUserInfo(userRes.data)
+        // 存储用户ID供AI聊天使用
+        localStorage.setItem('ich_user_id', userId)
       } catch (e) {
         // 获取用户信息失败，用基本信息
         setUserInfo({ username: form.username, nickname: form.username, avatar: '' })
+        localStorage.setItem('ich_user_id', userId)
       }
     } else {
       setUserInfo({ username: form.username, nickname: form.username, avatar: '' })

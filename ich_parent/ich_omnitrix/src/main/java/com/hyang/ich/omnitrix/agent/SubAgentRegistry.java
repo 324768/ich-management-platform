@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * 子代理注册表：系统代理（@Component 硬编码）+ 动态代理（DB 配置）并行共存。
@@ -45,7 +46,7 @@ public class SubAgentRegistry {
     @PostConstruct
     public void loadSystemAndDynamicAgents() {
         // 延迟获取所有 SubAgent，避免循环依赖
-        List<SubAgent> agents = subAgentObjectProvider.orderedStream().toList();
+        List<SubAgent> agents = subAgentObjectProvider.orderedStream().collect(Collectors.toList());
 
         // 注册系统内置代理
         for (SubAgent agent : agents) {

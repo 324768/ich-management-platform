@@ -21,7 +21,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
-@DubboService
+@DubboService(interfaceClass = AiService.class)
 public class AiServiceImpl implements AiService {
 
     private final OrchestratorService orchestratorService;

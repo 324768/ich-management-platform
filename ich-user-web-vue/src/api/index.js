@@ -12,6 +12,8 @@ request.interceptors.request.use(
     const token = getToken()
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`
+      // 同时添加 X-User-Token 用于后端验证用户身份
+      config.headers['X-User-Token'] = token
     }
     return config
   },

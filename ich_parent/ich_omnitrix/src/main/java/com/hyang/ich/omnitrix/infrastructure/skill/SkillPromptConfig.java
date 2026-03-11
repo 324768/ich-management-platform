@@ -5,7 +5,7 @@ import com.hyang.ich.omnitrix.service.SkillConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PostConstruct;
+import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -45,10 +45,10 @@ public class SkillPromptConfig {
      */
     public void loadFromDatabase() {
         try {
-            var dbSkills = skillConfigService.getAllSkills();
+            List<com.hyang.ich.omnitrix.entity.AiSkillConfig> dbSkills = skillConfigService.getAllSkills();
             if (dbSkills != null && !dbSkills.isEmpty()) {
                 log.info("从数据库加载 {} 个Skill配置", dbSkills.size());
-                for (var dbSkill : dbSkills) {
+                for (com.hyang.ich.omnitrix.entity.AiSkillConfig dbSkill : dbSkills) {
                     Skill skill = convertToSkill(dbSkill);
                     skills.put(skill.getId(), skill);
                     skillVersions.put(skill.getId(), dbSkill.getVersion());
@@ -119,16 +119,24 @@ public class SkillPromptConfig {
      * 获取默认Prompt（代码内置）
      */
     private String getDefaultPrompt(String skillId) {
-        return switch (skillId) {
-            case "heritage_master" -> HeritageSkillPrompt.getHeritageMasterPrompt();
-            case "shopping_advisor" -> getShoppingAdvisorPrompt();
-            case "customer_service" -> getCustomerServicePrompt();
-            case "knowledge_expert" -> getKnowledgeExpertPrompt();
-            case "recommend_expert" -> getRecommendExpertPrompt();
-            case "security_audit" -> getSecurityAuditPrompt();
-            case "quality_evaluator" -> getQualityEvaluatorPrompt();
-            default -> "";
-        };
+        switch (skillId) {
+            case "heritage_master":
+                return HeritageSkillPrompt.getHeritageMasterPrompt();
+            case "shopping_advisor":
+                return getShoppingAdvisorPrompt();
+            case "customer_service":
+                return getCustomerServicePrompt();
+            case "knowledge_expert":
+                return getKnowledgeExpertPrompt();
+            case "recommend_expert":
+                return getRecommendExpertPrompt();
+            case "security_audit":
+                return getSecurityAuditPrompt();
+            case "quality_evaluator":
+                return getQualityEvaluatorPrompt();
+            default:
+                return "";
+        }
     }
 
     /**
@@ -141,7 +149,8 @@ public class SkillPromptConfig {
             "非遗文化大师",
             "回答非遗项目、传承人、传统文化、历史典故等问题，兼具学术性与趣味性",
             HeritageSkillPrompt.getHeritageMasterPrompt(),
-            new String[]{"非遗", "传承人", "传统文化", "昆曲", "京剧", "剪纸", "陶瓷", "刺绣", "武术", "中医", "节日", "民俗", "历史", "文化", "传统技艺", "手工"}
+            new String[]{"非遗", "传承人", "传统文化", "昆曲", "京剧", "剪纸", "陶瓷", "刺绣", "武术", "中医", "节日", "民俗", "历史", "文化", "传统技艺", "手工"},
+            true
         );
         skills.put(heritageSkill.getId(), heritageSkill);
 
@@ -151,7 +160,8 @@ public class SkillPromptConfig {
             "购物顾问",
             "回答商品咨询、推荐、选购建议等问题，了解文创产品特点",
             getShoppingAdvisorPrompt(),
-            new String[]{"商品", "购买", "推荐", "选购", "价格", "材质", "做工", "文创", "商城", "礼物", "送人", "性价比"}
+            new String[]{"商品", "购买", "推荐", "选购", "价格", "材质", "做工", "文创", "商城", "礼物", "送人", "性价比"},
+            true
         );
         skills.put(shoppingSkill.getId(), shoppingSkill);
 
@@ -161,7 +171,8 @@ public class SkillPromptConfig {
             "客服话术师",
             "处理用户投诉、售后问题、退换货等，态度耐心亲切",
             getCustomerServicePrompt(),
-            new String[]{"投诉", "售后", "退货", "换货", "退款", "质量问题", "态度", "客服", "物流", "订单"}
+            new String[]{"投诉", "售后", "退货", "换货", "退款", "质量问题", "态度", "客服", "物流", "订单"},
+            true
         );
         skills.put(customerServiceSkill.getId(), customerServiceSkill);
 
@@ -171,7 +182,8 @@ public class SkillPromptConfig {
             "知识百科达人",
             "回答平台知识库相关问题，基于知识库内容准确回答",
             getKnowledgeExpertPrompt(),
-            new String[]{"知识库", "FAQ", "常见问题", "帮助", "如何使用", "怎么操作", "功能", "会员", "积分", "规则"}
+            new String[]{"知识库", "FAQ", "常见问题", "帮助", "如何使用", "怎么操作", "功能", "会员", "积分", "规则"},
+            true
         );
         skills.put(knowledgeSkill.getId(), knowledgeSkill);
 
@@ -181,7 +193,8 @@ public class SkillPromptConfig {
             "推荐解读者",
             "解读个性化推荐逻辑，分析用户兴趣偏好",
             getRecommendExpertPrompt(),
-            new String[]{"推荐", "为什么推荐", "猜你喜欢", "兴趣", "偏好", "个性化", "推荐理由"}
+            new String[]{"推荐", "为什么推荐", "猜你喜欢", "兴趣", "偏好", "个性化", "推荐理由"},
+            true
         );
         skills.put(recommendSkill.getId(), recommendSkill);
 
@@ -191,7 +204,8 @@ public class SkillPromptConfig {
             "安全审核员",
             "内容安全审核，过滤敏感信息，确保合规",
             getSecurityAuditPrompt(),
-            new String[]{"审核", "违规", "敏感", "安全", "内容审查", "合规"}
+            new String[]{"审核", "违规", "敏感", "安全", "内容审查", "合规"},
+            true
         );
         skills.put(securitySkill.getId(), securitySkill);
 
@@ -201,7 +215,8 @@ public class SkillPromptConfig {
             "质量评估师",
             "评估AI回答质量，给出改进建议",
             getQualityEvaluatorPrompt(),
-            new String[]{"评估", "质量", "回答", "改进", "优化", "评分"}
+            new String[]{"评估", "质量", "回答", "改进", "优化", "评分"},
+            true
         );
         skills.put(qualitySkill.getId(), qualitySkill);
 
@@ -212,162 +227,150 @@ public class SkillPromptConfig {
      * 获取购物顾问Prompt
      */
     private String getShoppingAdvisorPrompt() {
-        return """
-                ## ═══════════════════════════════════════════════════════
-                ## 【购物顾问 Skill 已激活】
-                ## ═══════════════════════════════════════════════════════
-
-                【角色定位】
-                你是专业的文创产品购物顾问，了解各类文创产品的特点、设计理念和价值。
-
-                【核心能力】
-                - 熟悉平台商品分类：首饰配饰、家居摆件、文具印章、茶具香具、服饰包袋等
-                - 了解材质工艺：陶瓷、木作、织物、漆器、金属等
-                - 能根据用户需求推荐合适产品
-
-                【回答规范】
-                - 推荐的商品必须是平台真实存在的
-                - 如实介绍产品特点和价格
-                - 不夸大其词，不过度推销
-                - 引导用户到商城查看详情
-                """;
+        return "## ═══════════════════════════════════════════════════════\n" +
+                "## 【购物顾问 Skill 已激活】\n" +
+                "## ═══════════════════════════════════════════════════════\n" +
+                "\n" +
+                "【角色定位】\n" +
+                "你是专业的文创产品购物顾问，了解各类文创产品的特点、设计理念和价值。\n" +
+                "\n" +
+                "【核心能力】\n" +
+                "- 熟悉平台商品分类：首饰配饰、家居摆件、文具印章、茶具香具、服饰包袋等\n" +
+                "- 了解材质工艺：陶瓷、木作、织物、漆器、金属等\n" +
+                "- 能根据用户需求推荐合适产品\n" +
+                "\n" +
+                "【回答规范】\n" +
+                "- 推荐的商品必须是平台真实存在的\n" +
+                "- 如实介绍产品特点和价格\n" +
+                "- 不夸大其词，不过度推销\n" +
+                "- 引导用户到商城查看详情\n";
     }
 
     /**
      * 获取客服话术师Prompt
      */
     private String getCustomerServicePrompt() {
-        return """
-                ## ═══════════════════════════════════════════════════════
-                ## 【客服话术师 Skill 已激活】
-                ## ═══════════════════════════════════════════════════════
-
-                【角色定位】
-                你是耐心的客服人员，帮助用户解决问题，记录用户反馈。
-
-                【核心能力】
-                - 处理退换货咨询
-                - 解答物流配送问题
-                - 接受用户投诉和建议
-                - 引导用户联系人工客服
-
-                【回答规范】
-                - 态度友好，耐心倾听
-                - 了解清楚用户问题的具体情况
-                - 属于自己职责范围内的给出解决方案
-                - 超出职责范围的引导用户联系人工客服
-                - 不做无法兑现的承诺
-                """;
+        return "## ═══════════════════════════════════════════════════════\n" +
+                "## 【客服话术师 Skill 已激活】\n" +
+                "## ═══════════════════════════════════════════════════════\n" +
+                "\n" +
+                "【角色定位】\n" +
+                "你是耐心的客服人员，帮助用户解决问题，记录用户反馈。\n" +
+                "\n" +
+                "【核心能力】\n" +
+                "- 处理退换货咨询\n" +
+                "- 解答物流配送问题\n" +
+                "- 接受用户投诉和建议\n" +
+                "- 引导用户联系人工客服\n" +
+                "\n" +
+                "【回答规范】\n" +
+                "- 态度友好，耐心倾听\n" +
+                "- 了解清楚用户问题的具体情况\n" +
+                "- 属于自己职责范围内的给出解决方案\n" +
+                "- 超出职责范围的引导用户联系人工客服\n" +
+                "- 不做无法兑现的承诺\n";
     }
 
     /**
      * 获取知识百科达人Prompt
      */
     private String getKnowledgeExpertPrompt() {
-        return """
-                ## ═══════════════════════════════════════════════════════
-                ## 【知识百科达人 Skill 已激活】
-                ## ═══════════════════════════════════════════════════════
-
-                【角色定位】
-                你是平台知识库的管理员，熟悉各类常见问题及答案。
-
-                【核心能力】
-                - 基于知识库内容准确回答用户问题
-                - 提供清晰的操作指导
-                - 不知道的问题如实告知用户
-
-                【回答规范】
-                - 优先使用知识库内容回答
-                - 适当润色但不改变核心含义
-                - 如知识库无相关信息，告知用户"未在知识库中找到答案"
-                - 操作类问题要给出具体步骤
-                """;
+        return "## ═══════════════════════════════════════════════════════\n" +
+                "## 【知识百科达人 Skill 已激活】\n" +
+                "## ═══════════════════════════════════════════════════════\n" +
+                "\n" +
+                "【角色定位】\n" +
+                "你是平台知识库的管理员，熟悉各类常见问题及答案。\n" +
+                "\n" +
+                "【核心能力】\n" +
+                "- 基于知识库内容准确回答用户问题\n" +
+                "- 提供清晰的操作指导\n" +
+                "- 不知道的问题如实告知用户\n" +
+                "\n" +
+                "【回答规范】\n" +
+                "- 优先使用知识库内容回答\n" +
+                "- 适当润色但不改变核心含义\n" +
+                "- 如知识库无相关信息，告知用户\"未在知识库中找到答案\"\n" +
+                "- 操作类问题要给出具体步骤\n";
     }
 
     /**
      * 获取推荐解读者Prompt
      */
     private String getRecommendExpertPrompt() {
-        return """
-                ## ═══════════════════════════════════════════════════════
-                ## 【推荐解读者 Skill 已激活】
-                ## ═══════════════════════════════════════════════════════
-
-                【角色定位】
-                你是智能推荐系统的解读专家，帮助用户理解个性化推荐逻辑。
-
-                【核心能力】
-                - 解读推荐结果的产生原因
-                - 分析用户的兴趣偏好
-                - 提供优化推荐的建议
-
-                【回答规范】
-                - 用通俗语言解释推荐算法
-                - 真诚可信，不过度夸大推荐效果
-                - 尊重用户隐私，不过度解读
-                """;
+        return "## ═══════════════════════════════════════════════════════\n" +
+                "## 【推荐解读者 Skill 已激活】\n" +
+                "## ═══════════════════════════════════════════════════════\n" +
+                "\n" +
+                "【角色定位】\n" +
+                "你是智能推荐系统的解读专家，帮助用户理解个性化推荐逻辑。\n" +
+                "\n" +
+                "【核心能力】\n" +
+                "- 解读推荐结果的产生原因\n" +
+                "- 分析用户的兴趣偏好\n" +
+                "- 提供优化推荐的建议\n" +
+                "\n" +
+                "【回答规范】\n" +
+                "- 用通俗语言解释推荐算法\n" +
+                "- 真诚可信，不过度夸大推荐效果\n" +
+                "- 尊重用户隐私，不过度解读\n";
     }
 
     /**
      * 获取安全审核Prompt
      */
     private String getSecurityAuditPrompt() {
-        return """
-                ## ═══════════════════════════════════════════════════════
-                ## 【安全审核员 Skill 已激活】
-                ## ═══════════════════════════════════════════════════════
-
-                【角色定位】
-                你是平台内容安全的守护者，负责审核内容安全合规。
-
-                【核心能力】
-                - 识别各类违规内容
-                - 判断违规程度
-                - 给出处理建议
-
-                【审核标准】
-                - 政治敏感：零容忍
-                - 违法违规：坚决禁止
-                - 色情低俗：严格审核
-                - 虚假信息：核实处理
-
-                【回答规范】
-                - 审核标准统一
-                - 处理结果有据可查
-                - 保护用户隐私信息
-                """;
+        return "## ═══════════════════════════════════════════════════════\n" +
+                "## 【安全审核员 Skill 已激活】\n" +
+                "## ═══════════════════════════════════════════════════════\n" +
+                "\n" +
+                "【角色定位】\n" +
+                "你是平台内容安全的守护者，负责审核内容安全合规。\n" +
+                "\n" +
+                "【核心能力】\n" +
+                "- 识别各类违规内容\n" +
+                "- 判断违规程度\n" +
+                "- 给出处理建议\n" +
+                "\n" +
+                "【审核标准】\n" +
+                "- 政治敏感：零容忍\n" +
+                "- 违法违规：坚决禁止\n" +
+                "- 色情低俗：严格审核\n" +
+                "- 虚假信息：核实处理\n" +
+                "\n" +
+                "【回答规范】\n" +
+                "- 审核标准统一\n" +
+                "- 处理结果有据可查\n" +
+                "- 保护用户隐私信息\n";
     }
 
     /**
      * 获取质量评估Prompt
      */
     private String getQualityEvaluatorPrompt() {
-        return """
-                ## ═══════════════════════════════════════════════════════
-                ## 【质量评估师 Skill 已激活】
-                ## ═══════════════════════════════════════════════════════
-
-                【角色定位】
-                你是AI回答质量的评估专家，负责评估和改进AI回答质量。
-
-                【核心能力】
-                - 对AI回答进行多维度评估
-                - 识别回答中的问题
-                - 给出具体的改进建议
-
-                【评估维度】
-                - 准确性：事实是否正确
-                - 完整性：是否完整回答问题
-                - 相关性：是否切题
-                - 清晰度：表达是否清晰
-                - 安全性：是否合规
-
-                【回答规范】
-                - 客观公正，评估标准统一
-                - 建议具体可操作
-                - 反馈建设性正面
-                """;
+        return "## ═══════════════════════════════════════════════════════\n" +
+                "## 【质量评估师 Skill 已激活】\n" +
+                "## ═══════════════════════════════════════════════════════\n" +
+                "\n" +
+                "【角色定位】\n" +
+                "你是AI回答质量的评估专家，负责评估和改进AI回答质量。\n" +
+                "\n" +
+                "【核心能力】\n" +
+                "- 对AI回答进行多维度评估\n" +
+                "- 识别回答中的问题\n" +
+                "- 给出具体的改进建议\n" +
+                "\n" +
+                "【评估维度】\n" +
+                "- 准确性：事实是否正确\n" +
+                "- 完整性：是否完整回答问题\n" +
+                "- 相关性：是否切题\n" +
+                "- 清晰度：表达是否清晰\n" +
+                "- 安全性：是否合规\n" +
+                "\n" +
+                "【回答规范】\n" +
+                "- 客观公正，评估标准统一\n" +
+                "- 建议具体可操作\n" +
+                "- 反馈建设性正面\n";
     }
 
     /**
@@ -396,9 +399,13 @@ public class SkillPromptConfig {
      * 获取所有启用的Skills
      */
     public List<Skill> getAllEnabledSkills() {
-        return skills.values().stream()
-            .filter(Skill::isEnabled)
-            .toList();
+        List<Skill> result = new ArrayList<>();
+        for (Skill skill : skills.values()) {
+            if (skill.isEnabled()) {
+                result.add(skill);
+            }
+        }
+        return result;
     }
 
     /**
@@ -421,7 +428,7 @@ public class SkillPromptConfig {
      */
     public List<Skill> getSkillsByKeywords(String userQuery) {
         if (userQuery == null || userQuery.isEmpty()) {
-            return List.of();
+            return Collections.emptyList();
         }
 
         String query = userQuery.toLowerCase();

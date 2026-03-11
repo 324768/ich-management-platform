@@ -1,10 +1,14 @@
 <script setup>
 import { ref } from 'vue'
 import { chat } from '@/api/omnitrix'
+import { getUserInfo } from '@/utils/token'
 
 const content = ref('')
 const result = ref('')
 const loading = ref(false)
+
+const storedUser = getUserInfo()
+const userId = storedUser?.id || localStorage.getItem('ich_user_id') || '1'
 
 async function analyze() {
   const text = content.value.trim()
@@ -13,7 +17,7 @@ async function analyze() {
   result.value = ''
   try {
     const prompt = `请对以下内容进行智能分析，包括主题概述、关键信息提取和分析建议：\n\n${text}`
-    const res = await chat('analysis_' + Date.now(), prompt, localStorage.getItem('ich_user_id') || '1')
+    const res = await chat('analysis_' + Date.now(), prompt, userId)
     result.value = res.data?.reply || res.data?.answer || '分析完成'
   } catch (e) {
     result.value = '分析失败：' + (e.message || '请稍后重试')

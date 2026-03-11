@@ -1,4 +1,5 @@
 import request from './index'
+import { getToken } from '@/utils/token'
 
 /** 同步聊天 */
 export function chat(sessionId, message, userId) {
@@ -7,7 +8,11 @@ export function chat(sessionId, message, userId) {
 
 /** SSE 流式聊天 — 返回 EventSource */
 export function chatStream(sessionId, message, userId) {
+  const token = getToken()
   const params = new URLSearchParams({ sessionId, message, userId: userId || '1' })
+  if (token) {
+    params.append('userToken', token)
+  }
   return new EventSource(`/api/ai/chat/stream?${params.toString()}`)
 }
 
@@ -38,7 +43,11 @@ export function sendFeedback(messageId, feedback) {
 
 /** 重新生成（流式） — 返回 EventSource */
 export function regenerateStream(sessionId, userId) {
+  const token = getToken()
   const params = new URLSearchParams({ sessionId, userId: userId || '1' })
+  if (token) {
+    params.append('userToken', token)
+  }
   return new EventSource(`/api/ai/chat/regenerate?${params.toString()}`)
 }
 

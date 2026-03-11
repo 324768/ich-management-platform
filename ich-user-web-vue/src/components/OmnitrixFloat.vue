@@ -2,6 +2,7 @@
 import { ref, nextTick, onMounted, onUnmounted, watch, computed } from 'vue'
 import { chatStream, listConversations, createConversation, deleteConversation, getConversation, sendFeedback, regenerateStream } from '@/api/omnitrix'
 import { marked } from 'marked'
+import { getUserInfo } from '@/utils/token'
 
 marked.setOptions({ breaks: true, gfm: true })
 
@@ -17,7 +18,8 @@ const AGENT_NAMES = {
 }
 
 const expanded = ref(false)
-const userId = ref(localStorage.getItem('ich_user_id') || '1')
+const storedUser = getUserInfo()
+const userId = ref(storedUser?.id || localStorage.getItem('ich_user_id') || '1')
 const input = ref('')
 const messages = ref([])
 const conversations = ref([])
@@ -89,6 +91,12 @@ function send() {
   eventSource.addEventListener('done', (e) => {
     messages.value[idx].streaming = false; messages.value[idx].thinking = false; isStreaming.value = false
     try { const d = JSON.parse(e.data); if (d.messageId) messages.value[idx].messageId = d.messageId; if (d.model) messages.value[idx].model = d.model } catch (_) {}
+    // 检测购物车操作并触发刷新事件
+    const content = messages.value[idx].content || ''
+    if (content.includes('加入购物车') || content.includes('从购物车移除') || content.includes('清空购物车') || content.includes('购物车商品数量')) {
+      localStorage.setItem('cart_updated', Date.now())
+      window.dispatchEvent(new StorageEvent('cart_updated', { key: 'cart_updated', newValue: Date.now() }))
+    }
     closeStream(); loadConversations()
   })
   eventSource.addEventListener('error_msg', (e) => { messages.value[idx].thinking = false; messages.value[idx].content += '\n\n' + e.data; messages.value[idx].streaming = false; isStreaming.value = false; closeStream() })
@@ -109,6 +117,12 @@ function regenerate() {
   eventSource.addEventListener('done', (e) => {
     messages.value[idx].streaming = false; messages.value[idx].thinking = false; isStreaming.value = false
     try { const d = JSON.parse(e.data); if (d.messageId) messages.value[idx].messageId = d.messageId; if (d.model) messages.value[idx].model = d.model } catch (_) {}
+    // 检测购物车操作并触发刷新事件
+    const content = messages.value[idx].content || ''
+    if (content.includes('加入购物车') || content.includes('从购物车移除') || content.includes('清空购物车') || content.includes('购物车商品数量')) {
+      localStorage.setItem('cart_updated', Date.now())
+      window.dispatchEvent(new StorageEvent('cart_updated', { key: 'cart_updated', newValue: Date.now() }))
+    }
     closeStream(); loadConversations()
   })
   eventSource.addEventListener('error_msg', (e) => { messages.value[idx].thinking = false; messages.value[idx].content += '\n\n' + e.data; messages.value[idx].streaming = false; isStreaming.value = false; closeStream() })

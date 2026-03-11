@@ -22,6 +22,14 @@ public class ToolCallResult {
         return of("none", null);
     }
 
+    public static ToolCallResult success(String result) {
+        return of("success", result);
+    }
+
+    public static ToolCallResult error(String errorMessage) {
+        return of("error", errorMessage);
+    }
+
     public boolean isNone() {
         return "none".equals(toolName) || toolName == null;
     }

@@ -1,5 +1,7 @@
 package com.hyang.ich.userweb.controller;
 
+import com.hyang.ich.common.BrowseHistoryService;
+import com.hyang.ich.common.dto.BrowseHistoryDTO;
 import com.hyang.ich.common.vo.PageResult;
 import com.hyang.ich.common.vo.Result;
 import com.hyang.ich.content.ContentService;
@@ -23,6 +25,9 @@ public class ContentController {
 
     @DubboReference(check = false)
     private ContentService contentService;
+
+    @DubboReference(check = false)
+    private BrowseHistoryService browseHistoryService;
 
     @GetMapping("/category/tree")
     public Result<List<IchCategoryDTO>> listCategoryTree() {
@@ -102,6 +107,14 @@ public class ContentController {
     @PostMapping("/activity/viewlog/add")
     public Result<Void> addViewLog(@RequestBody IchActivityViewLogDTO dto) {
         contentService.addActivityViewLog(dto);
+        return Result.success();
+    }
+
+    // ========== 通用浏览记录（供AI使用） ==========
+
+    @PostMapping("/browse/add")
+    public Result<Void> addBrowseRecord(@RequestBody BrowseHistoryDTO dto) {
+        browseHistoryService.record(dto);
         return Result.success();
     }
 

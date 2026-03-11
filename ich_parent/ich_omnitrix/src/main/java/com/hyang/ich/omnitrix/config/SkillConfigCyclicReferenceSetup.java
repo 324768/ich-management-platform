@@ -2,7 +2,7 @@ package com.hyang.ich.omnitrix.config;
 
 import com.hyang.ich.omnitrix.infrastructure.skill.SkillPromptConfig;
 import com.hyang.ich.omnitrix.service.SkillConfigService;
-import jakarta.annotation.PostConstruct;
+import javax.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
 /**
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
  * 在SkillConfigService创建后，将SkillPromptConfig注入
  */
 @Component
-public class SkillConfig cyclicReferenceSetup {
+public class SkillConfigCyclicReferenceSetup {
 
     private final SkillConfigService skillConfigService;
     private final SkillPromptConfig skillPromptConfig;

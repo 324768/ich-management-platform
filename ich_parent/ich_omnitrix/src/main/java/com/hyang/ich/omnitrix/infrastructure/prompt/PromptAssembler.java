@@ -3,6 +3,7 @@ package com.hyang.ich.omnitrix.infrastructure.prompt;
 import com.hyang.ich.omnitrix.agent.AgentContext;
 import com.hyang.ich.omnitrix.agent.SubAgent;
 import com.hyang.ich.omnitrix.blackboard.TaskBoard;
+import com.hyang.ich.omnitrix.blackboard.TaskNode;
 import com.hyang.ich.omnitrix.dto.AgentQueryResult;
 import com.hyang.ich.omnitrix.infrastructure.skill.Skill;
 import com.hyang.ich.omnitrix.infrastructure.skill.SkillPromptConfig;
@@ -14,8 +15,10 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -50,7 +53,7 @@ public class PromptAssembler {
     public String assemble(AgentContext context, SubAgent subAgent,
                            AgentQueryResult queryResult, String summary,
                            String userProfile) {
-        return assemble(context, subAgent, queryResult, summary, userProfile, null);
+        return assemble(context, subAgent, queryResult, summary, userProfile, (String) null);
     }
 
     /**
@@ -68,10 +71,20 @@ public class PromptAssembler {
      *
      * @param taskBoard 黑板（包含每个Task需要的Skills）
      */
-    public String assemble(AgentContext context, SubAgent subAgent,
+    public String assembleWithTaskBoard(AgentContext context, SubAgent subAgent,
                            AgentQueryResult queryResult, String summary,
                            String userProfile, TaskBoard taskBoard) {
         return doAssemble(context, subAgent, queryResult, summary, userProfile, null, null, taskBoard);
+    }
+
+    /**
+     * 组装完整的 System Prompt（含系统记忆）
+     * 用于需要访问系统记忆的对话场景
+     */
+    public String assembleWithSystemMemory(AgentContext context, SubAgent subAgent,
+                                           AgentQueryResult queryResult, String summary,
+                                           String userProfile, String systemMemory) {
+        return doAssemble(context, subAgent, queryResult, summary, userProfile, systemMemory, null, null);
     }
 
     /**
@@ -96,7 +109,7 @@ public class PromptAssembler {
                 String skillPrompts = combineSkillPrompts(skills);
                 sb.append("\n\n").append(skillPrompts);
                 log.debug("[主脑调用方案] {} 使用Skills: {}", agentCode,
-                    skills.stream().map(Skill::getName).toList());
+                    skills.stream().map(Skill::getName).collect(Collectors.toList()));
             }
         } else {
             // Fallback: Quick Path模式，从context推断Skills（保持向后兼容）
@@ -107,7 +120,7 @@ public class PromptAssembler {
                     String skillPrompts = combineSkillPrompts(selectedSkills);
                     sb.append("\n\n").append(skillPrompts);
                     log.debug("[QuickPath Fallback] 动态注入Skills: {}",
-                        selectedSkills.stream().map(Skill::getName).toList());
+                        selectedSkills.stream().map(Skill::getName).collect(Collectors.toList()));
                 }
             }
         }
@@ -163,16 +176,16 @@ public class PromptAssembler {
      */
     private List<Skill> getSkillsFromTaskBoard(TaskBoard taskBoard, String agentCode) {
         if (taskBoard == null || agentCode == null) {
-            return List.of();
+            return Collections.emptyList();
         }
 
         // 查找黑板上与当前Agent匹配的任务节点
-        for (var node : taskBoard.getAllNodes()) {
+        for (TaskNode node : taskBoard.getAllNodes()) {
             if (agentCode.equals(node.getAgentCode()) && node.getRequiredSkills() != null) {
                 return skillPromptConfig.getSkills(node.getRequiredSkills());
             }
         }
-        return List.of();
+        return Collections.emptyList();
     }
 
     /**

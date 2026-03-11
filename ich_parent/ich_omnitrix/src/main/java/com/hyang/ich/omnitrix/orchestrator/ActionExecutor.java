@@ -65,6 +65,8 @@ public class ActionExecutor {
         this.systemMemoryService = systemMemoryService;
         this.redisTemplate = redisTemplate;
         this.objectMapper = new ObjectMapper();
+        this.objectMapper.configure(
+                com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     // ========== Redis 存取 ==========

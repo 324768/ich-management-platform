@@ -1,5 +1,6 @@
 package com.hyang.ich.omnitrix.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -53,6 +54,7 @@ public class PendingAction implements Serializable {
     }
 
     /** 是否在 5 分钟内有效 */
+    @JsonIgnore
     public boolean isExpired() {
         return System.currentTimeMillis() - createdAt > 5 * 60 * 1000;
     }

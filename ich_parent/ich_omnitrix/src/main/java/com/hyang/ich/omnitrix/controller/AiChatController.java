@@ -1,5 +1,6 @@
 package com.hyang.ich.omnitrix.controller;
 
+import com.hyang.ich.common.utils.JwtUtils;
 import com.hyang.ich.common.vo.Result;
 import com.hyang.ich.omnitrix.dto.*;
 import com.hyang.ich.omnitrix.entity.AiConversation;
@@ -41,17 +42,48 @@ public class AiChatController {
     }
 
     /**
+     * 从请求中获取用户ID
+     * 优先从token解析，fallback到请求参数userId
+     */
+    public Long getUserId(Long requestUserId, String userToken) {
+        // 优先从token解析
+        if (userToken != null && !userToken.isEmpty()) {
+            try {
+                if (JwtUtils.validateToken(userToken)) {
+                    Long tokenUserId = JwtUtils.getUserId(userToken);
+                    if (tokenUserId != null) {
+                        return tokenUserId;
+                    }
+                }
+            } catch (Exception e) {
+                log.debug("Token解析失败: {}", e.getMessage());
+            }
+        }
+        // Fallback到请求参数（需要确保是数字）
+        if (requestUserId != null && requestUserId > 0) {
+            return requestUserId;
+        }
+        // 如果都没有，返回null
+        return null;
+    }
+
+    /**
      * 同步聊天
      */
     @PostMapping("/chat")
     public Result<ChatResponse> chat(@RequestBody ChatRequest request,
-                                     @RequestParam(defaultValue = "1") Long userId) {
+                                     @RequestParam(defaultValue = "1") Long userId,
+                                     @RequestHeader(value = "X-User-Token", required = false) String userToken) {
+        Long actualUserId = getUserId(userId, userToken);
+        if (actualUserId == null) {
+            return Result.failed(401, "用户未登录");
+        }
         // Phase 1 暂时从请求参数获取 userId，Phase 2 改为 JWT 解析
         if (request.getSessionId() == null || request.getSessionId().isEmpty()) {
             request.setSessionId(UUID.randomUUID().toString().replace("-", ""));
         }
 
-        ChatResponse response = orchestratorService.chat(userId, request.getSessionId(), request.getMessage());
+        ChatResponse response = orchestratorService.chat(actualUserId, request.getSessionId(), request.getMessage());
         return Result.success(response);
     }
 
@@ -61,11 +93,13 @@ public class AiChatController {
     @GetMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter chatStream(@RequestParam String sessionId,
                                   @RequestParam String message,
-                                  @RequestParam(defaultValue = "1") Long userId) {
+                                  @RequestParam(defaultValue = "1") Long userId,
+                                  @RequestParam(required = false) String userToken) {
+        Long actualUserId = getUserId(userId, userToken);
         SseEmitter emitter = sseEmitterManager.create();
 
         // 使用线程池异步执行流式聊天
-        aiAsyncExecutor.execute(() -> orchestratorService.chatStream(userId, sessionId, message, emitter));
+        aiAsyncExecutor.execute(() -> orchestratorService.chatStream(actualUserId, sessionId, message, emitter));
 
         return emitter;
     }
@@ -76,9 +110,14 @@ public class AiChatController {
     @PostMapping("/conversation/create")
     public Result<ConversationCreateVO> createConversation(
             @RequestParam(defaultValue = "1") Long userId,
+            @RequestHeader(value = "X-User-Token", required = false) String userToken,
             @RequestBody(required = false) Map<String, String> body) {
+        Long actualUserId = getUserId(userId, userToken);
+        if (actualUserId == null) {
+            return Result.failed(401, "用户未登录");
+        }
         String title = (body != null && body.containsKey("title")) ? body.get("title") : "新对话";
-        AiConversation conv = conversationService.create(userId, title);
+        AiConversation conv = conversationService.create(actualUserId, title);
         return Result.success(ConversationCreateVO.from(conv));
     }
 
@@ -87,8 +126,13 @@ public class AiChatController {
      */
     @GetMapping("/conversation/list")
     public Result<List<ConversationVO>> listConversations(
-            @RequestParam(defaultValue = "1") Long userId) {
-        List<AiConversation> conversations = conversationService.listByUserId(userId);
+            @RequestParam(defaultValue = "1") Long userId,
+            @RequestHeader(value = "X-User-Token", required = false) String userToken) {
+        Long actualUserId = getUserId(userId, userToken);
+        if (actualUserId == null) {
+            return Result.failed(401, "用户未登录");
+        }
+        List<AiConversation> conversations = conversationService.listByUserId(actualUserId);
         List<ConversationVO> result = conversations.stream()
                 .map(ConversationVO::from)
                 .collect(Collectors.toList());
@@ -101,9 +145,14 @@ public class AiChatController {
     @GetMapping("/conversation/{id}")
     public Result<ConversationDetailVO> getConversation(
             @PathVariable Long id,
-            @RequestParam(defaultValue = "1") Long userId) {
+            @RequestParam(defaultValue = "1") Long userId,
+            @RequestHeader(value = "X-User-Token", required = false) String userToken) {
+        Long actualUserId = getUserId(userId, userToken);
+        if (actualUserId == null) {
+            return Result.failed(401, "用户未登录");
+        }
         AiConversation conv = conversationService.getById(id);
-        if (conv == null || !conv.getUserId().equals(userId)) {
+        if (conv == null || !conv.getUserId().equals(actualUserId)) {
             return Result.failed("对话不存在");
         }
 
@@ -120,8 +169,13 @@ public class AiChatController {
     @DeleteMapping("/conversation/{id}")
     public Result<Void> deleteConversation(
             @PathVariable Long id,
-            @RequestParam(defaultValue = "1") Long userId) {
-        conversationService.deleteConversation(id, userId);
+            @RequestParam(defaultValue = "1") Long userId,
+            @RequestHeader(value = "X-User-Token", required = false) String userToken) {
+        Long actualUserId = getUserId(userId, userToken);
+        if (actualUserId == null) {
+            return Result.failed(401, "用户未登录");
+        }
+        conversationService.deleteConversation(id, actualUserId);
         return Result.success();
     }
 
@@ -131,9 +185,14 @@ public class AiChatController {
     @GetMapping("/conversation/{id}/export")
     public Result<String> exportConversation(
             @PathVariable Long id,
-            @RequestParam(defaultValue = "1") Long userId) {
+            @RequestParam(defaultValue = "1") Long userId,
+            @RequestHeader(value = "X-User-Token", required = false) String userToken) {
+        Long actualUserId = getUserId(userId, userToken);
+        if (actualUserId == null) {
+            return Result.failed(401, "用户未登录");
+        }
         AiConversation conv = conversationService.getById(id);
-        if (conv == null || !conv.getUserId().equals(userId)) {
+        if (conv == null || !conv.getUserId().equals(actualUserId)) {
             return Result.failed("对话不存在");
         }
         List<AiMessage> messages = conversationService.listMessages(id);
@@ -154,7 +213,9 @@ public class AiChatController {
      */
     @GetMapping(value = "/chat/regenerate", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter regenerate(@RequestParam String sessionId,
-                                  @RequestParam(defaultValue = "1") Long userId) {
+                                  @RequestParam(defaultValue = "1") Long userId,
+                                  @RequestParam(required = false) String userToken) {
+        Long actualUserId = getUserId(userId, userToken);
         SseEmitter emitter = sseEmitterManager.create();
 
         aiAsyncExecutor.execute(() -> {
@@ -176,7 +237,7 @@ public class AiChatController {
                 }
 
                 // 用最后一条用户消息重新走流式生成
-                orchestratorService.chatStream(userId, sessionId, lastUserMsg.getContent(), emitter);
+                orchestratorService.chatStream(actualUserId, sessionId, lastUserMsg.getContent(), emitter);
             } catch (Exception e) {
                 sseEmitterManager.sendError(emitter, "重新生成失败");
             }
@@ -192,7 +253,8 @@ public class AiChatController {
      */
     @PostMapping("/feedback/{messageId}")
     public Result<Void> feedback(@PathVariable Long messageId,
-                                  @RequestParam int feedback) {
+                                  @RequestParam int feedback,
+                                  @RequestHeader(value = "X-User-Token", required = false) String userToken) {
         if (feedback != 1 && feedback != -1) {
             return Result.failed("feedback 只能为 1 或 -1");
         }

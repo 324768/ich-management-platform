@@ -2,6 +2,7 @@ package com.hyang.ich.omnitrix.infrastructure.skill;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hyang.ich.omnitrix.infrastructure.llm.LlmClient;
+import com.hyang.ich.omnitrix.infrastructure.llm.LlmResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -26,29 +27,28 @@ public class SkillSelector {
     /**
      * 选择Skill的Prompt模板
      */
-    private static final String SKILL_SELECTION_PROMPT = """
-            # Skill选择任务
-
-            ## 任务说明
-            请分析用户的问题，判断需要启用哪些Skills来更好地回答问题。
-
-            %s
-
-            ## 用户问题
-            %s
-
-            ## 输出要求
-            请严格按照JSON格式输出：
-            {
-                "selected_skills": ["skill_id1", "skill_id2"],
-                "reason": "选择理由（简短）"
-            }
-
-            注意：
-            - 只选择与问题相关的Skills
-            - 如果没有问题需要任何Skill，返回空数组
-            - 使用Skill的ID标识（如 heritage_master）
-            """;
+    private static final String SKILL_SELECTION_PROMPT = 
+            "# Skill选择任务\n" +
+            "\n" +
+            "## 任务说明\n" +
+            "请分析用户的问题，判断需要启用哪些Skills来更好地回答问题。\n" +
+            "\n" +
+            "%s\n" +
+            "\n" +
+            "## 用户问题\n" +
+            "%s\n" +
+            "\n" +
+            "## 输出要求\n" +
+            "请严格按照JSON格式输出：\n" +
+            "{\n" +
+            "    \"selected_skills\": [\"skill_id1\", \"skill_id2\"],\n" +
+            "    \"reason\": \"选择理由（简短）\"\n" +
+            "}\n" +
+            "\n" +
+            "注意：\n" +
+            "- 只选择与问题相关的Skills\n" +
+            "- 如果没有问题需要任何Skill，返回空数组\n" +
+            "- 使用Skill的ID标识（如 heritage_master）\n";
 
     /**
      * JSON解析Pattern
@@ -70,11 +70,12 @@ public class SkillSelector {
             String prompt = String.format(SKILL_SELECTION_PROMPT, skillsDesc, userQuery);
 
             // 2. 调用LLM选择
-            String llmResponse = llmClient.chat(prompt);
-            log.debug("Skill选择结果: {}", llmResponse);
+            LlmResponse llmResponse = llmClient.chat(prompt, Collections.emptyList(), prompt);
+            String llmResult = llmResponse.getContent();
+            log.debug("Skill选择结果: {}", llmResult);
 
             // 3. 解析LLM响应
-            List<String> skillIds = parseSkillIds(llmResponse);
+            List<String> skillIds = parseSkillIds(llmResult);
 
             // 4. 获取Skill对象
             if (skillIds.isEmpty()) {
@@ -83,7 +84,7 @@ public class SkillSelector {
             }
 
             List<Skill> selectedSkills = skillPromptConfig.getSkills(skillIds);
-            log.info("选中的Skills: {}", selectedSkills.stream().map(Skill::getName).toList());
+            log.info("选中的Skills: {}", getSkillNames(selectedSkills));
 
             return selectedSkills;
 
@@ -91,6 +92,17 @@ public class SkillSelector {
             log.warn("Skill选择失败，使用空列表: {}", e.getMessage());
             return Collections.emptyList();
         }
+    }
+
+    /**
+     * 获取Skill名称列表（用于日志）
+     */
+    private List<String> getSkillNames(List<Skill> skills) {
+        List<String> names = new ArrayList<>();
+        for (Skill skill : skills) {
+            names.add(skill.getName());
+        }
+        return names;
     }
 
     /**

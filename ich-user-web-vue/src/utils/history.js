@@ -1,4 +1,5 @@
 import { getUserInfo } from './token'
+import request from '@/api/index'
 
 const MAX_HISTORY = 100
 
@@ -23,4 +24,15 @@ export function addBrowseHistory(type, data) {
   })
   if (list.length > MAX_HISTORY) list = list.slice(0, MAX_HISTORY)
   localStorage.setItem(key, JSON.stringify(list))
+
+  // 同时保存到后端数据库，供AI查询使用
+  try {
+    request.post('/content/browse/add', {
+      userId: user.id,
+      targetType: type,
+      targetId: data.targetId,
+      targetTitle: data.title || '',
+      source: 'web'
+    }).catch(() => {})
+  } catch (e) {}
 }
