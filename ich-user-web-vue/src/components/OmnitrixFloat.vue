@@ -81,13 +81,38 @@ function send() {
   input.value = ''; autoResize()
   if (!currentSessionId.value) currentSessionId.value = 'session_' + Date.now()
   messages.value.push({ role: 'user', content: q })
-  messages.value.push({ role: 'assistant', content: '', agent: '', streaming: true, thinking: true, thinkingContent: '', showThinking: false })
+  messages.value.push({ role: 'assistant', content: '', agent: '', streaming: true, thinking: true, thinkingContent: '', showThinking: false, callChain: [], showCallChain: false })
   isStreaming.value = true; scrollToBottom(); closeStream()
   eventSource = chatStream(currentSessionId.value, q, userId.value)
   const idx = messages.value.length - 1
   eventSource.addEventListener('thinking', (e) => { messages.value[idx].thinkingContent += e.data; scrollToBottom() })
   eventSource.addEventListener('chunk', (e) => { messages.value[idx].thinking = false; messages.value[idx].content += e.data; scrollToBottom() })
   eventSource.addEventListener('agent', (e) => { try { const d = JSON.parse(e.data); messages.value[idx].agent = d.agent || e.data } catch (_) { messages.value[idx].agent = e.data } })
+  eventSource.addEventListener('agent_dispatch', (e) => {
+    try {
+      const d = JSON.parse(e.data)
+      if (!messages.value[idx].callChain) messages.value[idx].callChain = []
+      messages.value[idx].callChain.push({ type: 'dispatch', agent: d.agent, agentName: d.agentName, query: d.query, timestamp: d.timestamp, status: 'running', result: '' })
+    } catch (_) {}
+    scrollToBottom()
+  })
+  eventSource.addEventListener('agent_result', (e) => {
+    try {
+      const d = JSON.parse(e.data)
+      const chain = messages.value[idx].callChain
+      if (chain && chain.length > 0) {
+        const newStatus = (d.status === 'SUCCESS' || d.status === 'success') ? 'success' : ((d.status === 'EMPTY' || d.status === 'empty') ? 'empty' : 'failed')
+        const target = chain.find(c => c.agent === d.agent && c.status === 'running')
+        if (target) {
+          target.result = d.result || ''
+          target.latencyMs = d.latencyMs
+          setTimeout(() => { target.status = newStatus }, 400)
+        }
+      }
+      messages.value[idx].thinking = false
+    } catch (_) {}
+    scrollToBottom()
+  })
   eventSource.addEventListener('done', (e) => {
     messages.value[idx].streaming = false; messages.value[idx].thinking = false; isStreaming.value = false
     try { const d = JSON.parse(e.data); if (d.messageId) messages.value[idx].messageId = d.messageId; if (d.model) messages.value[idx].model = d.model } catch (_) {}
@@ -107,13 +132,38 @@ function regenerate() {
   if (!currentSessionId.value || isStreaming.value) return
   const lastIdx = messages.value.length - 1
   if (lastIdx >= 0 && messages.value[lastIdx].role === 'assistant') messages.value.splice(lastIdx, 1)
-  messages.value.push({ role: 'assistant', content: '', agent: '', streaming: true, thinking: true, thinkingContent: '', showThinking: false })
+  messages.value.push({ role: 'assistant', content: '', agent: '', streaming: true, thinking: true, thinkingContent: '', showThinking: false, callChain: [], showCallChain: false })
   isStreaming.value = true; scrollToBottom(); closeStream()
   eventSource = regenerateStream(currentSessionId.value, userId.value)
   const idx = messages.value.length - 1
   eventSource.addEventListener('thinking', (e) => { messages.value[idx].thinkingContent += e.data; scrollToBottom() })
   eventSource.addEventListener('chunk', (e) => { messages.value[idx].thinking = false; messages.value[idx].content += e.data; scrollToBottom() })
   eventSource.addEventListener('agent', (e) => { try { const d = JSON.parse(e.data); messages.value[idx].agent = d.agent || e.data } catch (_) { messages.value[idx].agent = e.data } })
+  eventSource.addEventListener('agent_dispatch', (e) => {
+    try {
+      const d = JSON.parse(e.data)
+      if (!messages.value[idx].callChain) messages.value[idx].callChain = []
+      messages.value[idx].callChain.push({ type: 'dispatch', agent: d.agent, agentName: d.agentName, query: d.query, timestamp: d.timestamp, status: 'running', result: '' })
+    } catch (_) {}
+    scrollToBottom()
+  })
+  eventSource.addEventListener('agent_result', (e) => {
+    try {
+      const d = JSON.parse(e.data)
+      const chain = messages.value[idx].callChain
+      if (chain && chain.length > 0) {
+        const newStatus = (d.status === 'SUCCESS' || d.status === 'success') ? 'success' : ((d.status === 'EMPTY' || d.status === 'empty') ? 'empty' : 'failed')
+        const target = chain.find(c => c.agent === d.agent && c.status === 'running')
+        if (target) {
+          target.result = d.result || ''
+          target.latencyMs = d.latencyMs
+          setTimeout(() => { target.status = newStatus }, 400)
+        }
+      }
+      messages.value[idx].thinking = false
+    } catch (_) {}
+    scrollToBottom()
+  })
   eventSource.addEventListener('done', (e) => {
     messages.value[idx].streaming = false; messages.value[idx].thinking = false; isStreaming.value = false
     try { const d = JSON.parse(e.data); if (d.messageId) messages.value[idx].messageId = d.messageId; if (d.model) messages.value[idx].model = d.model } catch (_) {}
@@ -206,7 +256,20 @@ function renderMarkdown(text) { return text ? marked.parse(text) : '' }
               <div class="om-bubble">
                 <div v-if="msg.thinking && msg.streaming" class="om-thinking">
                   <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-                  <span class="thinking-label">思考中...</span>
+                  <span class="thinking-label">{{ (msg.callChain && msg.callChain.length > 0) ? '生成回复中...' : '思考中...' }}</span>
+                </div>
+                <div v-if="msg.callChain && msg.callChain.length > 0 && msg.role==='assistant'" class="om-callchain-panel">
+                  <button class="callchain-toggle" @click="msg.showCallChain = !msg.showCallChain">
+                    <svg width="12" height="12" viewBox="0 0 12 12" :class="{ rotated: msg.showCallChain }"><path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <span>调用过程 ({{ msg.callChain.length }}个代理)</span>
+                  </button>
+                  <div v-if="msg.showCallChain" class="callchain-content">
+                    <div v-for="(call, ci) in msg.callChain" :key="ci" class="callchain-item" :class="call.status">
+                      <span class="call-status-icon"></span>
+                      <span class="call-agent">{{ call.agentName || call.agent }}</span>
+                      <span v-if="call.latencyMs !== undefined" class="call-time">({{ (call.latencyMs / 1000).toFixed(1) }}s)</span>
+                    </div>
+                  </div>
                 </div>
                 <div v-if="msg.thinkingContent && msg.role==='assistant'" class="om-think-panel">
                   <button class="think-toggle" @click="toggleThinking(msg)">
@@ -218,18 +281,6 @@ function renderMarkdown(text) { return text ? marked.parse(text) : '' }
                 <div v-if="msg.role==='assistant'" class="om-text md-body" v-html="renderMarkdown(msg.content)"></div>
                 <div v-else class="om-text">{{ msg.content }}</div>
                 <div v-if="msg.streaming && !msg.thinking" class="om-caret"></div>
-                <div v-if="msg.role==='assistant' && !msg.streaming" class="om-meta">
-                  <span v-if="msg.agent" class="om-agent">{{ agentLabel(msg.agent) }}</span>
-                  <span v-if="msg.model" class="om-model">{{ msg.model }}</span>
-                </div>
-                <div v-if="msg.role==='assistant' && !msg.streaming" class="om-actions">
-                  <button class="act-btn" @click="copyResponse(msg, i)">{{ copiedIdx === i ? '✓' : '📋' }}</button>
-                  <button v-if="i === messages.length - 1" class="act-btn" @click="regenerate">🔄</button>
-                  <template v-if="msg.messageId">
-                    <button class="act-btn" :class="{ active: msg.feedback === 1 }" @click="handleFeedback(msg, 1)">👍</button>
-                    <button class="act-btn" :class="{ active: msg.feedback === -1 }" @click="handleFeedback(msg, -1)">👎</button>
-                  </template>
-                </div>
               </div>
             </div>
           </div>
@@ -442,6 +493,28 @@ function renderMarkdown(text) { return text ? marked.parse(text) : '' }
 .think-toggle svg.rotated { transform: rotate(90deg); }
 .think-content { padding: 4px 8px 8px; font-size: 11px; color: #5f6368; line-height: 1.5; border-top: 1px solid #e8eaed; max-height: 120px; overflow-y: auto; }
 
+/* 调用过程 */
+.om-callchain-panel { margin-bottom: 6px; border-radius: 6px; border: 1px solid #e8eaed; background: #fafbfc; overflow: hidden; }
+.callchain-toggle { display: flex; align-items: center; gap: 4px; border: none; background: transparent; cursor: pointer; font-size: 11px; color: #5f6368; padding: 4px 8px; width: 100%; }
+.callchain-toggle:hover { background: #f0f4f9; }
+.callchain-toggle svg { transition: transform 0.2s; }
+.callchain-toggle svg.rotated { transform: rotate(90deg); }
+.callchain-content { padding: 4px 8px 8px; border-top: 1px solid #e8eaed; font-family: monospace; }
+.callchain-item { display: flex; align-items: center; gap: 8px; font-size: 11px; padding: 4px 0; }
+/* 与右上角三个按钮完全一致：10px 圆 + 2px 白边 + 同色 1px 描边 */
+.call-status-icon {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  border: 2px solid #fff; box-sizing: content-box;
+  display: flex; align-items: center; justify-content: center;
+}
+.callchain-item.success .call-status-icon,
+.callchain-item.empty .call-status-icon { background: #34a853; box-shadow: 0 0 0 1px #34a853; }
+.callchain-item.failed .call-status-icon { background: #ea4335; box-shadow: 0 0 0 1px #ea4335; }
+.callchain-item.running .call-status-icon { background: #1a73e8; box-shadow: 0 0 0 1px #1a73e8; animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.05); } }
+.call-agent { font-weight: 500; color: #333; }
+.call-time { color: #5f6368; font-size: 10px; }
+
 .om-caret { display: inline-block; width: 2px; height: 16px; background: #1e1e1e; margin-left: 2px; vertical-align: text-bottom; animation: caret-blink 1s steps(1) infinite; }
 @keyframes caret-blink { 50% { opacity: 0; } }
 
@@ -521,6 +594,18 @@ function renderMarkdown(text) { return text ? marked.parse(text) : '' }
 .dark-mode .think-content { color: #888; border-top-color: #333; }
 .dark-mode .dot { background: #8ab4f8; }
 .dark-mode .thinking-label { color: #888; }
+.dark-mode .om-callchain-panel { border-color: #333; background: #1E1F20; }
+.dark-mode .callchain-toggle { color: #aaa; }
+.dark-mode .callchain-toggle:hover { background: #2d2d2d; }
+.dark-mode .callchain-content { border-color: #333; }
+.dark-mode .call-agent { color: #e8eaed; }
+.dark-mode .call-time { color: #888; }
+/* 深色模式下调用过程圆点仍复用与右上角一致的配色 */
+.dark-mode .call-status-icon { border-color: #1E1F20; }
+.dark-mode .callchain-item.success .call-status-icon,
+.dark-mode .callchain-item.empty .call-status-icon { background: #34a853; box-shadow: 0 0 0 1px #34a853; }
+.dark-mode .callchain-item.failed .call-status-icon { background: #ea4335; box-shadow: 0 0 0 1px #ea4335; }
+.dark-mode .callchain-item.running .call-status-icon { background: #1a73e8; box-shadow: 0 0 0 1px #1a73e8; }
 .dark-mode .act-btn { color: #888; }
 .dark-mode .act-btn:hover { background: #333; color: #8ab4f8; }
 

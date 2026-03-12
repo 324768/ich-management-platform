@@ -54,6 +54,7 @@ public class UltraBrowseHistoryAgent implements SubAgent {
     private static final Map<String, String> TYPE_LABELS = new LinkedHashMap<>();
     static {
         TYPE_LABELS.put("ich_item", "非遗项目");
+        TYPE_LABELS.put("culture", "非遗文化");  // 前端非遗文化页上报的 type
         TYPE_LABELS.put("heritage_man", "传承人");
         TYPE_LABELS.put("activity", "活动");
         TYPE_LABELS.put("product", "文创商品");

@@ -30,7 +30,7 @@ public class LlmProperties {
     private String apiUrl = "https://api.siliconflow.cn/v1/chat/completions";
     private String model = "deepseek-ai/DeepSeek-V3";
     private String apiKey = "sk-utgmwknrslowgyfkjtpqfllzclvzeyaevaayqqubpcmlmglw";
-    private int timeoutSeconds = 60;
+    private int timeoutSeconds = 120;
     private int maxTokens = 2048;
     private double temperature = 0.7;
 

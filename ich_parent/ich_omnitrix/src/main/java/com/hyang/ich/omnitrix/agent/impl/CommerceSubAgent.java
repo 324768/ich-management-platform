@@ -18,8 +18,11 @@ import com.hyang.ich.omnitrix.dto.PendingAction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Component
@@ -149,10 +152,12 @@ public class CommerceSubAgent implements SubAgent {
     // ========== 写操作提议 ==========
 
     private AgentQueryResult proposeAddToCart(String keyword, AgentContext context) {
-        PageResult<ProductDTO> products = productService.listProducts(1, 3, null, keyword, 1);
+        // 未指定商品时用 null 查前几条，避免空串导致查不到
+        String searchKeyword = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : null;
+        PageResult<ProductDTO> products = productService.listProducts(1, 5, null, searchKeyword, 1);
         if (products == null || products.getList() == null || products.getList().isEmpty()) {
             return AgentQueryResult.success(
-                    "未找到关键词\"" + keyword + "\"对应的商品", getCode());
+                    "未找到对应商品，请说明商品名称，例如：把云南普洱茶饼加入购物车。", getCode());
         }
         ProductDTO first = products.getList().get(0);
         StringBuilder data = new StringBuilder("商品搜索结果:\n");
@@ -162,6 +167,7 @@ public class CommerceSubAgent implements SubAgent {
             if (p.getStock() != null) data.append(", 库存: ").append(p.getStock());
             data.append("\n");
         }
+        data.append("\n请回复「好的」或「确认」将「").append(first.getName()).append("」加入购物车。");
         PendingAction action = PendingAction.of("add_to_cart",
                 "将「" + first.getName() + "」加入购物车")
                 .param("productId", String.valueOf(first.getId()))
@@ -404,15 +410,75 @@ public class CommerceSubAgent implements SubAgent {
         return sb.toString();
     }
 
-    private String searchProducts(String keyword) {
-        PageResult<ProductDTO> products = productService.listProducts(1, 5, null, keyword, 1);
+    /** 价格范围解析正则 */
+    private static final Pattern PRICE_PATTERN = Pattern.compile(
+            "(\\d+(?:\\.\\d+)?)\\s*(?:块|元|块钱)|" +
+            "(?:以内|以下|不超过|不超过|不超过|不高于|低于|少于|小于)\\s*(\\d+(?:\\.\\d+)?)\\s*(?:块|元|块钱)|" +
+            "(?:在|从|between)\\s*(\\d+(?:\\.\\d+)?)\\s*(?:到|至|-)\\s*(\\d+(?:\\.\\d+)?)\\s*(?:块|元|块钱)|" +
+            "(\\d+(?:\\.\\d+)?)\\s*-\\s*(\\d+(?:\\.\\d+)?)\\s*(?:块|元|块钱)",
+            Pattern.CASE_INSENSITIVE
+    );
+
+    private String searchProducts(String query) {
+        // 解析价格范围
+        BigDecimal minPrice = null;
+        BigDecimal maxPrice = null;
+        String keyword = query;
+
+        Matcher matcher = PRICE_PATTERN.matcher(query);
+        if (matcher.find()) {
+            // 匹配到价格模式
+            if (matcher.group(1) != null) {
+                // 模式1: "500块" 或 "500元"
+                maxPrice = new BigDecimal(matcher.group(1));
+            } else if (matcher.group(2) != null) {
+                // 模式2: "500块以内/以下"
+                maxPrice = new BigDecimal(matcher.group(2));
+            } else if (matcher.group(3) != null && matcher.group(4) != null) {
+                // 模式3: "在100到500之间"
+                minPrice = new BigDecimal(matcher.group(3));
+                maxPrice = new BigDecimal(matcher.group(4));
+            } else if (matcher.group(5) != null && matcher.group(6) != null) {
+                // 模式4: "100-500块"
+                minPrice = new BigDecimal(matcher.group(5));
+                maxPrice = new BigDecimal(matcher.group(6));
+            }
+
+            // 从查询中移除价格部分，只保留关键词
+            keyword = query.replaceAll(PRICE_PATTERN.pattern(), "").trim();
+            if (keyword.isEmpty()) keyword = null;
+        }
+
+        // 根据是否有价格范围调用不同的查询方法
+        PageResult<ProductDTO> products;
+        if (minPrice != null || maxPrice != null) {
+            log.debug("价格范围查询: minPrice={}, maxPrice={}, keyword={}", minPrice, maxPrice, keyword);
+            products = productService.listProductsByPriceRange(1, 10, minPrice, maxPrice, keyword, 1);
+        } else {
+            products = productService.listProducts(1, 10, null, keyword, 1);
+        }
+
         if (products == null || products.getList() == null || products.getList().isEmpty()) {
             return "";
         }
-        StringBuilder sb = new StringBuilder("商品搜索结果:\n");
+
+        StringBuilder sb = new StringBuilder("商品搜索结果");
+        if (minPrice != null || maxPrice != null) {
+            sb.append("（");
+            if (minPrice != null && maxPrice != null) {
+                sb.append("¥").append(minPrice).append("-").append(maxPrice);
+            } else if (maxPrice != null) {
+                sb.append("¥").append(maxPrice).append("以内");
+            } else if (minPrice != null) {
+                sb.append("¥").append(minPrice).append("以上");
+            }
+            sb.append("）");
+        }
+        sb.append(":\n");
+
         for (ProductDTO product : products.getList()) {
             sb.append("- ").append(product.getName());
-            if (product.getPrice() != null) sb.append(", 价格: ¥").append(product.getPrice());
+            if (product.getPrice() != null) sb.append(", ¥").append(product.getPrice());
             if (product.getStock() != null) sb.append(", 库存: ").append(product.getStock());
             sb.append("\n");
         }

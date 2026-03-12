@@ -57,7 +57,7 @@ import java.util.concurrent.TimeoutException;
 public class OrchestratorService {
 
     private static final String LAST_AGENT_KEY_PREFIX = "omnitrix:last_agent:";
-    private static final int AGENT_TIMEOUT_SECONDS = 10;
+    private static final int AGENT_TIMEOUT_SECONDS = 30;
     private static final int BLACKBOARD_MAX_ROUNDS = 5;
     private static final int MAX_REPLANS = 1;
 
@@ -388,8 +388,18 @@ public class OrchestratorService {
             SubAgent subAgent = subAgentRegistry.getOrDefault(agentCode);
             sseEmitterManager.sendAgentInfo(emitter, subAgent.getCode());
 
+            // 发送调用过程：dispatch（前端「调用过程」展示用）
+            sseEmitterManager.sendAgentDispatch(emitter, subAgent.getCode(), subAgent.getName(), userMessage);
+            long agentStart = System.currentTimeMillis();
             // 执行子代理
             AgentQueryResult queryResult = executeAgent(subAgent, userMessage, context);
+            int agentLatencyMs = (int) (System.currentTimeMillis() - agentStart);
+            String agentStatus = queryResult.getStatus() == AgentQueryResult.Status.ERROR ? "failed"
+                    : (queryResult.getStatus() == AgentQueryResult.Status.EMPTY ? "empty" : "success");
+            String resultData = queryResult.getData() != null ? queryResult.getData() : "";
+            sseEmitterManager.sendAgentResult(emitter, subAgent.getCode(), subAgent.getName(),
+                    resultData, agentStatus, agentLatencyMs);
+
             String userProfile = userMemoryService.buildUserProfile(userId);
             String systemPrompt = promptAssembler.assemble(context, subAgent, queryResult, summary, userProfile);
 
@@ -484,8 +494,16 @@ public class OrchestratorService {
                                          List<Map<String, String>> history, String summary,
                                          long startTime, boolean isAdmin, SseEmitter emitter,
                                          SubAgent subAgent, String agentCode) {
+        // 发送调用过程：dispatch（前端「调用过程」展示用）
+        sseEmitterManager.sendAgentDispatch(emitter, subAgent.getCode(), subAgent.getName(), userMessage);
+        long agentStart = System.currentTimeMillis();
         // 执行子代理
         AgentQueryResult queryResult = executeAgent(subAgent, userMessage, context);
+        int agentLatencyMs = (int) (System.currentTimeMillis() - agentStart);
+        String agentStatus = queryResult.getStatus() == AgentQueryResult.Status.ERROR ? "failed"
+                : (queryResult.getStatus() == AgentQueryResult.Status.EMPTY ? "empty" : "success");
+        sseEmitterManager.sendAgentResult(emitter, subAgent.getCode(), subAgent.getName(),
+                queryResult.getData() != null ? queryResult.getData() : "", agentStatus, agentLatencyMs);
 
         String userProfile = userMemoryService.buildUserProfile(userId);
         String sessionNotes = memoryExtractor.getSessionNotes(userId, sessionId);
@@ -680,7 +698,15 @@ public class OrchestratorService {
                     // SSE 推送: 子代理执行结果
                     if (emitter != null) {
                         int taskLatency = (int) (System.currentTimeMillis() - taskStart);
-                        String status = result.getStatus() == AgentQueryResult.Status.ERROR ? "error" : "success";
+                        // 转换状态为前端期望的格式（大写）
+                        String status;
+                        if (result.getStatus() == AgentQueryResult.Status.ERROR) {
+                            status = "failed";
+                        } else if (result.getStatus() == AgentQueryResult.Status.EMPTY) {
+                            status = "empty";
+                        } else {
+                            status = "success";
+                        }
                         String resultData = result.getData() != null ? result.getData() : "";
                         sseEmitterManager.sendAgentResult(emitter, agent.getCode(), agent.getName(),
                                 resultData, status, taskLatency);
@@ -1416,7 +1442,15 @@ public class OrchestratorService {
 
                         // SSE 推送: 元代理执行结果
                         if (emitter != null) {
-                            String status = result.getStatus() == AgentQueryResult.Status.ERROR ? "error" : "success";
+                            // 转换状态为前端期望的格式（大写）
+                            String status;
+                            if (result.getStatus() == AgentQueryResult.Status.ERROR) {
+                                status = "failed";
+                            } else if (result.getStatus() == AgentQueryResult.Status.EMPTY) {
+                                status = "empty";
+                            } else {
+                                status = "success";
+                            }
                             String resultData = result.getData() != null ? result.getData() : "";
                             sseEmitterManager.sendAgentResult(emitter, metaAgent.getCode(), metaAgent.getName(),
                                     resultData, status, latency);

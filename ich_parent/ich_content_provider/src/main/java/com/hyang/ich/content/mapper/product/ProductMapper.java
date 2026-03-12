@@ -3,6 +3,7 @@ package com.hyang.ich.content.mapper.product;
 import com.hyang.ich.content.entity.Product;
 import org.apache.ibatis.annotations.Param;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface ProductMapper {
@@ -16,6 +17,19 @@ public interface ProductMapper {
     int countByCondition(@Param("categoryId") Long categoryId,
                          @Param("keyword") String keyword,
                          @Param("status") Integer status);
+
+    /** 按价格范围查询 */
+    List<Product> selectByPriceRange(@Param("minPrice") BigDecimal minPrice,
+                                     @Param("maxPrice") BigDecimal maxPrice,
+                                     @Param("keyword") String keyword,
+                                     @Param("status") Integer status,
+                                     @Param("offset") int offset,
+                                     @Param("limit") int limit);
+
+    int countByPriceRange(@Param("minPrice") BigDecimal minPrice,
+                          @Param("maxPrice") BigDecimal maxPrice,
+                          @Param("keyword") String keyword,
+                          @Param("status") Integer status);
 
     Product selectById(@Param("id") Long id);
 

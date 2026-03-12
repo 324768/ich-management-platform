@@ -6,6 +6,7 @@ import com.hyang.ich.product.dto.InventoryRecordDTO;
 import com.hyang.ich.product.dto.ProductCategoryDTO;
 import com.hyang.ich.product.dto.ProductDTO;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface ProductService {
@@ -27,6 +28,9 @@ public interface ProductService {
     // ========== 商品 ==========
 
     PageResult<ProductDTO> listProducts(int pageNum, int pageSize, Long categoryId, String keyword, Integer status);
+
+    /** 按价格范围查询商品 */
+    PageResult<ProductDTO> listProductsByPriceRange(int pageNum, int pageSize, BigDecimal minPrice, BigDecimal maxPrice, String keyword, Integer status);
 
     ProductDTO getProductById(Long id);
 

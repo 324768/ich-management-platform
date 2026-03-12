@@ -57,6 +57,10 @@ public class HintGenerator {
                 "向用户展示购物车内容和总计，提示可下单或修改",
                 "用户在查看购物车",
                 "不要自动触发下单操作");
+        reg("commerce_assistant", "add_to_cart",
+                "明确告诉用户已找到商品，并提示回复「好的」或「确认」即可加入购物车，不要说系统维护或暂不可用",
+                "用户要将某商品加入购物车",
+                "必须基于查询结果中的商品名称和价格回复，并引导用户确认");
 
         // ===== UserSubAgent =====
         reg("user_assistant", "query_profile",

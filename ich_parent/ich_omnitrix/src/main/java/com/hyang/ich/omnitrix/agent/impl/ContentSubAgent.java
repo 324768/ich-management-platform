@@ -161,7 +161,8 @@ public class ContentSubAgent implements SubAgent {
     // ========== 写操作提议 ==========
 
     private AgentQueryResult proposeRegisterActivity(String keyword, AgentContext context) {
-        PageResult<IchActivityDTO> activities = contentService.listActivities(1, 5, keyword, 1, null);
+        // status=null 查询所有状态的活动，让用户能报名
+        PageResult<IchActivityDTO> activities = contentService.listActivities(1, 5, keyword, null, null);
         if (activities == null || activities.getList() == null || activities.getList().isEmpty()) {
             return AgentQueryResult.success(
                     "未找到关键词\"" + keyword + "\"对应的活动", getCode());
@@ -374,7 +375,8 @@ public class ContentSubAgent implements SubAgent {
 
     private String searchActivities(String keyword) {
         try {
-            PageResult<IchActivityDTO> activities = contentService.listActivities(1, 5, keyword, 1, null);
+            // status=null 表示查询所有状态的活动，不限制 status=1
+            PageResult<IchActivityDTO> activities = contentService.listActivities(1, 5, keyword, null, null);
             if (activities == null || activities.getList() == null || activities.getList().isEmpty()) {
                 return "";
             }

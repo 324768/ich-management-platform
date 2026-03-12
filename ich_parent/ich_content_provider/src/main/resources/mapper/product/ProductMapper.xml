@@ -31,6 +31,30 @@
         SELECT COUNT(*) FROM product <include refid="condition"/>
     </select>
 
+    <!-- 按价格范围查询 -->
+    <select id="selectByPriceRange" resultType="com.hyang.ich.content.entity.Product">
+        SELECT <include refid="allColumns"/> FROM product
+        <where>
+            is_deleted = 0
+            <if test="minPrice != null">AND price &gt;= #{minPrice}</if>
+            <if test="maxPrice != null">AND price &lt;= #{maxPrice}</if>
+            <if test="keyword != null and keyword != ''">AND (name LIKE CONCAT('%',#{keyword},'%') OR sub_title LIKE CONCAT('%',#{keyword},'%'))</if>
+            <if test="status != null">AND status = #{status}</if>
+        </where>
+        ORDER BY price ASC, create_time DESC LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByPriceRange" resultType="int">
+        SELECT COUNT(*) FROM product
+        <where>
+            is_deleted = 0
+            <if test="minPrice != null">AND price &gt;= #{minPrice}</if>
+            <if test="maxPrice != null">AND price &lt;= #{maxPrice}</if>
+            <if test="keyword != null and keyword != ''">AND (name LIKE CONCAT('%',#{keyword},'%') OR sub_title LIKE CONCAT('%',#{keyword},'%'))</if>
+            <if test="status != null">AND status = #{status}</if>
+        </where>
+    </select>
+
     <select id="selectById" resultType="com.hyang.ich.content.entity.Product">
         SELECT <include refid="allColumns"/> FROM product WHERE id = #{id} AND is_deleted = 0
     </select>

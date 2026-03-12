@@ -31,7 +31,10 @@ const textareaRef = ref(null)
 const copiedIdx = ref(-1)
 let eventSource = null
 
-onMounted(() => { loadConversations() })
+onMounted(() => {
+  console.log('[AIChat] 页面已加载，发送消息后会显示 SSE 调试信息')
+  loadConversations()
+})
 onUnmounted(() => { closeStream() })
 
 function closeStream() {
@@ -107,13 +110,17 @@ function send() {
   if (!currentSessionId.value) currentSessionId.value = 'session_' + Date.now()
 
   messages.value.push({ role: 'user', content: q })
-  messages.value.push({ role: 'assistant', content: '', agent: '', streaming: true, thinking: true, thinkingContent: '', showThinking: false })
+  messages.value.push({ role: 'assistant', content: '', agent: '', streaming: true, thinking: true, thinkingContent: '', showThinking: false, callChain: [], showCallChain: false })
   isStreaming.value = true
   scrollToBottom()
 
   closeStream()
   eventSource = chatStream(currentSessionId.value, q, userId.value)
+  console.log('[SSE] EventSource created, url:', eventSource.url)
   const idx = messages.value.length - 1
+
+  eventSource.onopen = () => console.log('[SSE] Connection opened')
+  eventSource.onerror = (err) => console.log('[SSE] Connection error', err)
 
   eventSource.addEventListener('thinking', (e) => {
     messages.value[idx].thinkingContent += e.data
@@ -131,6 +138,42 @@ function send() {
     } catch (_) {
       messages.value[idx].agent = e.data
     }
+  })
+  // 调用链事件：代理调度
+  eventSource.addEventListener('agent_dispatch', (e) => {
+    console.log('[SSE] agent_dispatch received:', e.data)
+    try {
+      const d = JSON.parse(e.data)
+      if (!messages.value[idx].callChain) messages.value[idx].callChain = []
+      messages.value[idx].callChain.push({
+        type: 'dispatch',
+        agent: d.agent,
+        agentName: d.agentName,
+        query: d.query,
+        timestamp: d.timestamp,
+        status: 'running',
+        result: ''
+      })
+      console.log('[SSE] callChain updated:', messages.value[idx].callChain)
+    } catch (_) { /* ignore */ }
+    scrollToBottom()
+  })
+  // 调用链事件：代理结果
+  eventSource.addEventListener('agent_result', (e) => {
+    console.log('[SSE] agent_result received:', e.data)
+    try {
+      const d = JSON.parse(e.data)
+      if (messages.value[idx].callChain && messages.value[idx].callChain.length > 0) {
+        const last = messages.value[idx].callChain[messages.value[idx].callChain.length - 1]
+        if (last.agent === d.agent) {
+          last.status = (d.status === 'SUCCESS' || d.status === 'success') ? 'success' : ((d.status === 'EMPTY' || d.status === 'empty') ? 'empty' : 'failed')
+          last.result = d.result || ''
+          last.latencyMs = d.latencyMs
+        }
+      }
+      messages.value[idx].thinking = false
+    } catch (_) { /* ignore */ }
+    scrollToBottom()
   })
   eventSource.addEventListener('done', (e) => {
     messages.value[idx].streaming = false
@@ -202,7 +245,7 @@ function regenerate() {
     messages.value.splice(lastIdx, 1)
   }
   // 添加新的 assistant 占位
-  messages.value.push({ role: 'assistant', content: '', agent: '', streaming: true, thinking: true, thinkingContent: '', showThinking: false })
+  messages.value.push({ role: 'assistant', content: '', agent: '', streaming: true, thinking: true, thinkingContent: '', showThinking: false, callChain: [], showCallChain: false })
   isStreaming.value = true
   scrollToBottom()
 
@@ -226,6 +269,39 @@ function regenerate() {
     } catch (_) {
       messages.value[idx].agent = e.data
     }
+  })
+  // 调用链事件：代理调度
+  eventSource.addEventListener('agent_dispatch', (e) => {
+    try {
+      const d = JSON.parse(e.data)
+      if (!messages.value[idx].callChain) messages.value[idx].callChain = []
+      messages.value[idx].callChain.push({
+        type: 'dispatch',
+        agent: d.agent,
+        agentName: d.agentName,
+        query: d.query,
+        timestamp: d.timestamp,
+        status: 'running',
+        result: ''
+      })
+    } catch (_) { /* ignore */ }
+    scrollToBottom()
+  })
+  // 调用链事件：代理结果（后端发小写 success/empty/failed）
+  eventSource.addEventListener('agent_result', (e) => {
+    try {
+      const d = JSON.parse(e.data)
+      if (messages.value[idx].callChain && messages.value[idx].callChain.length > 0) {
+        const last = messages.value[idx].callChain[messages.value[idx].callChain.length - 1]
+        if (last.agent === d.agent) {
+          last.status = (d.status === 'SUCCESS' || d.status === 'success') ? 'success' : ((d.status === 'EMPTY' || d.status === 'empty') ? 'empty' : 'failed')
+          last.result = d.result || ''
+          last.latencyMs = d.latencyMs
+        }
+      }
+      messages.value[idx].thinking = false
+    } catch (_) { /* ignore */ }
+    scrollToBottom()
   })
   eventSource.addEventListener('done', (e) => {
     messages.value[idx].streaming = false
@@ -350,7 +426,7 @@ function renderMarkdown(text) {
               <span class="thinking-dot"></span>
               <span class="thinking-dot"></span>
               <span class="thinking-dot"></span>
-              <span class="thinking-label">思考中...</span>
+              <span class="thinking-label">{{ (msg.callChain && msg.callChain.length > 0) ? '生成回复中...' : '思考中...' }}</span>
             </div>
             <!-- 思维链折叠面板 -->
             <div v-if="msg.thinkingContent && msg.role==='assistant'" class="om-thinking-panel">
@@ -359,6 +435,32 @@ function renderMarkdown(text) {
                 <span>思考过程</span>
               </button>
               <div v-if="msg.showThinking" class="thinking-content" v-html="renderMarkdown(msg.thinkingContent)"></div>
+            </div>
+            <!-- 调用链折叠面板 -->
+            <div v-if="msg.callChain && msg.callChain.length > 0 && msg.role==='assistant'" class="om-callchain-panel">
+              <button class="callchain-toggle" @click="msg.showCallChain = !msg.showCallChain">
+                <svg width="12" height="12" viewBox="0 0 12 12" :class="{ rotated: msg.showCallChain }"><path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>调用过程 ({{ msg.callChain.length }}个代理)</span>
+              </button>
+              <div v-if="msg.showCallChain" class="callchain-content">
+                <div v-for="(call, ci) in msg.callChain" :key="ci" class="call-item" :class="'status-' + call.status">
+                  <div class="call-header">
+                    <span class="call-icon">
+                      <template v-if="call.status === 'running'">⏳</template>
+                      <template v-else-if="call.status === 'success'">✅</template>
+                      <template v-else-if="call.status === 'empty'">⚪</template>
+                      <template v-else-if="call.status === 'failed'">❌</template>
+                      <template v-else>🔄</template>
+                    </span>
+                    <span class="call-agent">{{ call.agentName || call.agent }}</span>
+                    <span v-if="call.latencyMs" class="call-time">{{ (call.latencyMs / 1000).toFixed(1) }}s</span>
+                  </div>
+                  <div class="call-query">{{ call.query }}</div>
+                  <div v-if="call.result && call.status !== 'running'" class="call-result">
+                    {{ call.result.length > 100 ? call.result.substring(0, 100) + '...' : call.result }}
+                  </div>
+                </div>
+              </div>
             </div>
             <div v-if="msg.role === 'assistant'" class="om-text markdown-body" v-html="renderMarkdown(msg.content)"></div>
             <div v-else class="om-text">{{ msg.content }}</div>
@@ -586,6 +688,47 @@ function renderMarkdown(text) {
 .thinking-content {
   padding: 4px 12px 10px 12px; font-size: 12px; color: #5f6368;
   line-height: 1.5; border-top: 1px solid #e8eaed; max-height: 200px; overflow-y: auto;
+}
+
+/* ===== 调用链面板 ===== */
+.om-callchain-panel {
+  margin-bottom: 8px; border-radius: 8px;
+  border: 1px solid #e8eaed; background: #fafbfc; overflow: hidden;
+}
+.callchain-toggle {
+  display: flex; align-items: center; gap: 4px;
+  border: none; background: transparent; cursor: pointer;
+  font-size: 12px; color: #5f6368; padding: 6px 10px; width: 100%;
+  transition: background 0.2s;
+}
+.callchain-toggle:hover { background: #f0f4f9; }
+.callchain-toggle svg { transition: transform 0.2s; flex-shrink: 0; }
+.callchain-toggle svg.rotated { transform: rotate(90deg); }
+.callchain-content {
+  border-top: 1px solid #e8eaed; max-height: 300px; overflow-y: auto;
+}
+.call-item {
+  padding: 8px 12px; border-bottom: 1px solid #f0f0f0;
+}
+.call-item:last-child { border-bottom: none; }
+.call-item.status-running { background: #fffbe6; }
+.call-item.status-success { background: #f6ffed; }
+.call-item.status-empty { background: #fafafa; }
+.call-item.status-failed { background: #fff1f0; }
+.call-header {
+  display: flex; align-items: center; gap: 6px; font-size: 12px;
+  margin-bottom: 4px;
+}
+.call-icon { font-size: 14px; }
+.call-agent { font-weight: 500; color: #333; }
+.call-time { color: #999; font-size: 11px; margin-left: auto; }
+.call-query {
+  font-size: 11px; color: #666; padding-left: 20px; margin-bottom: 4px;
+}
+.call-result {
+  font-size: 11px; color: #888; padding-left: 20px;
+  background: rgba(0,0,0,0.02); padding: 4px 8px; border-radius: 4px;
+  white-space: pre-wrap; word-break: break-all;
 }
 
 /* ===== 思考中指示器 ===== */

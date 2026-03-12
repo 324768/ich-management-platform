@@ -25,6 +25,7 @@ import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -126,6 +127,15 @@ public class ProductServiceImpl implements ProductService {
         int offset = (pageNum - 1) * pageSize;
         List<Product> products = productMapper.selectByCondition(categoryId, keyword, status, offset, pageSize);
         int total = productMapper.countByCondition(categoryId, keyword, status);
+        List<ProductDTO> dtoList = products.stream().map(this::toProductDTO).collect(Collectors.toList());
+        return new PageResult<>(pageNum, pageSize, (long) total, dtoList);
+    }
+
+    @Override
+    public PageResult<ProductDTO> listProductsByPriceRange(int pageNum, int pageSize, BigDecimal minPrice, BigDecimal maxPrice, String keyword, Integer status) {
+        int offset = (pageNum - 1) * pageSize;
+        List<Product> products = productMapper.selectByPriceRange(minPrice, maxPrice, keyword, status, offset, pageSize);
+        int total = productMapper.countByPriceRange(minPrice, maxPrice, keyword, status);
         List<ProductDTO> dtoList = products.stream().map(this::toProductDTO).collect(Collectors.toList());
         return new PageResult<>(pageNum, pageSize, (long) total, dtoList);
     }

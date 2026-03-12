@@ -45,7 +45,16 @@
     <select id="selectByType" resultMap="BaseResultMap">
         SELECT <include refid="All_Columns"/>
         FROM browse_history
-        WHERE user_id = #{userId} AND target_type = #{targetType}
+        WHERE user_id = #{userId}
+        <choose>
+            <!-- 前端「非遗文化」页用 culture 上报，与 ich_item 视为同一类 -->
+            <when test="targetType == 'ich_item'">
+                AND target_type IN ('ich_item', 'culture')
+            </when>
+            <otherwise>
+                AND target_type = #{targetType}
+            </otherwise>
+        </choose>
         ORDER BY browse_time DESC
         LIMIT #{limit}
     </select>

@@ -33,7 +33,7 @@ public class SseEmitterManager {
         try {
             emitter.send(SseEmitter.event().name("chunk").data(content));
         } catch (IOException e) {
-            log.debug("SSE 发送 chunk 失败: {}", e.getMessage());
+            log.info("SSE 发送 chunk 失败: {}", e.getMessage());
         }
     }
 
@@ -44,7 +44,7 @@ public class SseEmitterManager {
         try {
             emitter.send(SseEmitter.event().name("thinking").data(content));
         } catch (IOException e) {
-            log.debug("SSE 发送 thinking 失败: {}", e.getMessage());
+            log.info("SSE 发送 thinking 失败: {}", e.getMessage());
         }
     }
 
@@ -57,7 +57,7 @@ public class SseEmitterManager {
             event.setAgent(agentCode);
             emitter.send(SseEmitter.event().name("agent").data(objectMapper.writeValueAsString(event)));
         } catch (IOException e) {
-            log.debug("SSE 发送 agent 信息失败: {}", e.getMessage());
+            log.info("SSE 发送 agent 信息失败: {}", e.getMessage());
         }
     }
 
@@ -81,7 +81,7 @@ public class SseEmitterManager {
                     .data(objectMapper.writeValueAsString(event)));
             emitter.complete();
         } catch (IOException e) {
-            log.debug("SSE 发送 done 失败: {}", e.getMessage());
+            log.info("SSE 发送 done 失败: {}", e.getMessage());
         }
     }
 
@@ -95,7 +95,7 @@ public class SseEmitterManager {
             emitter.send(SseEmitter.event().name("error").data(objectMapper.writeValueAsString(event)));
             emitter.complete();
         } catch (IOException e) {
-            log.debug("SSE 发送 error 失败: {}", e.getMessage());
+            log.info("SSE 发送 error 失败: {}", e.getMessage());
         }
     }
 
@@ -113,7 +113,7 @@ public class SseEmitterManager {
             emitter.send(SseEmitter.event().name("l2_task")
                     .data(objectMapper.writeValueAsString(event)));
         } catch (IOException e) {
-            log.debug("SSE 发送 l2_task 失败: {}", e.getMessage());
+            log.info("SSE 发送 l2_task 失败: {}", e.getMessage());
         }
     }
 
@@ -128,7 +128,7 @@ public class SseEmitterManager {
             emitter.send(SseEmitter.event().name("l2_board")
                     .data(objectMapper.writeValueAsString(event)));
         } catch (IOException e) {
-            log.debug("SSE 发送 l2_board 失败: {}", e.getMessage());
+            log.info("SSE 发送 l2_board 失败: {}", e.getMessage());
         }
     }
 
@@ -178,10 +178,11 @@ public class SseEmitterManager {
             event.setAgentName(agentName);
             event.setQuery(query);
             event.setTimestamp(System.currentTimeMillis());
-            emitter.send(SseEmitter.event().name("agent_dispatch")
-                    .data(objectMapper.writeValueAsString(event)));
+            String eventData = objectMapper.writeValueAsString(event);
+            emitter.send(SseEmitter.event().name("agent_dispatch").data(eventData));
+            log.info("SSE 发送 agent_dispatch: agent={}, agentName={}", agentCode, agentName);
         } catch (IOException e) {
-            log.debug("SSE 发送 agent_dispatch 失败: {}", e.getMessage());
+            log.info("SSE 发送 agent_dispatch 失败: {}", e.getMessage());
         }
     }
 
@@ -199,10 +200,11 @@ public class SseEmitterManager {
             event.setStatus(status);
             event.setLatencyMs(latencyMs);
             event.setTimestamp(System.currentTimeMillis());
-            emitter.send(SseEmitter.event().name("agent_result")
-                    .data(objectMapper.writeValueAsString(event)));
+            String eventData = objectMapper.writeValueAsString(event);
+            emitter.send(SseEmitter.event().name("agent_result").data(eventData));
+            log.info("SSE 发送 agent_result: agent={}, status={}, latencyMs={}", agentCode, status, latencyMs);
         } catch (IOException e) {
-            log.debug("SSE 发送 agent_result 失败: {}", e.getMessage());
+            log.info("SSE 发送 agent_result 失败: {}", e.getMessage());
         }
     }
 
