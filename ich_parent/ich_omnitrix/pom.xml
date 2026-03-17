@@ -17,8 +17,7 @@
     <description>智能服务中台：提供非物质文化遗产管理相关AI能力</description>
 
     <properties>
-        <openai.version>0.18.2</openai.version>
-        <okhttp.version>4.12.0</okhttp.version>
+        <langchain4j.version>0.35.0</langchain4j.version>
     </properties>
 
     <dependencies>
@@ -81,24 +80,22 @@
 <!--            <artifactId>nacos-client</artifactId>-->
 <!--        </dependency>-->
 
-        <!-- AI SDK 依赖 -->
-<!--        <dependency>-->
-<!--            <groupId>com.theokanning.openai-gpt3-java</groupId>-->
-<!--            <artifactId>service</artifactId>-->
-<!--            <version>${openai.version}</version>-->
-<!--        </dependency>-->
-
-        <!-- HTTP 客户端 -->
-<!--        <dependency>-->
-<!--            <groupId>com.squareup.okhttp3</groupId>-->
-<!--            <artifactId>okhttp</artifactId>-->
-<!--            <version>${okhttp.version}</version>-->
-<!--        </dependency>-->
-
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.boot</groupId>-->
-<!--            <artifactId>spring-boot-starter-webflux</artifactId>-->
-<!--        </dependency>-->
+        <!-- LangChain4j 核心 -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j</artifactId>
+            <version>${langchain4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-open-ai</artifactId>
+            <version>${langchain4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-spring-boot-starter</artifactId>
+            <version>${langchain4j.version}</version>
+        </dependency>
 
         <!-- JSON 处理 -->
         <dependency>
@@ -214,8 +211,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>17</source>
+                    <target>17</target>
                     <encoding>UTF-8</encoding>
                     <annotationProcessorPaths>
                         <path>

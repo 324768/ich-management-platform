@@ -5,7 +5,7 @@ import com.hyang.ich.omnitrix.service.SkillConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -423,8 +423,7 @@ public class SkillPromptConfig {
     }
 
     /**
-     * 根据关键词匹配Skills（Quick Path模式的Fallback）
-     * 当没有TaskBoard时，从用户问题中匹配需要的Skills
+     * 根据关键词匹配Skills — 从用户问题中匹配需要的Skills
      */
     public List<Skill> getSkillsByKeywords(String userQuery) {
         if (userQuery == null || userQuery.isEmpty()) {

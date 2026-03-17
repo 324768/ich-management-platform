@@ -5,8 +5,8 @@ package com.hyang.ich.omnitrix.infrastructure.prompt;
  * 赋予AI专业的非遗知识储备和解答能力
  * 
  * 使用方式：
- * 1. 在ContentSubAgent.getAgentPrompt()中引入
- * 2. 或在PromptAssembler中动态注入
+ * 1. 在 SkillPromptConfig 中作为默认 Skill Prompt 引入
+ * 2. 通过 MasterBrainFactory.buildSkillsPrompt() 动态注入 MasterBrain
  * 3. 支持根据问题类型选择不同Prompt
  */
 public class HeritageSkillPrompt {

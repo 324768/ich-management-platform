@@ -11,6 +11,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
@@ -61,8 +62,8 @@ public class LlmStreamHandler {
         }
 
         // 统一构建消息列表
-        List<Map<String, String>> messages = LlmMessageBuilder.build(systemPrompt, history, userMessage);
-        int inputCharCount = LlmMessageBuilder.totalCharCount(messages);
+        List<Map<String, String>> messages = buildMessages(systemPrompt, history, userMessage);
+        int inputCharCount = totalCharCount(messages);
 
         StringBuilder fullContent = new StringBuilder();
         StringBuilder thinkingContent = new StringBuilder();
@@ -78,7 +79,7 @@ public class LlmStreamHandler {
 
             String body = objectMapper.writeValueAsString(request);
 
-            URL url = new URL(config.getApiUrl());
+            URL url = URI.create(config.getApiUrl()).toURL();
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json");
@@ -239,5 +240,28 @@ public class LlmStreamHandler {
         buffer.setLength(0);
         buffer.append(text.substring(safeEnd));
         return safe;
+    }
+
+    private List<Map<String, String>> buildMessages(String systemPrompt, List<Map<String, String>> history, String userMessage) {
+        List<Map<String, String>> messages = new java.util.ArrayList<>();
+        if (systemPrompt != null && !systemPrompt.isEmpty()) {
+            messages.add(Map.of("role", "system", "content", systemPrompt));
+        }
+        if (history != null) {
+            messages.addAll(history);
+        }
+        if (userMessage != null && !userMessage.isEmpty()) {
+            messages.add(Map.of("role", "user", "content", userMessage));
+        }
+        return messages;
+    }
+
+    private int totalCharCount(List<Map<String, String>> messages) {
+        int count = 0;
+        for (Map<String, String> msg : messages) {
+            String content = msg.get("content");
+            if (content != null) count += content.length();
+        }
+        return count;
     }
 }

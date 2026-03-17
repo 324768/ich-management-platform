@@ -7,7 +7,7 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -138,7 +138,7 @@ public class LlmClient {
             throw new RuntimeException("AI服务暂时不可用（熔断保护中），请稍后再试");
         }
 
-        List<Map<String, String>> messages = LlmMessageBuilder.build(systemPrompt, history, userMessage);
+        List<Map<String, String>> messages = buildMessages(systemPrompt, history, userMessage);
 
         LlmRequest request = LlmRequest.of(
                 config.getModel(), messages,
@@ -214,6 +214,21 @@ public class LlmClient {
             cacheCleanerExecutor.shutdownNow();
             log.debug("LlmClient 缓存清理线程已关闭");
         }
+    }
+
+    /** 构建消息列表 */
+    private List<Map<String, String>> buildMessages(String systemPrompt, List<Map<String, String>> history, String userMessage) {
+        List<Map<String, String>> messages = new java.util.ArrayList<>();
+        if (systemPrompt != null && !systemPrompt.isEmpty()) {
+            messages.add(Map.of("role", "system", "content", systemPrompt));
+        }
+        if (history != null) {
+            messages.addAll(history);
+        }
+        if (userMessage != null && !userMessage.isEmpty()) {
+            messages.add(Map.of("role", "user", "content", userMessage));
+        }
+        return messages;
     }
 
     private RestTemplate getOrCreateRestTemplate(ModelConfig config) {

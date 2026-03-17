@@ -2,7 +2,7 @@ package com.hyang.ich.omnitrix.config;
 
 import com.hyang.ich.omnitrix.infrastructure.skill.SkillPromptConfig;
 import com.hyang.ich.omnitrix.service.SkillConfigService;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
 /**

@@ -20,13 +20,13 @@
     </modules>
 
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <spring.boot.version>2.7.18</spring.boot.version>
-        <dubbo.version>2.7.8</dubbo.version>
-        <mybatis.spring.boot.version>2.2.2</mybatis.spring.boot.version>
+        <spring.boot.version>3.2.5</spring.boot.version>
+        <dubbo.version>3.2.14</dubbo.version>
+        <mybatis.spring.boot.version>3.0.3</mybatis.spring.boot.version>
         <guava.version>31.1-jre</guava.version>
         <lombok.version>1.18.30</lombok.version>
     </properties>
@@ -77,12 +77,12 @@
             <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-framework</artifactId>
-                <version>2.13.0</version>
+                <version>5.5.0</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-recipes</artifactId>
-                <version>2.13.0</version>
+                <version>5.5.0</version>
             </dependency>
 
             <!-- Manage Guava to allow omitting version in child modules -->
@@ -106,7 +106,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.1</version>
+                    <version>3.11.0</version>
                     <configuration>
                         <annotationProcessorPaths>
                             <path>
