@@ -2,6 +2,7 @@ package com.hyang.ich.omnitrix.orchestrator;
 
 import com.hyang.ich.omnitrix.brain.AiRequestContext;
 import com.hyang.ich.omnitrix.brain.MasterBrainFactory;
+import com.hyang.ich.omnitrix.brain.tools.SubBrainTools;
 import com.hyang.ich.omnitrix.dto.ChatResponse;
 import com.hyang.ich.omnitrix.dto.PendingAction;
 import com.hyang.ich.omnitrix.entity.AiConversation;
@@ -166,6 +167,7 @@ public class OrchestratorService {
 
         String agentCode = "langchain4j_" + role;
         AiRequestContext.set(userId, sessionId);
+        SubBrainTools.resetCallCounter();
         try {
             BrainResult result = invokeBrainSync(role, userId, sessionId, userMessage);
             String aiContent = guardrailsFilter.sanitizeOutput(result.content);
@@ -187,6 +189,7 @@ public class OrchestratorService {
                     llmProperties.getPrimaryConfig().getModel(), agentCode, 0);
             return ChatResponse.of(errMsg.getId(), sessionId, errorContent, agentCode, 0);
         } finally {
+            SubBrainTools.clearCallCounter();
             AiRequestContext.clear();
         }
     }
@@ -223,6 +226,7 @@ public class OrchestratorService {
 
             CompletableFuture.runAsync(() -> {
                 AiRequestContext.set(userId, sessionId);
+                SubBrainTools.resetCallCounter();
                 try {
                     String skills = masterBrainFactory.buildSkillsPrompt();
                     TokenStream tokenStream = buildTokenStream(role, userId, sessionId, userMessage, skills);
@@ -327,6 +331,7 @@ public class OrchestratorService {
                     log.error("流式启动异常: role={}, error={}", role, e.getMessage(), e);
                     sseEmitterManager.sendError(emitter, "AI 服务暂时不可用");
                 } finally {
+                    SubBrainTools.clearCallCounter();
                     AiRequestContext.clear();
                 }
             }, agentExecutor);

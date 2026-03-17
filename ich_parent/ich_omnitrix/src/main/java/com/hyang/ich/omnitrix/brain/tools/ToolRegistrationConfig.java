@@ -26,6 +26,7 @@ public class ToolRegistrationConfig {
     private final BrowseHistoryTools browseHistoryTools;
     private final AdminTools adminTools;
     private final UltraTools ultraTools;
+    private final SubBrainTools subBrainTools;
 
     public ToolRegistrationConfig(ToolRegistry toolRegistry,
                                    ContentTools contentTools,
@@ -35,7 +36,8 @@ public class ToolRegistrationConfig {
                                    RecommendTools recommendTools,
                                    BrowseHistoryTools browseHistoryTools,
                                    AdminTools adminTools,
-                                   UltraTools ultraTools) {
+                                   UltraTools ultraTools,
+                                   SubBrainTools subBrainTools) {
         this.toolRegistry = toolRegistry;
         this.contentTools = contentTools;
         this.commerceTools = commerceTools;
@@ -45,6 +47,7 @@ public class ToolRegistrationConfig {
         this.browseHistoryTools = browseHistoryTools;
         this.adminTools = adminTools;
         this.ultraTools = ultraTools;
+        this.subBrainTools = subBrainTools;
     }
 
     @PostConstruct
@@ -63,12 +66,12 @@ public class ToolRegistrationConfig {
         toolRegistry.register("admin", knowledgeTools);
         toolRegistry.register("admin", adminTools);
 
-        // ===== Ultra 角色工具（继承 admin + ultra 专属） =====
-        toolRegistry.register("ultra", contentTools);
-        toolRegistry.register("ultra", commerceTools);
-        toolRegistry.register("ultra", knowledgeTools);
-        toolRegistry.register("ultra", adminTools);
+        // ===== Ultra 角色工具（SubBrain 编排模式 + ultra 专属） =====
+        // Ultra 不再直接持有 ContentTools/CommerceTools/KnowledgeTools/AdminTools，
+        // 而是通过 SubBrainTools 调用 UserAI / AdminAI 子脑来访问这些能力。
+        // 参考 Kortex AI 的 Master Brain + Sub-Agent 纯编排架构。
         toolRegistry.register("ultra", ultraTools);
+        toolRegistry.register("ultra", subBrainTools);
 
         log.info("ToolRegistry 初始化完成: {}", toolRegistry.getStats());
     }
