@@ -113,6 +113,54 @@ function send() {
     } catch (_) {}
     scrollToBottom()
   })
+  eventSource.addEventListener('tool_call', (e) => {
+    try {
+      const d = JSON.parse(e.data)
+      if (!messages.value[idx].callChain) messages.value[idx].callChain = []
+      messages.value[idx].callChain.push({ type: 'tool', agent: d.tool, agentName: `工具 · ${d.tool}`, query: d.input || '无参数', timestamp: d.timestamp, status: 'running', result: '' })
+    } catch (_) {}
+    scrollToBottom()
+  })
+  eventSource.addEventListener('tool_result', (e) => {
+    try {
+      const d = JSON.parse(e.data)
+      const chain = messages.value[idx].callChain
+      if (chain && chain.length > 0) {
+        const target = [...chain].reverse().find(c => c.type === 'tool' && c.agent === d.tool && c.status === 'running')
+        if (target) {
+          target.result = d.result || ''
+          target.latencyMs = d.latencyMs
+          setTimeout(() => { target.status = (d.status === 'SUCCESS' || d.status === 'success') ? 'success' : ((d.status === 'EMPTY' || d.status === 'empty') ? 'empty' : 'failed') }, 400)
+        }
+      }
+      messages.value[idx].thinking = false
+    } catch (_) {}
+    scrollToBottom()
+  })
+  eventSource.addEventListener('tool_call', (e) => {
+    try {
+      const d = JSON.parse(e.data)
+      if (!messages.value[idx].callChain) messages.value[idx].callChain = []
+      messages.value[idx].callChain.push({ type: 'tool', agent: d.tool, agentName: `工具 · ${d.tool}`, query: d.input || '无参数', timestamp: d.timestamp, status: 'running', result: '' })
+    } catch (_) {}
+    scrollToBottom()
+  })
+  eventSource.addEventListener('tool_result', (e) => {
+    try {
+      const d = JSON.parse(e.data)
+      const chain = messages.value[idx].callChain
+      if (chain && chain.length > 0) {
+        const target = [...chain].reverse().find(c => c.type === 'tool' && c.agent === d.tool && c.status === 'running')
+        if (target) {
+          target.result = d.result || ''
+          target.latencyMs = d.latencyMs
+          setTimeout(() => { target.status = (d.status === 'SUCCESS' || d.status === 'success') ? 'success' : ((d.status === 'EMPTY' || d.status === 'empty') ? 'empty' : 'failed') }, 400)
+        }
+      }
+      messages.value[idx].thinking = false
+    } catch (_) {}
+    scrollToBottom()
+  })
   eventSource.addEventListener('done', (e) => {
     messages.value[idx].streaming = false; messages.value[idx].thinking = false; isStreaming.value = false
     try { const d = JSON.parse(e.data); if (d.messageId) messages.value[idx].messageId = d.messageId; if (d.model) messages.value[idx].model = d.model } catch (_) {}
@@ -124,8 +172,8 @@ function send() {
     }
     closeStream(); loadConversations()
   })
-  eventSource.addEventListener('error_msg', (e) => { messages.value[idx].thinking = false; messages.value[idx].content += '\n\n' + e.data; messages.value[idx].streaming = false; isStreaming.value = false; closeStream() })
-  eventSource.onerror = () => { if (isStreaming.value) { messages.value[idx].streaming = false; messages.value[idx].thinking = false; isStreaming.value = false }; closeStream() }
+  eventSource.addEventListener('error_msg', (e) => { messages.value[idx].thinking = false; messages.value[idx].content += '\n\n' + resolveSseErrorMessage(e.data); messages.value[idx].streaming = false; isStreaming.value = false; closeStream() })
+  eventSource.onerror = () => { if (isStreaming.value) { if (!messages.value[idx].content) { messages.value[idx].content += '\n\nAI 服务暂时不可用' }; messages.value[idx].streaming = false; messages.value[idx].thinking = false; isStreaming.value = false }; closeStream() }
 }
 
 function regenerate() {
@@ -175,14 +223,23 @@ function regenerate() {
     }
     closeStream(); loadConversations()
   })
-  eventSource.addEventListener('error_msg', (e) => { messages.value[idx].thinking = false; messages.value[idx].content += '\n\n' + e.data; messages.value[idx].streaming = false; isStreaming.value = false; closeStream() })
-  eventSource.onerror = () => { if (isStreaming.value) { messages.value[idx].streaming = false; messages.value[idx].thinking = false; isStreaming.value = false }; closeStream() }
+  eventSource.addEventListener('error_msg', (e) => { messages.value[idx].thinking = false; messages.value[idx].content += '\n\n' + resolveSseErrorMessage(e.data); messages.value[idx].streaming = false; isStreaming.value = false; closeStream() })
+  eventSource.onerror = () => { if (isStreaming.value) { if (!messages.value[idx].content) { messages.value[idx].content += '\n\nAI 服务暂时不可用' }; messages.value[idx].streaming = false; messages.value[idx].thinking = false; isStreaming.value = false }; closeStream() }
 }
 
 function handleKeydown(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }
 function autoResize() { nextTick(() => { const el = textareaRef.value; if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 160) + 'px' }) }
 watch(input, autoResize)
 function scrollToBottom() { nextTick(() => { if (chatBodyRef.value) chatBodyRef.value.scrollTop = chatBodyRef.value.scrollHeight }) }
+function resolveSseErrorMessage(data) {
+  if (!data) return 'AI 服务暂时不可用'
+  try {
+    const parsed = JSON.parse(data)
+    return parsed.message || data
+  } catch (_) {
+    return data
+  }
+}
 async function handleFeedback(msg, value) { if (!msg.messageId || msg.feedback) return; try { await sendFeedback(msg.messageId, value); msg.feedback = value } catch (e) {} }
 function toggleThinking(msg) { msg.showThinking = !msg.showThinking }
 function copyResponse(msg, idx) { navigator.clipboard.writeText(msg.content).then(() => { copiedIdx.value = idx; setTimeout(() => { copiedIdx.value = -1 }, 2000) }).catch(() => {}) }
@@ -261,13 +318,17 @@ function renderMarkdown(text) { return text ? marked.parse(text) : '' }
                 <div v-if="msg.callChain && msg.callChain.length > 0 && msg.role==='assistant'" class="om-callchain-panel">
                   <button class="callchain-toggle" @click="msg.showCallChain = !msg.showCallChain">
                     <svg width="12" height="12" viewBox="0 0 12 12" :class="{ rotated: msg.showCallChain }"><path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    <span>调用过程 ({{ msg.callChain.length }}个代理)</span>
+                    <span>调用过程 ({{ msg.callChain.length }}步)</span>
                   </button>
                   <div v-if="msg.showCallChain" class="callchain-content">
-                    <div v-for="(call, ci) in msg.callChain" :key="ci" class="callchain-item" :class="call.status">
-                      <span class="call-status-icon"></span>
-                      <span class="call-agent">{{ call.agentName || call.agent }}</span>
-                      <span v-if="call.latencyMs !== undefined" class="call-time">({{ (call.latencyMs / 1000).toFixed(1) }}s)</span>
+                    <div v-for="(call, ci) in msg.callChain" :key="ci" class="callchain-item">
+                      <span class="call-icon">
+                        <svg v-if="call.status === 'success' || call.status === 'empty'" width="16" height="16" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7.5" fill="none" stroke="#34a853" stroke-width="1.5"/><path d="M5.5 9.5l2 2 5-5" stroke="#34a853" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <svg v-else-if="call.status === 'running'" width="16" height="16" viewBox="0 0 18 18" class="running-spinner"><circle cx="9" cy="9" r="7.5" fill="none" stroke="#5f6368" stroke-width="1.5" stroke-dasharray="12 3" stroke-linecap="round"/></svg>
+                        <svg v-else-if="call.status === 'failed'" width="16" height="16" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7.5" fill="none" stroke="#ea4335" stroke-width="1.5"/><path d="M6.5 6.5l5 5M11.5 6.5l-5 5" stroke="#ea4335" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+                        <svg v-else width="16" height="16" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7.5" fill="none" stroke="#1a73e8" stroke-width="1.5"/></svg>
+                      </span>
+                      <span class="call-text">{{ call.agentName || call.agent }}</span>
                     </div>
                   </div>
                 </div>
@@ -494,26 +555,25 @@ function renderMarkdown(text) { return text ? marked.parse(text) : '' }
 .think-content { padding: 4px 8px 8px; font-size: 11px; color: #5f6368; line-height: 1.5; border-top: 1px solid #e8eaed; max-height: 120px; overflow-y: auto; }
 
 /* 调用过程 */
-.om-callchain-panel { margin-bottom: 6px; border-radius: 6px; border: 1px solid #e8eaed; background: #fafbfc; overflow: hidden; }
-.callchain-toggle { display: flex; align-items: center; gap: 4px; border: none; background: transparent; cursor: pointer; font-size: 11px; color: #5f6368; padding: 4px 8px; width: 100%; }
-.callchain-toggle:hover { background: #f0f4f9; }
+.om-callchain-panel { margin-bottom: 6px; }
+.callchain-toggle { display: flex; align-items: center; gap: 4px; border: none; background: transparent; cursor: pointer; font-size: 11px; color: #5f6368; padding: 3px 0; transition: color 0.2s; }
+.callchain-toggle:hover { color: #1a73e8; }
 .callchain-toggle svg { transition: transform 0.2s; }
 .callchain-toggle svg.rotated { transform: rotate(90deg); }
-.callchain-content { padding: 4px 8px 8px; border-top: 1px solid #e8eaed; font-family: monospace; }
-.callchain-item { display: flex; align-items: center; gap: 8px; font-size: 11px; padding: 4px 0; }
-/* 与右上角三个按钮完全一致：10px 圆 + 2px 白边 + 同色 1px 描边 */
-.call-status-icon {
-  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
-  border: 2px solid #fff; box-sizing: content-box;
+.callchain-content { padding: 3px 0 1px 0; }
+.callchain-item { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+.call-icon {
+  flex-shrink: 0; width: 16px; height: 16px;
   display: flex; align-items: center; justify-content: center;
 }
-.callchain-item.success .call-status-icon,
-.callchain-item.empty .call-status-icon { background: #34a853; box-shadow: 0 0 0 1px #34a853; }
-.callchain-item.failed .call-status-icon { background: #ea4335; box-shadow: 0 0 0 1px #ea4335; }
-.callchain-item.running .call-status-icon { background: #1a73e8; box-shadow: 0 0 0 1px #1a73e8; animation: pulse 1.2s ease-in-out infinite; }
-@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.05); } }
-.call-agent { font-weight: 500; color: #333; }
-.call-time { color: #5f6368; font-size: 10px; }
+.call-icon.running-spinner {
+  animation: spin-clockwise 1.2s linear infinite;
+}
+@keyframes spin-clockwise {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.call-text { font-size: 12px; color: #3c4043; line-height: 1.4; }
 
 .om-caret { display: inline-block; width: 2px; height: 16px; background: #1e1e1e; margin-left: 2px; vertical-align: text-bottom; animation: caret-blink 1s steps(1) infinite; }
 @keyframes caret-blink { 50% { opacity: 0; } }
@@ -594,18 +654,10 @@ function renderMarkdown(text) { return text ? marked.parse(text) : '' }
 .dark-mode .think-content { color: #888; border-top-color: #333; }
 .dark-mode .dot { background: #8ab4f8; }
 .dark-mode .thinking-label { color: #888; }
-.dark-mode .om-callchain-panel { border-color: #333; background: #1E1F20; }
+.dark-mode .om-callchain-panel { }
 .dark-mode .callchain-toggle { color: #aaa; }
-.dark-mode .callchain-toggle:hover { background: #2d2d2d; }
-.dark-mode .callchain-content { border-color: #333; }
-.dark-mode .call-agent { color: #e8eaed; }
-.dark-mode .call-time { color: #888; }
-/* 深色模式下调用过程圆点仍复用与右上角一致的配色 */
-.dark-mode .call-status-icon { border-color: #1E1F20; }
-.dark-mode .callchain-item.success .call-status-icon,
-.dark-mode .callchain-item.empty .call-status-icon { background: #34a853; box-shadow: 0 0 0 1px #34a853; }
-.dark-mode .callchain-item.failed .call-status-icon { background: #ea4335; box-shadow: 0 0 0 1px #ea4335; }
-.dark-mode .callchain-item.running .call-status-icon { background: #1a73e8; box-shadow: 0 0 0 1px #1a73e8; }
+.dark-mode .callchain-toggle:hover { color: #8ab4f8; }
+.dark-mode .call-text { color: #ccc; }
 .dark-mode .act-btn { color: #888; }
 .dark-mode .act-btn:hover { background: #333; color: #8ab4f8; }
 

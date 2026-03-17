@@ -318,10 +318,19 @@ public class MemoryExtractor {
      */
     private List<Map<String, Object>> parseMemories(String content) {
         try {
-            // 尝试从回复中提取 JSON 数组
             Matcher matcher = JSON_ARRAY_PATTERN.matcher(content);
             String jsonStr = matcher.find() ? matcher.group() : content.trim();
-            return objectMapper.readValue(jsonStr, new TypeReference<List<Map<String, Object>>>() {});
+
+            try {
+                return objectMapper.readValue(jsonStr, new TypeReference<List<Map<String, Object>>>() {});
+            } catch (Exception e1) {
+                // LLM 可能返回单个对象而非数组，尝试包装为列表
+                Map<String, Object> single = objectMapper.readValue(jsonStr, new TypeReference<Map<String, Object>>() {});
+                if (single.containsKey("type") && single.containsKey("key")) {
+                    return Collections.singletonList(single);
+                }
+                return new ArrayList<>();
+            }
         } catch (Exception e) {
             log.debug("记忆JSON解析失败: {}", e.getMessage());
             return null;

@@ -7,7 +7,6 @@ import com.hyang.ich.product.ProductService;
 import com.hyang.ich.system.SystemService;
 import com.hyang.ich.user.UserService;
 import org.apache.dubbo.config.annotation.DubboReference;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
@@ -30,34 +29,4 @@ public class DubboConsumerConfig {
 
     @DubboReference(check = false, timeout = 5000, retries = 1)
     private BrowseHistoryService browseHistoryService;
-
-    @Bean
-    public ContentService contentService() {
-        return contentService;
-    }
-
-    @Bean
-    public ProductService productService() {
-        return productService;
-    }
-
-    @Bean
-    public UserService userService() {
-        return userService;
-    }
-
-    @Bean
-    public OrderService orderService() {
-        return orderService;
-    }
-
-    @Bean
-    public SystemService systemService() {
-        return systemService;
-    }
-
-    @Bean
-    public BrowseHistoryService browseHistoryService() {
-        return browseHistoryService;
-    }
 }

@@ -25,7 +25,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <spring.boot.version>3.2.5</spring.boot.version>
-        <dubbo.version>3.2.14</dubbo.version>
+        <dubbo.version>3.2.19</dubbo.version>
         <mybatis.spring.boot.version>3.0.3</mybatis.spring.boot.version>
         <guava.version>31.1-jre</guava.version>
         <lombok.version>1.18.30</lombok.version>
@@ -73,16 +73,21 @@
                 <version>8.0.33</version>
             </dependency>
 
-            <!-- Curator (Dubbo Zookeeper client, 2.x for ZooKeeper 3.4.x) -->
+            <!-- Curator (Dubbo Zookeeper client) -->
             <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-framework</artifactId>
-                <version>5.5.0</version>
+                <version>4.2.0</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-recipes</artifactId>
-                <version>5.5.0</version>
+                <version>4.2.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-x-discovery</artifactId>
+                <version>4.2.0</version>
             </dependency>
 
             <!-- Manage Guava to allow omitting version in child modules -->
@@ -108,6 +113,9 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.11.0</version>
                     <configuration>
+                        <compilerArgs>
+                            <arg>-parameters</arg>
+                        </compilerArgs>
                         <annotationProcessorPaths>
                             <path>
                                 <groupId>org.projectlombok</groupId>

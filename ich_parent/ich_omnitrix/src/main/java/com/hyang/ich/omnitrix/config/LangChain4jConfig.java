@@ -8,6 +8,7 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import java.time.Duration;
 
@@ -22,6 +23,7 @@ public class LangChain4jConfig {
      * 主聊天模型（同步）— 用于 MasterBrain 及 SystemSubAgent 内部 AiService
      */
     @Bean
+    @Primary
     public ChatLanguageModel chatLanguageModel(LlmProperties props) {
         ModelConfig primary = props.getPrimaryConfig();
         return OpenAiChatModel.builder()

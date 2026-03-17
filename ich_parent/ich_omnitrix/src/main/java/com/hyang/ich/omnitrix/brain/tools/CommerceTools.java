@@ -4,6 +4,7 @@ import com.hyang.ich.common.vo.PageResult;
 import com.hyang.ich.omnitrix.agent.AgentUtils;
 import com.hyang.ich.omnitrix.brain.AiRequestContext;
 import com.hyang.ich.omnitrix.dto.PendingAction;
+import com.hyang.ich.omnitrix.infrastructure.sse.SseEmitterManager;
 import com.hyang.ich.omnitrix.orchestrator.ActionExecutor;
 import com.hyang.ich.order.OrderService;
 import com.hyang.ich.order.dto.OrderDTO;
@@ -13,6 +14,7 @@ import com.hyang.ich.product.dto.ProductDTO;
 import dev.langchain4j.agent.tool.Tool;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -29,6 +31,7 @@ public class CommerceTools {
     private final ProductService productService;
     private final OrderService orderService;
     private final ActionExecutor actionExecutor;
+    private final SseEmitterManager sseEmitterManager;
 
     private static final Pattern PRICE_PATTERN = Pattern.compile(
             "(\\d+(?:\\.\\d+)?)\\s*(?:块|元|块钱)|" +
@@ -38,16 +41,37 @@ public class CommerceTools {
             Pattern.CASE_INSENSITIVE);
 
     public CommerceTools(ProductService productService, OrderService orderService,
-                         ActionExecutor actionExecutor) {
+                         ActionExecutor actionExecutor,
+                         SseEmitterManager sseEmitterManager) {
         this.productService = productService;
         this.orderService = orderService;
         this.actionExecutor = actionExecutor;
+        this.sseEmitterManager = sseEmitterManager;
+    }
+
+    private long emitToolCall(String toolName, String input) {
+        SseEmitter emitter = AiRequestContext.getEmitter();
+        if (emitter != null) {
+            sseEmitterManager.sendToolCall(emitter, toolName, input);
+        }
+        return System.currentTimeMillis();
+    }
+
+    private void emitToolResult(String toolName, long startTime, String status, String result) {
+        SseEmitter emitter = AiRequestContext.getEmitter();
+        if (emitter != null) {
+            int latencyMs = (int) (System.currentTimeMillis() - startTime);
+            sseEmitterManager.sendToolResult(emitter, toolName, status, result, latencyMs);
+        }
     }
 
     @Tool("搜索文创商品、查看商品价格库存。参数: 搜索关键词（可包含价格范围如'100元以内'）")
     public String searchProducts(String query) {
+        long startTime = emitToolCall("searchProducts", query);
         if (AiRequestContext.isToolLoopDetected()) {
-            return ToolResultWrapper.error("工具调用过于频繁，请直接回答用户").withErrorHint().toXml();
+            String result = ToolResultWrapper.error("工具调用过于频繁，请直接回答用户").withErrorHint().toXml();
+            emitToolResult("searchProducts", startTime, "failed", result);
+            return result;
         }
         BigDecimal minPrice = null, maxPrice = null;
         String keyword = query;
@@ -73,8 +97,10 @@ public class CommerceTools {
         }
         if (products == null || products.getList() == null || products.getList().isEmpty()) {
             AiRequestContext.recordToolFailure();
-            return ToolResultWrapper.empty("未找到与\"" + query + "\"相关的商品")
+            String result = ToolResultWrapper.empty("未找到与\"" + query + "\"相关的商品")
                     .withSearchEmptyHint("商品").toXml();
+            emitToolResult("searchProducts", startTime, "empty", result);
+            return result;
         }
         StringBuilder sb = new StringBuilder();
         for (ProductDTO p : products.getList()) {
@@ -84,8 +110,10 @@ public class CommerceTools {
             sb.append("\n");
         }
         AiRequestContext.recordToolSuccess();
-        return ToolResultWrapper.success("找到" + products.getList().size() + "个商品", sb.toString())
+        String result = ToolResultWrapper.success("找到" + products.getList().size() + "个商品", sb.toString())
                 .withSearchSuccessHint("商品").toXml();
+        emitToolResult("searchProducts", startTime, "success", result);
+        return result;
     }
 
     @Tool("查询当前用户的订单列表")
@@ -113,14 +141,19 @@ public class CommerceTools {
 
     @Tool("查询当前用户的购物车商品")
     public String queryCart() {
+        long startTime = emitToolCall("queryCart", "");
         if (AiRequestContext.isToolLoopDetected()) {
-            return ToolResultWrapper.error("工具调用过于频繁，请直接回答用户").withErrorHint().toXml();
+            String result = ToolResultWrapper.error("工具调用过于频繁，请直接回答用户").withErrorHint().toXml();
+            emitToolResult("queryCart", startTime, "failed", result);
+            return result;
         }
         Long userId = AiRequestContext.getUserId();
         List<CartDTO> cartItems = productService.listCartItems(userId);
         if (cartItems == null || cartItems.isEmpty()) {
             AiRequestContext.recordToolFailure();
-            return ToolResultWrapper.empty("购物车为空").withSearchEmptyHint("购物车").toXml();
+            String result = ToolResultWrapper.empty("购物车为空").withSearchEmptyHint("购物车").toXml();
+            emitToolResult("queryCart", startTime, "empty", result);
+            return result;
         }
         StringBuilder sb = new StringBuilder();
         for (CartDTO c : cartItems) {
@@ -128,18 +161,23 @@ public class CommerceTools {
             sb.append(", 数量: ").append(c.getQuantity()).append("\n");
         }
         AiRequestContext.recordToolSuccess();
-        return ToolResultWrapper.success("购物车有" + cartItems.size() + "件商品", sb.toString())
+        String result = ToolResultWrapper.success("购物车有" + cartItems.size() + "件商品", sb.toString())
                 .withSearchSuccessHint("购物车").toXml();
+        emitToolResult("queryCart", startTime, "success", result);
+        return result;
     }
 
     @Tool("将商品加入购物车。参数: 商品关键词")
     public String addToCart(String keyword) {
+        long startTime = emitToolCall("addToCart", keyword);
         String searchKw = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : null;
         PageResult<ProductDTO> products = productService.listProducts(1, 5, null, searchKw, 1);
         if (products == null || products.getList() == null || products.getList().isEmpty()) {
             AiRequestContext.recordToolFailure();
-            return ToolResultWrapper.empty("未找到对应商品，请说明商品名称")
+            String result = ToolResultWrapper.empty("未找到对应商品，请说明商品名称")
                     .withSearchEmptyHint("商品").toXml();
+            emitToolResult("addToCart", startTime, "empty", result);
+            return result;
         }
         ProductDTO first = products.getList().get(0);
         StringBuilder data = new StringBuilder();
@@ -154,54 +192,71 @@ public class CommerceTools {
                 .param("quantity", "1");
         actionExecutor.savePendingAction(AiRequestContext.getSessionId(), action);
         AiRequestContext.recordToolSuccess();
-        return ToolResultWrapper.actionProposed("已提交加购「" + first.getName() + "」的确认请求", data.toString())
+        String result = ToolResultWrapper.actionProposed("已提交加购「" + first.getName() + "」的确认请求", data.toString())
                 .withActionProposedHint("加入购物车").toXml();
+        emitToolResult("addToCart", startTime, "success", result);
+        return result;
     }
 
     @Tool("从购物车移除商品。参数: 商品关键词")
     public String removeFromCart(String keyword) {
+        long startTime = emitToolCall("removeFromCart", keyword);
         Long userId = AiRequestContext.getUserId();
         List<CartDTO> cartItems = productService.listCartItems(userId);
         if (cartItems == null || cartItems.isEmpty()) {
             AiRequestContext.recordToolFailure();
-            return ToolResultWrapper.empty("购物车为空，没有可移除的商品").withSearchEmptyHint("购物车").toXml();
+            String result = ToolResultWrapper.empty("购物车为空，没有可移除的商品").withSearchEmptyHint("购物车").toXml();
+            emitToolResult("removeFromCart", startTime, "empty", result);
+            return result;
         }
         CartDTO target = findCartItem(cartItems, keyword);
         if (target == null) {
             AiRequestContext.recordToolFailure();
-            return ToolResultWrapper.empty("未在购物车中找到\"" + keyword + "\"对应的商品")
+            String result = ToolResultWrapper.empty("未在购物车中找到\"" + keyword + "\"对应的商品")
                     .withSearchEmptyHint("购物车商品").toXml();
+            emitToolResult("removeFromCart", startTime, "empty", result);
+            return result;
         }
         PendingAction action = PendingAction.of("remove_from_cart", "从购物车移除「" + target.getProductName() + "」")
                 .param("productId", String.valueOf(target.getProductId()));
         actionExecutor.savePendingAction(AiRequestContext.getSessionId(), action);
         AiRequestContext.recordToolSuccess();
-        return ToolResultWrapper.actionProposed("已提交移除「" + target.getProductName() + "」的确认请求", null)
+        String result = ToolResultWrapper.actionProposed("已提交移除「" + target.getProductName() + "」的确认请求", null)
                 .withActionProposedHint("移除商品").toXml();
+        emitToolResult("removeFromCart", startTime, "success", result);
+        return result;
     }
 
     @Tool("清空购物车")
     public String clearCart() {
+        long startTime = emitToolCall("clearCart", "");
         Long userId = AiRequestContext.getUserId();
         List<CartDTO> cartItems = productService.listCartItems(userId);
         if (cartItems == null || cartItems.isEmpty()) {
             AiRequestContext.recordToolFailure();
-            return ToolResultWrapper.empty("购物车已经是空的").withSearchEmptyHint("购物车").toXml();
+            String result = ToolResultWrapper.empty("购物车已经是空的").withSearchEmptyHint("购物车").toXml();
+            emitToolResult("clearCart", startTime, "empty", result);
+            return result;
         }
         PendingAction action = PendingAction.of("clear_cart", "清空购物车(" + cartItems.size() + "件商品)");
         actionExecutor.savePendingAction(AiRequestContext.getSessionId(), action);
         AiRequestContext.recordToolSuccess();
-        return ToolResultWrapper.actionProposed("已提交清空购物车(" + cartItems.size() + "件)的确认请求", null)
+        String result = ToolResultWrapper.actionProposed("已提交清空购物车(" + cartItems.size() + "件)的确认请求", null)
                 .withActionProposedHint("清空购物车").toXml();
+        emitToolResult("clearCart", startTime, "success", result);
+        return result;
     }
 
     @Tool("修改购物车商品数量。参数格式: '商品关键词|数量'，用竖线分隔")
     public String updateCartQuantity(String input) {
+        long startTime = emitToolCall("updateCartQuantity", input);
         Long userId = AiRequestContext.getUserId();
         List<CartDTO> cartItems = productService.listCartItems(userId);
         if (cartItems == null || cartItems.isEmpty()) {
             AiRequestContext.recordToolFailure();
-            return ToolResultWrapper.empty("购物车为空，无法修改数量").withSearchEmptyHint("购物车").toXml();
+            String result = ToolResultWrapper.empty("购物车为空，无法修改数量").withSearchEmptyHint("购物车").toXml();
+            emitToolResult("updateCartQuantity", startTime, "empty", result);
+            return result;
         }
         String[] parts = input.split("\\|", 2);
         String keyword = parts[0].trim();
@@ -213,8 +268,10 @@ public class CommerceTools {
         if (target == null && cartItems.size() == 1) target = cartItems.get(0);
         if (target == null) {
             AiRequestContext.recordToolFailure();
-            return ToolResultWrapper.empty("未能确定要修改哪个商品的数量，请告知具体商品名称")
+            String result = ToolResultWrapper.empty("未能确定要修改哪个商品的数量，请告知具体商品名称")
                     .withSearchEmptyHint("购物车商品").toXml();
+            emitToolResult("updateCartQuantity", startTime, "empty", result);
+            return result;
         }
         PendingAction action = PendingAction.of("update_cart_quantity",
                 "将「" + target.getProductName() + "」数量改为" + quantity)
@@ -222,8 +279,10 @@ public class CommerceTools {
                 .param("quantity", String.valueOf(quantity));
         actionExecutor.savePendingAction(AiRequestContext.getSessionId(), action);
         AiRequestContext.recordToolSuccess();
-        return ToolResultWrapper.actionProposed("已提交修改「" + target.getProductName() + "」数量为" + quantity + "的确认请求", null)
+        String result = ToolResultWrapper.actionProposed("已提交修改「" + target.getProductName() + "」数量为" + quantity + "的确认请求", null)
                 .withActionProposedHint("修改数量").toXml();
+        emitToolResult("updateCartQuantity", startTime, "success", result);
+        return result;
     }
 
     @Tool("提交购物车商品为订单、下单购买")

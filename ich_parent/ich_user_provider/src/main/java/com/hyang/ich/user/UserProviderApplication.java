@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class UserProviderApplication {
     public static void main(String[] args) {
+        System.setProperty("curator-dont-use-containers", "true");
         SpringApplication.run(UserProviderApplication.class, args);
         System.out.println("====================================");
         System.out.println("  用户服务提供者 (UserProvider) 启动成功!");

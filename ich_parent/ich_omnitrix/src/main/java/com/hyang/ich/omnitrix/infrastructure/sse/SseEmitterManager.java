@@ -61,6 +61,32 @@ public class SseEmitterManager {
         }
     }
 
+    public void sendToolCall(SseEmitter emitter, String toolName, String input) {
+        try {
+            ToolCallEvent event = new ToolCallEvent();
+            event.setTool(toolName);
+            event.setInput(input);
+            event.setTimestamp(System.currentTimeMillis());
+            emitter.send(SseEmitter.event().name("tool_call").data(objectMapper.writeValueAsString(event)));
+        } catch (IOException e) {
+            log.info("SSE 发送 tool_call 失败: {}", e.getMessage());
+        }
+    }
+
+    public void sendToolResult(SseEmitter emitter, String toolName, String status, String result, int latencyMs) {
+        try {
+            ToolResultEvent event = new ToolResultEvent();
+            event.setTool(toolName);
+            event.setStatus(status);
+            event.setResult(result);
+            event.setLatencyMs(latencyMs);
+            event.setTimestamp(System.currentTimeMillis());
+            emitter.send(SseEmitter.event().name("tool_result").data(objectMapper.writeValueAsString(event)));
+        } catch (IOException e) {
+            log.info("SSE 发送 tool_result 失败: {}", e.getMessage());
+        }
+    }
+
     /**
      * 发送完成事件（兼容旧调用）
      */
@@ -90,9 +116,7 @@ public class SseEmitterManager {
      */
     public void sendError(SseEmitter emitter, String message) {
         try {
-            ErrorEvent event = new ErrorEvent();
-            event.setMessage(message);
-            emitter.send(SseEmitter.event().name("error").data(objectMapper.writeValueAsString(event)));
+            emitter.send(SseEmitter.event().name("error_msg").data(message));
             emitter.complete();
         } catch (IOException e) {
             log.info("SSE 发送 error 失败: {}", e.getMessage());
@@ -104,6 +128,22 @@ public class SseEmitterManager {
     @Data
     static class AgentEvent {
         private String agent;
+    }
+
+    @Data
+    static class ToolCallEvent {
+        private String tool;
+        private String input;
+        private long timestamp;
+    }
+
+    @Data
+    static class ToolResultEvent {
+        private String tool;
+        private String status;
+        private String result;
+        private int latencyMs;
+        private long timestamp;
     }
 
     @Data

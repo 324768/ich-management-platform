@@ -18,7 +18,7 @@ export function chatStream(sessionId, message, userId) {
 
 /** 创建对话 */
 export function createConversation(userId, title) {
-  return request.post('/ai/conversation/create', title ? { title } : null, { params: { userId } })
+  return request.post('/ai/conversation/create', title ? { title } : {}, { params: { userId } })
 }
 
 /** 获取对话列表 */

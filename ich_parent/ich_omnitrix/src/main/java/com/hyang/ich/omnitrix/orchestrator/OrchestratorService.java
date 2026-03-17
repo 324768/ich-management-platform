@@ -225,7 +225,7 @@ public class OrchestratorService {
             long startTime = System.currentTimeMillis();
 
             CompletableFuture.runAsync(() -> {
-                AiRequestContext.set(userId, sessionId);
+                AiRequestContext.set(userId, sessionId, emitter);
                 SubBrainTools.resetCallCounter();
                 try {
                     String skills = masterBrainFactory.buildSkillsPrompt();
@@ -288,6 +288,7 @@ public class OrchestratorService {
                             }
                         })
                         .onComplete(response -> {
+                            AiRequestContext.clearCrossThread(userId);
                             circuitBreaker.recordSuccess();
                             // flush partial tag buffer
                             String remaining = partialTag.get();
@@ -321,6 +322,7 @@ public class OrchestratorService {
                             sseEmitterManager.sendDone(emitter, assistantMsg.getId(), latencyMs, usedModel);
                         })
                         .onError(error -> {
+                            AiRequestContext.clearCrossThread(userId);
                             circuitBreaker.recordFailure();
                             log.error("流式聊天异常: role={}, error={}", role, error.getMessage(), error);
                             sseEmitterManager.sendError(emitter, "AI 服务暂时不可用");
@@ -328,11 +330,12 @@ public class OrchestratorService {
                         .start();
 
                 } catch (Exception e) {
+                    AiRequestContext.clearCrossThread(userId);
                     log.error("流式启动异常: role={}, error={}", role, e.getMessage(), e);
                     sseEmitterManager.sendError(emitter, "AI 服务暂时不可用");
                 } finally {
                     SubBrainTools.clearCallCounter();
-                    AiRequestContext.clear();
+                    AiRequestContext.clearLocal();
                 }
             }, agentExecutor);
         } catch (Exception e) {

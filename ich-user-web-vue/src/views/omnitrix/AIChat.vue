@@ -175,6 +175,68 @@ function send() {
     } catch (_) { /* ignore */ }
     scrollToBottom()
   })
+  eventSource.addEventListener('tool_call', (e) => {
+    try {
+      const d = JSON.parse(e.data)
+      if (!messages.value[idx].callChain) messages.value[idx].callChain = []
+      messages.value[idx].callChain.push({
+        type: 'tool',
+        agent: d.tool,
+        agentName: `工具 · ${d.tool}`,
+        query: d.input || '无参数',
+        timestamp: d.timestamp,
+        status: 'running',
+        result: ''
+      })
+    } catch (_) { /* ignore */ }
+    scrollToBottom()
+  })
+  eventSource.addEventListener('tool_result', (e) => {
+    try {
+      const d = JSON.parse(e.data)
+      if (messages.value[idx].callChain && messages.value[idx].callChain.length > 0) {
+        const target = [...messages.value[idx].callChain].reverse().find(call => call.type === 'tool' && call.agent === d.tool && call.status === 'running')
+        if (target) {
+          target.status = (d.status === 'SUCCESS' || d.status === 'success') ? 'success' : ((d.status === 'EMPTY' || d.status === 'empty') ? 'empty' : 'failed')
+          target.result = d.result || ''
+          target.latencyMs = d.latencyMs
+        }
+      }
+      messages.value[idx].thinking = false
+    } catch (_) { /* ignore */ }
+    scrollToBottom()
+  })
+  eventSource.addEventListener('tool_call', (e) => {
+    try {
+      const d = JSON.parse(e.data)
+      if (!messages.value[idx].callChain) messages.value[idx].callChain = []
+      messages.value[idx].callChain.push({
+        type: 'tool',
+        agent: d.tool,
+        agentName: `工具 · ${d.tool}`,
+        query: d.input || '无参数',
+        timestamp: d.timestamp,
+        status: 'running',
+        result: ''
+      })
+    } catch (_) { /* ignore */ }
+    scrollToBottom()
+  })
+  eventSource.addEventListener('tool_result', (e) => {
+    try {
+      const d = JSON.parse(e.data)
+      if (messages.value[idx].callChain && messages.value[idx].callChain.length > 0) {
+        const target = [...messages.value[idx].callChain].reverse().find(call => call.type === 'tool' && call.agent === d.tool && call.status === 'running')
+        if (target) {
+          target.status = (d.status === 'SUCCESS' || d.status === 'success') ? 'success' : ((d.status === 'EMPTY' || d.status === 'empty') ? 'empty' : 'failed')
+          target.result = d.result || ''
+          target.latencyMs = d.latencyMs
+        }
+      }
+      messages.value[idx].thinking = false
+    } catch (_) { /* ignore */ }
+    scrollToBottom()
+  })
   eventSource.addEventListener('done', (e) => {
     messages.value[idx].streaming = false
     messages.value[idx].thinking = false
@@ -194,11 +256,14 @@ function send() {
   })
   eventSource.addEventListener('error_msg', (e) => {
     messages.value[idx].thinking = false
-    messages.value[idx].content += '\n\n' + e.data
+    messages.value[idx].content += '\n\n' + resolveSseErrorMessage(e.data)
     messages.value[idx].streaming = false; isStreaming.value = false; closeStream()
   })
   eventSource.onerror = () => {
     if (isStreaming.value) {
+      if (!messages.value[idx].content) {
+        messages.value[idx].content += '\n\nAI 服务暂时不可用'
+      }
       messages.value[idx].streaming = false
       messages.value[idx].thinking = false
       isStreaming.value = false
@@ -227,6 +292,16 @@ watch(input, autoResize)
 
 function scrollToBottom() {
   nextTick(() => { if (chatBodyRef.value) chatBodyRef.value.scrollTop = chatBodyRef.value.scrollHeight })
+}
+
+function resolveSseErrorMessage(data) {
+  if (!data) return 'AI 服务暂时不可用'
+  try {
+    const parsed = JSON.parse(data)
+    return parsed.message || data
+  } catch (_) {
+    return data
+  }
 }
 
 async function handleFeedback(msg, value) {
@@ -316,11 +391,14 @@ function regenerate() {
   })
   eventSource.addEventListener('error_msg', (e) => {
     messages.value[idx].thinking = false
-    messages.value[idx].content += '\n\n' + e.data
+    messages.value[idx].content += '\n\n' + resolveSseErrorMessage(e.data)
     messages.value[idx].streaming = false; isStreaming.value = false; closeStream()
   })
   eventSource.onerror = () => {
     if (isStreaming.value) {
+      if (!messages.value[idx].content) {
+        messages.value[idx].content += '\n\nAI 服务暂时不可用'
+      }
       messages.value[idx].streaming = false
       messages.value[idx].thinking = false
       isStreaming.value = false
@@ -440,25 +518,17 @@ function renderMarkdown(text) {
             <div v-if="msg.callChain && msg.callChain.length > 0 && msg.role==='assistant'" class="om-callchain-panel">
               <button class="callchain-toggle" @click="msg.showCallChain = !msg.showCallChain">
                 <svg width="12" height="12" viewBox="0 0 12 12" :class="{ rotated: msg.showCallChain }"><path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                <span>调用过程 ({{ msg.callChain.length }}个代理)</span>
+                <span>调用过程 ({{ msg.callChain.length }}步)</span>
               </button>
               <div v-if="msg.showCallChain" class="callchain-content">
-                <div v-for="(call, ci) in msg.callChain" :key="ci" class="call-item" :class="'status-' + call.status">
-                  <div class="call-header">
-                    <span class="call-icon">
-                      <template v-if="call.status === 'running'">⏳</template>
-                      <template v-else-if="call.status === 'success'">✅</template>
-                      <template v-else-if="call.status === 'empty'">⚪</template>
-                      <template v-else-if="call.status === 'failed'">❌</template>
-                      <template v-else>🔄</template>
-                    </span>
-                    <span class="call-agent">{{ call.agentName || call.agent }}</span>
-                    <span v-if="call.latencyMs" class="call-time">{{ (call.latencyMs / 1000).toFixed(1) }}s</span>
-                  </div>
-                  <div class="call-query">{{ call.query }}</div>
-                  <div v-if="call.result && call.status !== 'running'" class="call-result">
-                    {{ call.result.length > 100 ? call.result.substring(0, 100) + '...' : call.result }}
-                  </div>
+                <div v-for="(call, ci) in msg.callChain" :key="ci" class="call-item">
+                  <span class="call-icon">
+                    <svg v-if="call.status === 'success' || call.status === 'empty'" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7.5" fill="none" stroke="#34a853" stroke-width="1.5"/><path d="M5.5 9.5l2 2 5-5" stroke="#34a853" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <svg v-else-if="call.status === 'running'" width="18" height="18" viewBox="0 0 18 18" class="running-spinner"><circle cx="9" cy="9" r="7.5" fill="none" stroke="#5f6368" stroke-width="1.5" stroke-dasharray="12 3" stroke-linecap="round"/></svg>
+                    <svg v-else-if="call.status === 'failed'" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7.5" fill="none" stroke="#ea4335" stroke-width="1.5"/><path d="M6.5 6.5l5 5M11.5 6.5l-5 5" stroke="#ea4335" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+                    <svg v-else width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7.5" fill="none" stroke="#1a73e8" stroke-width="1.5"/></svg>
+                  </span>
+                  <span class="call-text">{{ call.agentName || call.agent }}</span>
                 </div>
               </div>
             </div>
@@ -692,43 +762,37 @@ function renderMarkdown(text) {
 
 /* ===== 调用链面板 ===== */
 .om-callchain-panel {
-  margin-bottom: 8px; border-radius: 8px;
-  border: 1px solid #e8eaed; background: #fafbfc; overflow: hidden;
+  margin-bottom: 8px;
 }
 .callchain-toggle {
   display: flex; align-items: center; gap: 4px;
   border: none; background: transparent; cursor: pointer;
-  font-size: 12px; color: #5f6368; padding: 6px 10px; width: 100%;
-  transition: background 0.2s;
+  font-size: 12px; color: #5f6368; padding: 4px 0;
+  transition: color 0.2s;
 }
-.callchain-toggle:hover { background: #f0f4f9; }
+.callchain-toggle:hover { color: #1a73e8; }
 .callchain-toggle svg { transition: transform 0.2s; flex-shrink: 0; }
 .callchain-toggle svg.rotated { transform: rotate(90deg); }
 .callchain-content {
-  border-top: 1px solid #e8eaed; max-height: 300px; overflow-y: auto;
+  padding: 4px 0 2px 0;
 }
 .call-item {
-  padding: 8px 12px; border-bottom: 1px solid #f0f0f0;
+  display: flex; align-items: center; gap: 8px;
+  padding: 3px 0;
 }
-.call-item:last-child { border-bottom: none; }
-.call-item.status-running { background: #fffbe6; }
-.call-item.status-success { background: #f6ffed; }
-.call-item.status-empty { background: #fafafa; }
-.call-item.status-failed { background: #fff1f0; }
-.call-header {
-  display: flex; align-items: center; gap: 6px; font-size: 12px;
-  margin-bottom: 4px;
+.call-icon {
+  flex-shrink: 0; width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
 }
-.call-icon { font-size: 14px; }
-.call-agent { font-weight: 500; color: #333; }
-.call-time { color: #999; font-size: 11px; margin-left: auto; }
-.call-query {
-  font-size: 11px; color: #666; padding-left: 20px; margin-bottom: 4px;
+.call-icon.running-spinner {
+  animation: spin-clockwise 1.2s linear infinite;
 }
-.call-result {
-  font-size: 11px; color: #888; padding-left: 20px;
-  background: rgba(0,0,0,0.02); padding: 4px 8px; border-radius: 4px;
-  white-space: pre-wrap; word-break: break-all;
+@keyframes spin-clockwise {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.call-text {
+  font-size: 13px; color: #3c4043; line-height: 1.4;
 }
 
 /* ===== 思考中指示器 ===== */

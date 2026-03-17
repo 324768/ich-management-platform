@@ -8,6 +8,7 @@ import org.springframework.context.annotation.ComponentScan;
 @ComponentScan(basePackages = {"com.hyang.ich.adminweb", "com.hyang.ich.common"})
 public class AdminWebApplication {
     public static void main(String[] args) {
+        System.setProperty("curator-dont-use-containers", "true");
         SpringApplication.run(AdminWebApplication.class, args);
         System.out.println("====================================");
         System.out.println("  管理端API (AdminWeb) 启动成功!");

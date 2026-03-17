@@ -15,6 +15,9 @@ dubbo:
   application:
     name: ich-user-web
     qos-enable: false
+    register-mode: interface
+  config-center:
+    address: N/A
   registry:
     address: zookeeper://127.0.0.1:2181
   consumer:

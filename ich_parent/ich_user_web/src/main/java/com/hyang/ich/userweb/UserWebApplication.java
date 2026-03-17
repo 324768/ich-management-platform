@@ -8,6 +8,7 @@ import org.springframework.context.annotation.ComponentScan;
 @ComponentScan(basePackages = {"com.hyang.ich.userweb", "com.hyang.ich.common"})
 public class UserWebApplication {
     public static void main(String[] args) {
+        System.setProperty("curator-dont-use-containers", "true");
         SpringApplication.run(UserWebApplication.class, args);
         System.out.println("====================================");
         System.out.println("  用户端API (UserWeb) 启动成功!");
