@@ -1,0 +1,60 @@
+# 本地开发配置
+
+spring:
+  profiles:
+    active: local
+
+  datasource:
+    username: root
+    password: 123456
+
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password:
+
+dubbo:
+  registry:
+    address: zookeeper://127.0.0.1:2181
+
+omnitrix:
+  llm:
+    # 使用 Claude（启用下方配置）
+    # api-key: sk-your-siliconflow-api-key
+    # api-url: https://api.siliconflow.cn/v1/chat/completions
+    # model: deepseek-ai/DeepSeek-V3
+
+    timeout-seconds: 60
+    max-tokens: 4096
+    temperature: 0.7
+
+    # Claude 配置
+    claude:
+      enabled: true
+      api-url: https://cursor.scihub.edu.kg/api
+      model: claude-sonnet-4-20250514
+      api-key: cr_b45a0dd41457d295bebb3c777cd34af566103252491fdaff7b183ab90f86bc86
+
+  memory:
+    max-messages: 50
+    redis-ttl-hours: 168
+    summary-enabled: true
+
+  search:
+    enabled: false
+    bing-api-key: your-bing-key
+
+  vector:
+    enabled: true
+    qdrant:
+      url: http://localhost:6333
+      api-key:
+      collection-name: ich-knowledge
+
+  evaluation:
+    enabled: true
+
+logging:
+  level:
+    root: info
+    com.hyang.ich.omnitrix: debug

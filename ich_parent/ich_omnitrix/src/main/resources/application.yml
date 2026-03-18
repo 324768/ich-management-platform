@@ -3,14 +3,32 @@ server:
 spring:
   application:
     name: ich-omnitrix
+  # ---- Nacos 配置中心 ----
+  cloud:
+    nacos:
+      discovery:
+        enabled: ${NACOS_ENABLED:false}
+        server-addr: ${NACOS_SERVER:127.0.0.1:8848}
+        namespace: ${NACOS_NAMESPACE:public}
+      config:
+        enabled: ${NACOS_ENABLED:false}
+        server-addr: ${NACOS_SERVER:127.0.0.1:8848}
+        namespace: ${NACOS_NAMESPACE:public}
+        file-extension: yml
+        refresh-enabled: true
+        shared-configs:
+          - data-id: common.yml
+            group: DEFAULT_GROUP
+            refresh: true
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://127.0.0.1:3306/ai_service?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-    username: root
-    password: 123456
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:}
   redis:
-    host: 127.0.0.1
-    port: 6379
+    host: ${REDIS_HOST:127.0.0.1}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
     database: 1
 
 mybatis:
@@ -27,7 +45,7 @@ dubbo:
   config-center:
     address: N/A
   registry:
-    address: zookeeper://127.0.0.1:2181
+    address: ${ZOOKEEPER_ADDRESS:zookeeper://127.0.0.1:2181}
   protocol:
     name: dubbo
     port: 20883
@@ -37,30 +55,53 @@ dubbo:
 omnitrix:
   llm:
     # 向后兼容：顶层配置 = primary 模型
-    api-url: https://api.siliconflow.cn/v1/chat/completions
-    model: deepseek-ai/DeepSeek-V3
-    api-key: sk-utgmwknrslowgyfkjtpqfllzclvzeyaevaayqqubpcmlmglw
+    # 所有密钥必须通过环境变量配置，禁止硬编码！
+    api-url: ${SILICONFLOW_API_URL:https://api.siliconflow.cn/v1/chat/completions}
+    model: ${SILICONFLOW_MODEL:deepseek-ai/DeepSeek-V3}
+    api-key: ${SILICONFLOW_API_KEY:}
     timeout-seconds: 60
-    max-tokens: 2048
+    max-tokens: 4096
     temperature: 0.7
-    # ---- 双模型配置（可选，不配则 auxiliary 自动复用 primary）----
-    # primary:                          # 主聊天模型（高质量）
-    #   api-url: https://api.siliconflow.cn/v1/chat/completions
-    #   model: deepseek-ai/DeepSeek-V3
-    #   api-key: sk-utgmwknrslowgyfkjtpqfllzclvzeyaevaayqqubpcmlmglw
-    #   timeout-seconds: 60
-    #   max-tokens: 4096
-    #   temperature: 0.7
-    # auxiliary:                        # 辅助任务模型（评分/标题/意图/摘要，更快更便宜）
-    #   api-url: https://api.siliconflow.cn/v1/chat/completions
-    #   model: deepseek-ai/DeepSeek-V3
-    #   timeout-seconds: 30
-    #   max-tokens: 512
-    #   temperature: 0.3
+    # ---- 上下文窗口配置 ----
+    # 支持的上下文大小（根据模型实际能力调整）
+    # Claude Sonnet 4: 200K tokens
+    # Claude Opus 4: 200K tokens
+    # DeepSeek V3: 64K tokens
+    # Qwen 2.5: 32K tokens
+    max-context-tokens: 200000
+    # ---- Claude API 配置（多模态 + 大上下文）----
+    claude:
+      enabled: ${CLAUDE_ENABLED:false}
+      api-url: ${CLAUDE_API_URL:https://api.anthropic.com/v1/messages}
+      model: ${CLAUDE_MODEL:claude-sonnet-4-20250514}
+      api-key: ${CLAUDE_API_KEY:}
+      timeout-seconds: 180
+      max-tokens: 8192
+      temperature: 0.7
+      max-output-tokens: 8192
   memory:
-    max-messages: 20
-    redis-ttl-hours: 24
+    max-messages: 50
+    redis-ttl-hours: 168
     summary-enabled: true
+    summary-trigger-ratio: 0.8
+  # ---- 联网搜索配置 ----
+  search:
+    enabled: ${SEARCH_ENABLED:false}
+    provider: ${SEARCH_PROVIDER:bing}
+    bing-api-key: ${BING_API_KEY:}
+    bing-endpoint: https://api.bing.microsoft.com/v7.0/search
+    google-api-key: ${GOOGLE_API_KEY:}
+    google-cse-id: ${GOOGLE_CSE_ID:}
+    max-results: 10
+    timeout-ms: 10000
+  # ---- 向量数据库配置 (Qdrant) ----
+  vector:
+    enabled: ${VECTOR_ENABLED:false}
+    provider: ${VECTOR_PROVIDER:qdrant}
+    url: ${QDRANT_URL:http://localhost:6333}
+    api-key: ${QDRANT_API_KEY:}
+    collection-name: ${QDRANT_COLLECTION:ich-knowledge}
+    dimension: ${VECTOR_DIMENSION:1536}
   evaluation:
     enabled: true
     async: true
@@ -71,4 +112,36 @@ logging:
   level:
     root: info
     com.hyang.ich.omnitrix: debug
+
+# ============================================
+# Spring Boot Actuator + Prometheus 配置
+# ============================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,loggers
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+    info:
+      show-details: always
+  metrics:
+    tags:
+      application: ich-omnitrix
+    export:
+      prometheus:
+        enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+# ============================================
+# 自定义业务指标
+# ============================================
+omnitrix:
+  metrics:
+    enabled: true
 

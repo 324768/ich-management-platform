@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.concurrent.CompletableFuture;
@@ -120,11 +121,50 @@ public class OrchestratorService {
         return doChatSync(userId, sessionId, userMessage, "user");
     }
 
-    public void chatStream(Long userId, String sessionId, String userMessage, SseEmitter emitter) {
+    public void chatStream(Long userId, String sessionId, String userMessage, String modelCode, SseEmitter emitter) {
         String aiCheck = checkUserAiAccess(userId);
         if (aiCheck != null) { sseEmitterManager.sendError(emitter, aiCheck); return; }
         refreshOnlineHeartbeat(userId);
-        doChatStream(userId, sessionId, userMessage, emitter, "user");
+        doChatStream(userId, sessionId, userMessage, modelCode, emitter, "user");
+    }
+
+    /**
+     * 多模态流式聊天（支持图片/文件）
+     */
+    public void chatStreamMultimodal(Long userId, String sessionId, String userMessage, 
+                                     MultipartFile[] files, SseEmitter emitter) {
+        String aiCheck = checkUserAiAccess(userId);
+        if (aiCheck != null) { sseEmitterManager.sendError(emitter, aiCheck); return; }
+        refreshOnlineHeartbeat(userId);
+        
+        // 构建多模态消息
+        String multimodalMessage = buildMultimodalMessage(userMessage, files);
+        
+        doChatStream(userId, sessionId, multimodalMessage, null, emitter, "user");
+    }
+
+    /**
+     * 构建多模态消息内容
+     */
+    private String buildMultimodalMessage(String userMessage, MultipartFile[] files) {
+        StringBuilder sb = new StringBuilder();
+        
+        if (userMessage != null && !userMessage.isEmpty()) {
+            sb.append(userMessage).append("\n\n");
+        }
+        
+        if (files != null && files.length > 0) {
+            sb.append("【用户上传了 ").append(files.length).append(" 个附件】\n");
+            for (int i = 0; i < files.length; i++) {
+                MultipartFile file = files[i];
+                sb.append(i + 1).append(". ").append(file.getOriginalFilename());
+                sb.append(" (").append(file.getContentType()).append(")");
+                sb.append("，大小: ").append(file.getSize()).append(" bytes\n");
+            }
+            sb.append("\n请分析这些附件的内容并回答用户的问题。");
+        }
+        
+        return sb.toString();
     }
 
     public ChatResponse adminChat(Long adminId, String sessionId, String userMessage) {
@@ -132,7 +172,7 @@ public class OrchestratorService {
     }
 
     public void adminChatStream(Long adminId, String sessionId, String userMessage, SseEmitter emitter) {
-        doChatStream(adminId, sessionId, userMessage, emitter, "admin");
+        doChatStream(adminId, sessionId, userMessage, null, emitter, "admin");
     }
 
     public ChatResponse ultraChat(Long adminId, String sessionId, String userMessage) {
@@ -140,7 +180,7 @@ public class OrchestratorService {
     }
 
     public void ultraChatStream(Long adminId, String sessionId, String userMessage, SseEmitter emitter) {
-        doChatStream(adminId, sessionId, userMessage, emitter, "ultra");
+        doChatStream(adminId, sessionId, userMessage, null, emitter, "ultra");
     }
 
     // ========== 核心同步流程 ==========
@@ -197,7 +237,7 @@ public class OrchestratorService {
     // ========== 核心流式流程（真流式 TokenStream） ==========
 
     private void doChatStream(Long userId, String sessionId, String userMessage,
-                               SseEmitter emitter, String role) {
+                               String modelCode, SseEmitter emitter, String role) {
         boolean isUltra = "ultra".equals(role);
 
         if (!isUltra) {
@@ -228,8 +268,8 @@ public class OrchestratorService {
                 AiRequestContext.set(userId, sessionId, emitter);
                 SubBrainTools.resetCallCounter();
                 try {
-                    String skills = masterBrainFactory.buildSkillsPrompt();
-                    TokenStream tokenStream = buildTokenStream(role, userId, sessionId, userMessage, skills);
+                    String skills = masterBrainFactory.buildDynamicSkillsPrompt(userMessage);
+                    TokenStream tokenStream = buildTokenStream(role, modelCode, userId, sessionId, userMessage, skills);
 
                     StringBuilder fullContent = new StringBuilder();
                     StringBuilder thinkBuffer = new StringBuilder();
@@ -351,7 +391,7 @@ public class OrchestratorService {
      * 主模型失败时自动降级到辅助模型。
      */
     private BrainResult invokeBrainSync(String role, Long userId, String sessionId, String userMessage) {
-        String skills = masterBrainFactory.buildSkillsPrompt();
+        String skills = masterBrainFactory.buildDynamicSkillsPrompt(userMessage);
         String primaryModel = llmProperties.getPrimaryConfig().getModel();
 
         try {
@@ -423,21 +463,25 @@ public class OrchestratorService {
         }
     }
 
-    /** 构建流式 TokenStream（主模型） */
-    private TokenStream buildTokenStream(String role, Long userId, String sessionId,
+    /**
+     * 构建流式 TokenStream（主模型）
+     * @param role 角色类型 (user/admin/ultra)
+     * @param modelCode 模型代码 (如 claude-sonnet-4-20250514，为空时使用默认模型)
+     */
+    private TokenStream buildTokenStream(String role, String modelCode, Long userId, String sessionId,
                                           String userMessage, String skills) {
         switch (role) {
             case "user": {
-                var brain = masterBrainFactory.buildUserBrainStreaming(userId, sessionId);
+                var brain = masterBrainFactory.buildUserBrainStreaming(userId, sessionId, modelCode);
                 String profile = masterBrainFactory.buildUserProfile(userId);
                 return brain.chatStream(userMessage, skills, profile);
             }
             case "admin": {
-                var brain = masterBrainFactory.buildAdminBrainStreaming(sessionId);
+                var brain = masterBrainFactory.buildAdminBrainStreaming(sessionId, modelCode);
                 return brain.chatStream(userMessage, skills);
             }
             case "ultra": {
-                var brain = masterBrainFactory.buildUltraBrainStreaming(sessionId);
+                var brain = masterBrainFactory.buildUltraBrainStreaming(sessionId, modelCode);
                 return brain.chatStream(userMessage, skills);
             }
             default:

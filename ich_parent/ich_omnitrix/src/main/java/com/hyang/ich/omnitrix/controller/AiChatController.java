@@ -12,6 +12,7 @@ import com.hyang.ich.omnitrix.infrastructure.sse.SseEmitterManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.*;
@@ -88,18 +89,37 @@ public class AiChatController {
     }
 
     /**
-     * 流式聊天 (SSE)
+     * 流式聊天 (SSE) - 支持模型切换
      */
     @GetMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter chatStream(@RequestParam String sessionId,
                                   @RequestParam String message,
                                   @RequestParam(defaultValue = "1") Long userId,
-                                  @RequestParam(required = false) String userToken) {
+                                  @RequestParam(required = false) String userToken,
+                                  @RequestParam(required = false) String modelCode) {
         Long actualUserId = getUserId(userId, userToken);
         SseEmitter emitter = sseEmitterManager.create();
 
-        // 使用线程池异步执行流式聊天
-        aiAsyncExecutor.execute(() -> orchestratorService.chatStream(actualUserId, sessionId, message, emitter));
+        // 使用线程池异步执行流式聊天（带模型参数）
+        aiAsyncExecutor.execute(() -> orchestratorService.chatStream(actualUserId, sessionId, message, modelCode, emitter));
+
+        return emitter;
+    }
+
+    /**
+     * 多模态流式聊天 (SSE) - 支持图片/文件上传
+     */
+    @PostMapping(value = "/chat/stream/multimodal", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter chatStreamMultimodal(@RequestParam String sessionId,
+                                             @RequestParam String message,
+                                             @RequestParam(defaultValue = "1") Long userId,
+                                             @RequestParam(required = false) String userToken,
+                                             @RequestParam(required = false) MultipartFile[] files) {
+        Long actualUserId = getUserId(userId, userToken);
+        SseEmitter emitter = sseEmitterManager.create();
+
+        // 使用线程池异步执行多模态流式聊天
+        aiAsyncExecutor.execute(() -> orchestratorService.chatStreamMultimodal(actualUserId, sessionId, message, files, emitter));
 
         return emitter;
     }
@@ -210,11 +230,13 @@ public class AiChatController {
 
     /**
      * 重新生成：删除最后一条 AI 回复，用最后一条用户消息重新生成（流式）
+     * 支持模型切换
      */
     @GetMapping(value = "/chat/regenerate", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter regenerate(@RequestParam String sessionId,
                                   @RequestParam(defaultValue = "1") Long userId,
-                                  @RequestParam(required = false) String userToken) {
+                                  @RequestParam(required = false) String userToken,
+                                  @RequestParam(required = false) String modelCode) {
         Long actualUserId = getUserId(userId, userToken);
         SseEmitter emitter = sseEmitterManager.create();
 
@@ -236,8 +258,8 @@ public class AiChatController {
                     conversationService.deleteMessage(lastAssistantMsg.getId());
                 }
 
-                // 用最后一条用户消息重新走流式生成
-                orchestratorService.chatStream(actualUserId, sessionId, lastUserMsg.getContent(), emitter);
+                // 用最后一条用户消息重新走流式生成（带模型参数）
+                orchestratorService.chatStream(actualUserId, sessionId, lastUserMsg.getContent(), modelCode, emitter);
             } catch (Exception e) {
                 sseEmitterManager.sendError(emitter, "重新生成失败");
             }

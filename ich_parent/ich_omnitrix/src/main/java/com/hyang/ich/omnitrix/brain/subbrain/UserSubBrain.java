@@ -69,7 +69,7 @@ public class UserSubBrain implements SubBrain {
 
             // 构建 UserMasterBrain（同步模式，使用独立 session 避免记忆污染）
             UserMasterBrain brain = masterBrainFactory.buildUserBrain(effectiveUserId, subSessionId);
-            String skills = masterBrainFactory.buildSkillsPrompt();
+            String skills = masterBrainFactory.buildDynamicSkillsPrompt(userQuery);
             String profile = masterBrainFactory.buildUserProfile(effectiveUserId);
 
             // 执行用户端 AI 完整推理（内部会自动多轮 Function Calling）

@@ -125,6 +125,15 @@ public class TelemetryTracer {
                 durationMs, "success", meta);
     }
 
+    /** 便捷方法：记录 SubBrain 执行 Span */
+    public void recordSubBrainSpan(String traceId, String parentSpanId,
+                                   String subBrainCode, String subBrainName,
+                                   int durationMs, boolean success) {
+        String spanId = generateSpanId();
+        recordSpan(traceId, spanId, parentSpanId, "SUB_BRAIN", subBrainCode + ":" + subBrainName,
+                durationMs, success ? "success" : "error", null);
+    }
+
     /** 便捷方法：记录黑板执行 Span */
     public void recordBlackboardSpan(String traceId, String parentSpanId,
                                      String boardType, int taskCount, int durationMs) {

@@ -1,0 +1,94 @@
+# Nacos 配置中心 - ich-omnitrix 配置文件示例
+# 在 Nacos 控制台创建以下配置文件
+
+# ============================================
+# Data ID: ich-omnitrix-dev.yml
+# Group: DEFAULT_GROUP
+# ============================================
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/ai_service?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:}
+  redis:
+    host: ${REDIS_HOST:127.0.0.1}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    database: 1
+
+dubbo:
+  registry:
+    address: ${ZOOKEEPER_ADDRESS:zookeeper://127.0.0.1:2181}
+
+omnitrix:
+  llm:
+    api-url: ${SILICONFLOW_API_URL:https://api.siliconflow.cn/v1/chat/completions}
+    model: ${SILICONFLOW_MODEL:deepseek-ai/DeepSeek-V3}
+    api-key: ${SILICONFLOW_API_KEY:}
+    timeout-seconds: 60
+    max-tokens: 4096
+    temperature: 0.7
+    max-context-tokens: 200000
+    claude:
+      enabled: ${CLAUDE_ENABLED:false}
+      api-url: ${CLAUDE_API_URL:https://api.anthropic.com/v1/messages}
+      model: ${CLAUDE_MODEL:claude-sonnet-4-20250514}
+      api-key: ${CLAUDE_API_KEY:}
+  memory:
+    max-messages: 50
+    redis-ttl-hours: 168
+    summary-enabled: true
+    summary-trigger-ratio: 0.8
+  search:
+    enabled: ${SEARCH_ENABLED:false}
+    provider: ${SEARCH_PROVIDER:bing}
+    bing-api-key: ${BING_API_KEY:}
+    google-api-key: ${GOOGLE_API_KEY:}
+    google-cse-id: ${GOOGLE_CSE_ID:}
+    max-results: 10
+  vector:
+    enabled: ${VECTOR_ENABLED:false}
+    provider: ${VECTOR_PROVIDER:qdrant}
+    url: ${QDRANT_URL:http://localhost:6333}
+    api-key: ${QDRANT_API_KEY:}
+    collection-name: ${QDRANT_COLLECTION:ich-knowledge}
+    dimension: ${VECTOR_DIMENSION:1536}
+  evaluation:
+    enabled: true
+    async: true
+  prompts:
+    master-brain-system: ""
+
+logging:
+  level:
+    root: info
+    com.hyang.ich.omnitrix: debug
+
+# ============================================
+# Data ID: common.yml (共享配置)
+# Group: DEFAULT_GROUP
+# ============================================
+
+# 服务配置
+server:
+  port: 8083
+
+# MyBatis配置
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.hyang.ich.omnitrix.entity
+  configuration:
+    map-underscore-to-camel-case: true
+
+# Dubbo配置
+dubbo:
+  application:
+    name: ich-omnitrix
+    register-mode: interface
+  protocol:
+    name: dubbo
+    port: 20883
+  scan:
+    base-packages: com.hyang.ich.omnitrix

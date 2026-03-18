@@ -67,7 +67,7 @@ public class AdminSubBrain implements SubBrain {
 
             // 构建 AdminMasterBrain（同步模式，独立 session）
             AdminMasterBrain brain = masterBrainFactory.buildAdminBrain(subSessionId);
-            String skills = masterBrainFactory.buildSkillsPrompt();
+            String skills = masterBrainFactory.buildDynamicSkillsPrompt(userQuery);
 
             // 执行管理端 AI 完整推理
             Result<String> result = brain.chat(userQuery, skills);

@@ -15,12 +15,17 @@ import java.time.Duration;
 /**
  * LangChain4j 配置 — 基于现有 LlmProperties 构建 ChatLanguageModel。
  * SiliconFlow 兼容 OpenAI API 格式，使用 langchain4j-open-ai 模块即可。
+ * 
+ * 支持多种模型：
+ * - SiliconFlow (默认): deepseek-ai/DeepSeek-V3 等
+ * - Claude: claude-sonnet-4, claude-opus-4-6 等
  */
 @Configuration
 public class LangChain4jConfig {
 
     /**
      * 主聊天模型（同步）— 用于 MasterBrain 及 SystemSubAgent 内部 AiService
+     * 默认使用 SiliconFlow
      */
     @Bean
     @Primary
@@ -40,6 +45,7 @@ public class LangChain4jConfig {
 
     /**
      * 主聊天模型（流式）— 用于 OrchestratorService SSE 推送
+     * 支持动态参数调整（根据modelCode）
      */
     @Bean
     public StreamingChatLanguageModel streamingChatLanguageModel(LlmProperties props) {
@@ -53,6 +59,28 @@ public class LangChain4jConfig {
                 .timeout(Duration.ofSeconds(primary.getTimeoutSeconds()))
                 .logRequests(true)
                 .logResponses(true)
+                .build();
+    }
+
+    /**
+     * 创建指定模型的流式ChatLanguageModel（动态创建，支持大上下文）
+     */
+    public StreamingChatLanguageModel createStreamingModel(String modelCode, LlmProperties props) {
+        // 如果是Claude模型，返回默认的流式模型（实际使用ClaudeStreamingModel）
+        if (modelCode != null && modelCode.startsWith("claude-")) {
+            // Claude由专门的ClaudeStreamingModel处理
+            return streamingChatLanguageModel(props);
+        }
+        
+        // SiliconFlow模型
+        ModelConfig primary = props.getPrimaryConfig();
+        return OpenAiStreamingChatModel.builder()
+                .baseUrl(toBaseUrl(primary.getApiUrl()))
+                .apiKey(primary.getApiKey())
+                .modelName(primary.getModel())
+                .maxTokens(primary.getMaxTokens())
+                .temperature(primary.getTemperature())
+                .timeout(Duration.ofSeconds(primary.getTimeoutSeconds()))
                 .build();
     }
 

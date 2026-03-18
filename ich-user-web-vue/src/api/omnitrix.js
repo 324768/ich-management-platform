@@ -7,11 +7,14 @@ export function chat(sessionId, message, userId) {
 }
 
 /** SSE 流式聊天 — 返回 EventSource */
-export function chatStream(sessionId, message, userId) {
+export function chatStream(sessionId, message, userId, modelCode = null) {
   const token = getToken()
   const params = new URLSearchParams({ sessionId, message, userId: userId || '1' })
   if (token) {
     params.append('userToken', token)
+  }
+  if (modelCode) {
+    params.append('modelCode', modelCode)
   }
   return new EventSource(`/api/ai/chat/stream?${params.toString()}`)
 }
@@ -42,11 +45,14 @@ export function sendFeedback(messageId, feedback) {
 }
 
 /** 重新生成（流式） — 返回 EventSource */
-export function regenerateStream(sessionId, userId) {
+export function regenerateStream(sessionId, userId, modelCode = null) {
   const token = getToken()
   const params = new URLSearchParams({ sessionId, userId: userId || '1' })
   if (token) {
     params.append('userToken', token)
+  }
+  if (modelCode) {
+    params.append('modelCode', modelCode)
   }
   return new EventSource(`/api/ai/chat/regenerate?${params.toString()}`)
 }
@@ -54,4 +60,26 @@ export function regenerateStream(sessionId, userId) {
 /** 导出对话为 Markdown */
 export function exportConversation(id, userId) {
   return request.get(`/ai/conversation/${id}/export`, { params: { userId } })
+}
+
+/** 多模态聊天（支持图片/文件上传）— 返回 EventSource */
+export function chatWithFiles(sessionId, message, userId, attachments, modelCode = null) {
+  const token = getToken()
+  
+  // 构建带附件的消息
+  let fullMessage = message || ''
+  if (attachments && attachments.length > 0) {
+    fullMessage = `[附件: ${attachments.map(a => a.name).join(', ')}] ` + fullMessage
+  }
+  
+  // 构建URL参数
+  let url = `/api/ai/chat/stream?sessionId=${encodeURIComponent(sessionId)}&message=${encodeURIComponent(fullMessage)}&userId=${userId || '1'}`
+  if (token) {
+    url += `&userToken=${encodeURIComponent(token)}`
+  }
+  if (modelCode) {
+    url += `&modelCode=${encodeURIComponent(modelCode)}`
+  }
+  
+  return new EventSource(url)
 }

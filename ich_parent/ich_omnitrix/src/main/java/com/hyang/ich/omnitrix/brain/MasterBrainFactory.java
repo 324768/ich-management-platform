@@ -1,13 +1,16 @@
 package com.hyang.ich.omnitrix.brain;
 
 import com.hyang.ich.omnitrix.agent.tool.ToolRegistry;
+import com.hyang.ich.omnitrix.infrastructure.llm.AnthropicChatModelConfig;
 import com.hyang.ich.omnitrix.infrastructure.memory.ChatMemoryManager;
 import com.hyang.ich.omnitrix.infrastructure.skill.Skill;
 import com.hyang.ich.omnitrix.infrastructure.skill.SkillPromptConfig;
+import com.hyang.ich.omnitrix.infrastructure.skill.SkillSelector;
 import com.hyang.ich.omnitrix.service.UserMemoryService;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
+import dev.langchain4j.model.anthropic.AnthropicStreamingChatModel;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.service.AiServices;
@@ -26,6 +29,8 @@ import java.util.stream.Collectors;
  * 2. 从 SkillPromptConfig 获取启用的 Skill Prompt
  * 3. 构建 ChatMemory（对话窗口）
  * 4. 组装 AiService 实例
+ * 
+ * 支持模型切换：通过 modelCode 参数指定使用的模型
  */
 @Slf4j
 @Component
@@ -34,25 +39,52 @@ public class MasterBrainFactory {
     private final ChatLanguageModel chatLanguageModel;
     private final ChatLanguageModel auxiliaryChatModel;
     private final StreamingChatLanguageModel streamingChatLanguageModel;
+    private final AnthropicStreamingChatModel anthropicStreamingChatModel;
     private final ToolRegistry toolRegistry;
     private final SkillPromptConfig skillPromptConfig;
+    private final SkillSelector skillSelector;
     private final UserMemoryService userMemoryService;
     private final ChatMemoryManager chatMemoryManager;
 
     public MasterBrainFactory(ChatLanguageModel chatLanguageModel,
                               @org.springframework.beans.factory.annotation.Qualifier("auxiliaryChatModel") ChatLanguageModel auxiliaryChatModel,
                               StreamingChatLanguageModel streamingChatLanguageModel,
+                              AnthropicStreamingChatModel anthropicStreamingChatModel,
                               ToolRegistry toolRegistry,
                               SkillPromptConfig skillPromptConfig,
+                              SkillSelector skillSelector,
                               UserMemoryService userMemoryService,
                               ChatMemoryManager chatMemoryManager) {
         this.chatLanguageModel = chatLanguageModel;
         this.auxiliaryChatModel = auxiliaryChatModel;
         this.streamingChatLanguageModel = streamingChatLanguageModel;
+        this.anthropicStreamingChatModel = anthropicStreamingChatModel;
         this.toolRegistry = toolRegistry;
         this.skillPromptConfig = skillPromptConfig;
+        this.skillSelector = skillSelector;
         this.userMemoryService = userMemoryService;
         this.chatMemoryManager = chatMemoryManager;
+    }
+
+    /**
+     * 判断是否为 Claude 模型
+     */
+    private boolean isClaudeModel(String modelCode) {
+        if (modelCode == null || modelCode.isEmpty()) return false;
+        return modelCode.startsWith("claude-");
+    }
+
+    /**
+     * 获取流式模型（根据 modelCode 判断使用 Claude 还是 SiliconFlow）
+     * 使用 LangChain4j 原生 Anthropic 支持
+     */
+    private StreamingChatLanguageModel getStreamingModel(String modelCode) {
+        if (isClaudeModel(modelCode) && anthropicStreamingChatModel != null) {
+            log.debug("使用 LangChain4j Anthropic 流式模型: {}", modelCode);
+            return anthropicStreamingChatModel;
+        }
+        log.debug("使用默认 SiliconFlow 流式模型");
+        return streamingChatLanguageModel;
     }
 
     /**
@@ -73,17 +105,26 @@ public class MasterBrainFactory {
     }
 
     /**
-     * 构建用户侧 MasterBrain（流式模式）
+     * 构建用户侧 MasterBrain（流式模式）- 支持模型切换
      */
     public UserMasterBrain buildUserBrainStreaming(Long userId, String sessionId) {
+        return buildUserBrainStreaming(userId, sessionId, null);
+    }
+
+    /**
+     * 构建用户侧 MasterBrain（流式模式）- 指定模型
+     */
+    public UserMasterBrain buildUserBrainStreaming(Long userId, String sessionId, String modelCode) {
         List<Object> tools = toolRegistry.getToolsForRole("user");
         ChatMemory memory = buildMemory(sessionId);
 
-        log.debug("构建 UserMasterBrain(streaming): userId={}, tools={}, sessionId={}",
-                userId, tools.size(), sessionId);
+        log.debug("构建 UserMasterBrain(streaming): userId={}, tools={}, sessionId={}, model={}",
+                userId, tools.size(), sessionId, modelCode);
+
+        StreamingChatLanguageModel streamingModel = getStreamingModel(modelCode);
 
         return AiServices.builder(UserMasterBrain.class)
-                .streamingChatLanguageModel(streamingChatLanguageModel)
+                .streamingChatLanguageModel(streamingModel)
                 .chatMemory(memory)
                 .tools(tools)
                 .build();
@@ -106,14 +147,23 @@ public class MasterBrainFactory {
     }
 
     /**
-     * 构建管理员侧 MasterBrain（流式模式）
+     * 构建管理员侧 MasterBrain（流式模式）- 指定模型
      */
     public AdminMasterBrain buildAdminBrainStreaming(String sessionId) {
+        return buildAdminBrainStreaming(sessionId, null);
+    }
+
+    /**
+     * 构建管理员侧 MasterBrain（流式模式）- 指定模型
+     */
+    public AdminMasterBrain buildAdminBrainStreaming(String sessionId, String modelCode) {
         List<Object> tools = toolRegistry.getToolsForRole("admin");
         ChatMemory memory = buildMemory(sessionId);
 
+        StreamingChatLanguageModel streamingModel = getStreamingModel(modelCode);
+
         return AiServices.builder(AdminMasterBrain.class)
-                .streamingChatLanguageModel(streamingChatLanguageModel)
+                .streamingChatLanguageModel(streamingModel)
                 .chatMemory(memory)
                 .tools(tools)
                 .build();
@@ -136,14 +186,47 @@ public class MasterBrainFactory {
     }
 
     /**
+     * 构建 Ultra MasterBrain（不含 SubBrainTools，用于 UltraSubBrain 内部，避免循环调用）
+     * 仅包含 UltraTools，直接执行 Ultra 专属操作
+     */
+    public UltraMasterBrain buildUltraBrainForSubBrain(String sessionId) {
+        // 只获取 UltraTools，不包含 SubBrainTools（避免 UltraSubBrain → UltraMasterBrain → SubBrainTools 循环）
+        List<Object> ultraOnlyTools = toolRegistry.getToolsForRole("ultra").stream()
+                .filter(tool -> {
+                    // 排除 SubBrainTools
+                    return !tool.getClass().getSimpleName().equals("SubBrainTools");
+                })
+                .collect(Collectors.toList());
+
+        ChatMemory memory = buildMemory(sessionId);
+
+        log.debug("构建 UltraMasterBrain(SubBrain用): tools={}, sessionId={}", ultraOnlyTools.size(), sessionId);
+
+        return AiServices.builder(UltraMasterBrain.class)
+                .chatLanguageModel(chatLanguageModel)
+                .chatMemory(memory)
+                .tools(ultraOnlyTools)
+                .build();
+    }
+
+    /**
      * 构建 Ultra MasterBrain（流式模式）
      */
     public UltraMasterBrain buildUltraBrainStreaming(String sessionId) {
+        return buildUltraBrainStreaming(sessionId, null);
+    }
+
+    /**
+     * 构建 Ultra MasterBrain（流式模式）- 指定模型
+     */
+    public UltraMasterBrain buildUltraBrainStreaming(String sessionId, String modelCode) {
         List<Object> tools = toolRegistry.getToolsForRole("ultra");
         ChatMemory memory = buildMemory(sessionId);
 
+        StreamingChatLanguageModel streamingModel = getStreamingModel(modelCode);
+
         return AiServices.builder(UltraMasterBrain.class)
-                .streamingChatLanguageModel(streamingChatLanguageModel)
+                .streamingChatLanguageModel(streamingModel)
                 .chatMemory(memory)
                 .tools(tools)
                 .build();
@@ -151,7 +234,9 @@ public class MasterBrainFactory {
 
     /**
      * 构建 Skill Prompt 文本 — 将所有启用的 Skill 的 systemPrompt 拼接注入 MasterBrain
+     * @deprecated 使用 buildDynamicSkillsPrompt() 替代，实现动态按需选择
      */
+    @Deprecated
     public String buildSkillsPrompt() {
         List<Skill> enabledSkills = skillPromptConfig.getAllEnabledSkills();
         if (enabledSkills.isEmpty()) {
@@ -160,6 +245,20 @@ public class MasterBrainFactory {
         return enabledSkills.stream()
                 .map(Skill::getSystemPrompt)
                 .collect(Collectors.joining("\n\n"));
+    }
+
+    /**
+     * 构建动态 Skill Prompt — 根据用户消息按需选择Skills（参考Claude Skill自激活机制）
+     * 替代原来的 buildSkillsPrompt() 全量注入方式
+     *
+     * @param userMessage 用户消息，用于确定需要哪些Skills
+     * @return 选中的Skills的Prompt文本
+     */
+    public String buildDynamicSkillsPrompt(String userMessage) {
+        if (userMessage == null || userMessage.trim().isEmpty()) {
+            return "";
+        }
+        return skillSelector.buildSelectedSkillsPrompt(userMessage);
     }
 
     /**
@@ -221,7 +320,8 @@ public class MasterBrainFactory {
     private ChatMemory buildMemory(String sessionId) {
         ChatMemory memory = MessageWindowChatMemory.builder()
                 .id(sessionId)
-                .maxMessages(20)
+                .maxMessages(20)  // 当前 LangChain4j 版本不支持 maxTokens，保持消息数限制
+                // TODO: 升级 LangChain4j 后改为 .maxTokens(4000) 按 Token 预算控制
                 .build();
 
         try {

@@ -1,6 +1,7 @@
 package com.hyang.ich.omnitrix.infrastructure.sse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hyang.ich.omnitrix.infrastructure.telemetry.TraceContext;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,26 @@ public class SseEmitterManager {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
+     * 标准 SSE 事件格式
+     */
+    @Data
+    public static class SseEvent {
+        private String type;           // chunk, thinking, done, error
+        private String content;        // 内容
+        private long timestamp;        // 时间戳
+        private String traceId;        // 追踪ID
+
+        public static SseEvent create(String type, String content) {
+            SseEvent event = new SseEvent();
+            event.setType(type);
+            event.setContent(content);
+            event.setTimestamp(System.currentTimeMillis());
+            event.setTraceId(TraceContext.getTraceId());
+            return event;
+        }
+    }
+
+    /**
      * 创建新的 SseEmitter
      */
     public SseEmitter create() {
@@ -27,35 +48,45 @@ public class SseEmitterManager {
     }
 
     /**
-     * 发送文本 chunk
+     * 发送文本 chunk（标准化格式）
      */
     public void sendChunk(SseEmitter emitter, String content) {
         try {
-            emitter.send(SseEmitter.event().name("chunk").data(content));
+            SseEvent event = SseEvent.create("chunk", content);
+            emitter.send(SseEmitter.event()
+                    .name("message")
+                    .data(objectMapper.writeValueAsString(event)));
         } catch (IOException e) {
             log.info("SSE 发送 chunk 失败: {}", e.getMessage());
         }
     }
 
     /**
-     * 发送思维链 chunk（<think> 标签内容）
+     * 发送思维链 chunk（标准化格式）
      */
     public void sendThinking(SseEmitter emitter, String content) {
         try {
-            emitter.send(SseEmitter.event().name("thinking").data(content));
+            SseEvent event = SseEvent.create("thinking", content);
+            emitter.send(SseEmitter.event()
+                    .name("message")
+                    .data(objectMapper.writeValueAsString(event)));
         } catch (IOException e) {
             log.info("SSE 发送 thinking 失败: {}", e.getMessage());
         }
     }
 
     /**
-     * 发送子代理信息
+     * 发送子代理信息（标准化格式）
      */
     public void sendAgentInfo(SseEmitter emitter, String agentCode) {
         try {
             AgentEvent event = new AgentEvent();
             event.setAgent(agentCode);
-            emitter.send(SseEmitter.event().name("agent").data(objectMapper.writeValueAsString(event)));
+            event.setTimestamp(System.currentTimeMillis());
+            event.setTraceId(TraceContext.getTraceId());
+            emitter.send(SseEmitter.event()
+                    .name("message")
+                    .data(objectMapper.writeValueAsString(event)));
         } catch (IOException e) {
             log.info("SSE 发送 agent 信息失败: {}", e.getMessage());
         }
@@ -67,7 +98,10 @@ public class SseEmitterManager {
             event.setTool(toolName);
             event.setInput(input);
             event.setTimestamp(System.currentTimeMillis());
-            emitter.send(SseEmitter.event().name("tool_call").data(objectMapper.writeValueAsString(event)));
+            event.setTraceId(TraceContext.getTraceId());
+            emitter.send(SseEmitter.event()
+                    .name("message")
+                    .data(objectMapper.writeValueAsString(event)));
         } catch (IOException e) {
             log.info("SSE 发送 tool_call 失败: {}", e.getMessage());
         }
@@ -81,7 +115,10 @@ public class SseEmitterManager {
             event.setResult(result);
             event.setLatencyMs(latencyMs);
             event.setTimestamp(System.currentTimeMillis());
-            emitter.send(SseEmitter.event().name("tool_result").data(objectMapper.writeValueAsString(event)));
+            event.setTraceId(TraceContext.getTraceId());
+            emitter.send(SseEmitter.event()
+                    .name("message")
+                    .data(objectMapper.writeValueAsString(event)));
         } catch (IOException e) {
             log.info("SSE 发送 tool_result 失败: {}", e.getMessage());
         }
@@ -103,7 +140,11 @@ public class SseEmitterManager {
             event.setMessageId(messageId);
             event.setLatencyMs(latencyMs);
             event.setModel(model);
-            emitter.send(SseEmitter.event().name("done")
+            event.setTimestamp(System.currentTimeMillis());
+            event.setTraceId(TraceContext.getTraceId());
+            event.setType("complete");
+            emitter.send(SseEmitter.event()
+                    .name("message")
                     .data(objectMapper.writeValueAsString(event)));
             emitter.complete();
         } catch (IOException e) {
@@ -112,11 +153,14 @@ public class SseEmitterManager {
     }
 
     /**
-     * 发送错误事件
+     * 发送错误事件（标准化格式）
      */
     public void sendError(SseEmitter emitter, String message) {
         try {
-            emitter.send(SseEmitter.event().name("error_msg").data(message));
+            SseEvent event = SseEvent.create("error", message);
+            emitter.send(SseEmitter.event()
+                    .name("message")
+                    .data(objectMapper.writeValueAsString(event)));
             emitter.complete();
         } catch (IOException e) {
             log.info("SSE 发送 error 失败: {}", e.getMessage());
@@ -126,8 +170,10 @@ public class SseEmitterManager {
     // ========== SSE 事件 DTO ==========
 
     @Data
-    static class AgentEvent {
+    public static class AgentEvent {
         private String agent;
+        private long timestamp;
+        private String traceId;
     }
 
     @Data
@@ -135,6 +181,7 @@ public class SseEmitterManager {
         private String tool;
         private String input;
         private long timestamp;
+        private String traceId;
     }
 
     @Data
@@ -144,6 +191,7 @@ public class SseEmitterManager {
         private String result;
         private int latencyMs;
         private long timestamp;
+        private String traceId;
     }
 
     @Data
@@ -151,6 +199,9 @@ public class SseEmitterManager {
         private Long messageId;
         private int latencyMs;
         private String model;
+        private long timestamp;
+        private String traceId;
+        private String type;
     }
 
     @Data

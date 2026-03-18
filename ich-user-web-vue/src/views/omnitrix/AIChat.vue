@@ -1,10 +1,66 @@
 <script setup>
 import { ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
-import { chatStream, listConversations, createConversation, deleteConversation, getConversation, sendFeedback, regenerateStream, exportConversation } from '@/api/omnitrix'
+import { chatStream, listConversations, createConversation, deleteConversation, getConversation, sendFeedback, regenerateStream, exportConversation, chatWithFiles } from '@/api/omnitrix'
 import { marked } from 'marked'
 import { getUserInfo } from '@/utils/token'
 
 marked.setOptions({ breaks: true, gfm: true })
+
+// ==================== 多模态支持 ====================
+// 支持粘贴图片/文件（Ctrl+V）
+// 支持的图像格式
+const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/svg+xml']
+// 支持的文档格式（文字处理与排版）
+const SUPPORTED_DOC_TYPES = [
+  // Word
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  // PDF
+  'application/pdf',
+  // RTF
+  'application/rtf',
+  // 纯文本
+  'text/plain',
+  // Markdown
+  'text/markdown',
+  // 苹果Pages
+  'application/vnd.apple.pages',
+  // 开源ODT
+  'application/vnd.oasis.opendocument.text'
+]
+// 支持的电子表格格式
+const SUPPORTED_SHEET_TYPES = [
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'text/csv'
+]
+// 支持的演示文稿格式
+const SUPPORTED_PRESENTATION_TYPES = [
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+]
+
+// 所有支持的文件类型
+const SUPPORTED_FILE_TYPES = [...SUPPORTED_DOC_TYPES, ...SUPPORTED_SHEET_TYPES, ...SUPPORTED_PRESENTATION_TYPES]
+
+// 附件列表
+const attachments = ref([])
+const fileInputRef = ref(null)
+const isUploading = ref(false)
+// ==================== 多模态支持 END ====================
+
+// ==================== 模型选择 ====================
+// 可用模型列表
+const modelOptions = [
+  { code: 'claude-sonnet-4-20250514', name: 'Sonnet 4', icon: '🧠', description: '均衡模式' },
+  { code: 'claude-opus-4-6-20250514', name: 'Opus 4.6', icon: '⚡', description: '最强性能' },
+  { code: 'claude-haiku-3-5-20250514', name: 'Haiku 3.5', icon: '⚡', description: '快速响应' }
+]
+// 当前选中的模型
+const selectedModel = ref('claude-sonnet-4-20250514')
+// 模型选择器展开状态
+const showModelSelector = ref(false)
+// ==================== 模型选择 END ====================
 
 const AGENT_NAMES = {
   admin_assistant: '管理助手',
@@ -34,8 +90,84 @@ let eventSource = null
 onMounted(() => {
   console.log('[AIChat] 页面已加载，发送消息后会显示 SSE 调试信息')
   loadConversations()
+  // 监听粘贴事件（支持 Ctrl+V 粘贴图片/文件）
+  document.addEventListener('paste', handlePaste)
 })
-onUnmounted(() => { closeStream() })
+onUnmounted(() => { 
+  closeStream()
+  document.removeEventListener('paste', handlePaste)
+})
+
+// ==================== 多模态支持函数 ====================
+function handlePaste(e) {
+  const items = e.clipboardData?.items
+  if (!items) return
+  
+  for (let item of items) {
+    // 处理图片
+    if (item.type.startsWith('image/')) {
+      const file = item.getAsFile()
+      if (file) {
+        addAttachment(file, 'image')
+        e.preventDefault()
+      }
+    }
+    // 处理文件
+    else if (item.kind === 'file') {
+      const file = item.getAsFile()
+      if (file) {
+        addAttachment(file, 'file')
+        e.preventDefault()
+      }
+    }
+  }
+}
+
+function addAttachment(file, type) {
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    attachments.value.push({
+      id: Date.now() + Math.random(),
+      name: file.name,
+      type: type,
+      mimeType: file.type,
+      size: file.size,
+      data: e.target.result,  // Base64
+      file: file
+    })
+  }
+  reader.readAsDataURL(file)
+}
+
+function removeAttachment(id) {
+  attachments.value = attachments.value.filter(a => a.id !== id)
+}
+
+function openFilePicker() {
+  fileInputRef.value?.click()
+}
+
+function onFileSelected(e) {
+  const files = e.target.files
+  if (!files) return
+  for (let file of files) {
+    const type = SUPPORTED_IMAGE_TYPES.includes(file.type) ? 'image' : 'file'
+    addAttachment(file, type)
+  }
+  e.target.value = ''  // 清空以便再次选择相同文件
+}
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + ' B'
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+}
+
+// 判断是否有附件
+function hasAttachments() {
+  return attachments.value.length > 0
+}
+// ==================== 多模态支持函数 END ====================
 
 function closeStream() {
   if (eventSource) { eventSource.close(); eventSource = null }
@@ -104,19 +236,51 @@ async function removeConversation(conv) {
 
 function send() {
   const q = input.value.trim()
-  if (!q || isStreaming.value) return
+  if ((!q && !hasAttachments()) || isStreaming.value) return
+  
+  // 如果有附件或文本，都可以发送
   input.value = ''
   autoResize()
   if (!currentSessionId.value) currentSessionId.value = 'session_' + Date.now()
 
-  messages.value.push({ role: 'user', content: q })
+  // 构建用户消息（包含附件信息）
+  const userMsg = { 
+    role: 'user', 
+    content: q,
+    attachments: attachments.value.map(a => ({
+      name: a.name,
+      type: a.type,
+      mimeType: a.mimeType,
+      data: a.data  // Base64
+    }))
+  }
+  messages.value.push(userMsg)
+  
+  // 添加AI占位消息
   messages.value.push({ role: 'assistant', content: '', agent: '', streaming: true, thinking: true, thinkingContent: '', showThinking: false, callChain: [], showCallChain: false })
   isStreaming.value = true
   scrollToBottom()
 
+  // 清除附件
+  attachments.value = []
+  
+  // 判断是否需要使用多模态API
+  const hasImages = userMsg.attachments?.some(a => a.type === 'image')
+  const hasFiles = userMsg.attachments?.some(a => a.type === 'file')
+  
   closeStream()
-  eventSource = chatStream(currentSessionId.value, q, userId.value)
-  console.log('[SSE] EventSource created, url:', eventSource.url)
+  
+  // 获取当前选中的模型
+  const modelCode = selectedModel.value
+  
+  if (hasImages || hasFiles) {
+    // 使用多模态API（带附件）
+    eventSource = chatWithFiles(currentSessionId.value, q, userId.value, userMsg.attachments, modelCode)
+  } else {
+    // 使用普通SSE API（带模型参数）
+    eventSource = chatStream(currentSessionId.value, q, userId.value, modelCode)
+  }
+  console.log('[SSE] EventSource created, url:', eventSource.url, 'model:', modelCode)
   const idx = messages.value.length - 1
 
   eventSource.onopen = () => console.log('[SSE] Connection opened')
@@ -325,7 +489,7 @@ function regenerate() {
   scrollToBottom()
 
   closeStream()
-  eventSource = regenerateStream(currentSessionId.value, userId.value)
+  eventSource = regenerateStream(currentSessionId.value, userId.value, selectedModel.value)
   const idx = messages.value.length - 1
 
   eventSource.addEventListener('thinking', (e) => {
@@ -554,13 +718,61 @@ function renderMarkdown(text) {
       </div>
 
       <div class="chat-input-area">
+        <!-- 附件预览区 -->
+        <div v-if="attachments.length > 0" class="attachments-preview">
+          <div v-for="att in attachments" :key="att.id" class="attachment-item">
+            <!-- 图片预览 -->
+            <div v-if="att.type === 'image'" class="attachment-image">
+              <img :src="att.data" :alt="att.name" />
+              <button class="attachment-remove" @click="removeAttachment(att.id)">×</button>
+            </div>
+            <!-- 文件预览 -->
+            <div v-else class="attachment-file">
+              <span class="attachment-icon">📄</span>
+              <span class="attachment-name">{{ att.name }}</span>
+              <span class="attachment-size">{{ formatFileSize(att.size) }}</span>
+              <button class="attachment-remove" @click="removeAttachment(att.id)">×</button>
+            </div>
+          </div>
+        </div>
+        
         <div class="input-wrap">
+          <!-- 隐藏的文件选择器 -->
+          <!-- 支持：图像、Word、PDF、Excel、PPT、纯文本、Markdown、CSV -->
+          <input ref="fileInputRef" type="file" multiple 
+                 accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.csv,.rtf,.pages,.odt"
+                 style="display: none" @change="onFileSelected" />
+          
+          <!-- 模型选择器 -->
+          <div class="model-selector" @click.stop="showModelSelector = !showModelSelector">
+            <span class="model-icon">{{ modelOptions.find(m => m.code === selectedModel)?.icon || '🧠' }}</span>
+            <span class="model-name">{{ modelOptions.find(m => m.code === selectedModel)?.name || 'Sonnet' }}</span>
+            <span class="model-arrow">▼</span>
+            <!-- 模型选项下拉 -->
+            <div v-if="showModelSelector" class="model-dropdown" @click.stop>
+              <div v-for="model in modelOptions" :key="model.code" 
+                   class="model-option" 
+                   :class="{ active: selectedModel === model.code }"
+                   @click="selectedModel = model.code; showModelSelector = false">
+                <span class="model-option-icon">{{ model.icon }}</span>
+                <span class="model-option-name">{{ model.name }}</span>
+                <span class="model-option-desc">{{ model.description }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 附件按钮 -->
+          <button class="attach-btn" @click="openFilePicker" title="添加附件">
+            <svg width="20" height="20" viewBox="0 0 20 20"><path d="M17.5 9.5l-6.5 6.5c-1.5 1.5-4 .5-3.5-1.5l2-8c.3-1.2 1.7-1.5 2.5-.5l4 5c1 1.2.2 3-1.5 3.5l-7 5.5c-1.3 1-3.2-.3-2.5-2l3-10c.3-1 1.3-1.5 2.3-1" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          
           <textarea ref="textareaRef" v-model="input" :disabled="isStreaming" rows="1"
-            placeholder="输入消息，Shift+Enter 换行" @keydown="handleKeydown" autocomplete="off"></textarea>
+            placeholder="输入消息，支持粘贴图片/文件 (Ctrl+V)" @keydown="handleKeydown" autocomplete="off"></textarea>
+          
           <button v-if="isStreaming" class="stop-btn" @click="stopGeneration" title="停止生成">
             <svg width="16" height="16" viewBox="0 0 16 16"><rect x="3" y="3" width="10" height="10" rx="2" fill="currentColor"/></svg>
           </button>
-          <button v-else class="send-btn" @click="send" :disabled="!input.trim()" title="发送">
+          <button v-else class="send-btn" @click="send" :disabled="!input.trim() && !hasAttachments()" title="发送">
             <svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 14l12-6L2 2v5l8 1-8 1z" fill="currentColor"/></svg>
           </button>
         </div>
@@ -873,6 +1085,170 @@ function renderMarkdown(text) {
 .chat-input-area {
   padding: 12px 16px 16px 16px;
   flex-shrink: 0;
+}
+
+/* ===== 附件预览 ===== */
+.attachments-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 8px 8px 8px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+.attachment-item {
+  position: relative;
+}
+.attachment-image {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e3e3e3;
+}
+.attachment-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.attachment-remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.attachment-image:hover .attachment-remove,
+.attachment-file:hover .attachment-remove {
+  opacity: 1;
+}
+.attachment-file {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #f0f4f9;
+  border: 1px solid #e3e3e3;
+  border-radius: 8px;
+  max-width: 200px;
+}
+.attachment-icon {
+  font-size: 16px;
+}
+.attachment-name {
+  font-size: 12px;
+  color: #1e1e1e;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100px;
+}
+.attachment-size {
+  font-size: 10px;
+  color: #9aa0a6;
+}
+
+/* ===== 附件按钮 ===== */
+.attach-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5f6368;
+  border-radius: 8px;
+  margin: 4px 0 4px 4px;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.attach-btn:hover {
+  background: #f0f4f9;
+  color: #1a73e8;
+}
+
+/* ===== 模型选择器 ===== */
+.model-selector {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #5f6368;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.model-selector:hover {
+  background: #f0f4f9;
+  color: #1a73e8;
+}
+.model-icon {
+  font-size: 14px;
+}
+.model-name {
+  font-weight: 500;
+}
+.model-arrow {
+  font-size: 10px;
+  margin-left: 2px;
+  opacity: 0.6;
+}
+.model-dropdown {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 8px;
+  background: #fff;
+  border: 1px solid #e3e3e3;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  min-width: 180px;
+  overflow: hidden;
+  z-index: 100;
+}
+.model-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.model-option:hover {
+  background: #f0f4f9;
+}
+.model-option.active {
+  background: #e8f0fe;
+}
+.model-option-icon {
+  font-size: 16px;
+}
+.model-option-name {
+  font-weight: 500;
+  color: #1e1e1e;
+}
+.model-option-desc {
+  font-size: 11px;
+  color: #9aa0a6;
+  margin-left: auto;
 }
 .input-wrap {
   position: relative;
