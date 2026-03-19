@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>数据库表结构文档</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'微软雅黑','宋体',sans-serif;background:#f5f5f5;padding:20px;max-width:1100px;margin:0 auto}
+h1{text-align:center;margin:20px 0;font-size:22px}
+h2{background:#333;color:#fff;padding:10px 15px;margin:30px 0 0;font-size:16px;border-radius:4px 4px 0 0}
+h3{background:#e8e8e8;padding:8px 15px;margin:15px 0 0;font-size:14px;border:1px solid #ccc;border-bottom:none}
+.toc{background:#fff;border:1px solid #ddd;padding:15px 20px;margin:15px 0 30px;border-radius:4px}
+.toc h3{background:none;border:none;margin:0 0 10px;font-size:15px;padding:0}
+.toc ul{list-style:none;padding-left:0}
+.toc li{padding:2px 0;font-size:13px}
+.toc .db-name{font-weight:bold;margin-top:8px;font-size:14px;color:#333}
+table{width:100%;border-collapse:collapse;background:#fff;margin-bottom:15px}
+table th{background:#f0f0f0;padding:6px 10px;border:1px solid #ccc;font-size:12px;text-align:left;white-space:nowrap}
+table td{padding:5px 10px;border:1px solid #ccc;font-size:12px}
+table tr:hover{background:#f9f9f9}
+.pk{color:#c00;font-weight:bold}
+.summary{background:#fff;border:1px solid #ddd;padding:10px 15px;margin:10px 0 25px;font-size:13px;border-radius:4px}
+.summary span{display:inline-block;margin-right:20px}
+</style>
+</head>
+<body>
+<h1>非遗文化管理平台 — 数据库表结构文档</h1>
+<div class="summary">
+<span><b>数据库数量：</b>7个</span><span><b>数据表总数：</b>71张</span><span><b>字段总数：</b>898个</span></div>
+<div class="toc"><h3>目录</h3>
+<p class="db-name">📁 用户中心库（user_center）</p><ul>
+<li><a href="#user_center_sys_message">sys_message</a> — 系统消息表（13字段）</li>
+<li><a href="#user_center_user">user</a> — 用户表（18字段）</li>
+<li><a href="#user_center_user_address">user_address</a> — 用户收货地址表（13字段）</li>
+<li><a href="#user_center_user_browse_history">user_browse_history</a> — 用户浏览历史表（11字段）</li>
+<li><a href="#user_center_user_favorite">user_favorite</a> — 用户收藏表，用于存储用户收藏的各种内容（8字段）</li>
+</ul>
+<p class="db-name">📁 内容中心库（content_center）</p><ul>
+<li><a href="#content_center_article">article</a> — 文章表（11字段）</li>
+<li><a href="#content_center_article_category">article_category</a> — 文章分类表（8字段）</li>
+<li><a href="#content_center_content_comment">content_comment</a> — 评论表（14字段）</li>
+<li><a href="#content_center_content_comment_like">content_comment_like</a> — 评论点赞记录表（7字段）</li>
+<li><a href="#content_center_ich_activity">ich_activity</a> — 非遗活动表（32字段）</li>
+<li><a href="#content_center_ich_activity_comment">ich_activity_comment</a> — 活动评论表（10字段）</li>
+<li><a href="#content_center_ich_activity_record">ich_activity_record</a> — 活动报名记录表（13字段）</li>
+<li><a href="#content_center_ich_activity_view_log">ich_activity_view_log</a> — 活动浏览记录表（5字段）</li>
+<li><a href="#content_center_ich_category">ich_category</a> — 非遗分类表（13字段）</li>
+<li><a href="#content_center_ich_heritage_item_relation">ich_heritage_item_relation</a> — 传承人与非遗项目关联表（16字段）</li>
+<li><a href="#content_center_ich_heritage_man">ich_heritage_man</a> — 非遗传承人表（23字段）</li>
+<li><a href="#content_center_ich_item">ich_item</a> — 非遗项目表（20字段）</li>
+<li><a href="#content_center_ich_post">ich_post</a> — 非遗动态/笔记（19字段）</li>
+<li><a href="#content_center_ich_post_comment">ich_post_comment</a> — 非遗动态评论（12字段）</li>
+<li><a href="#content_center_ich_post_favorite">ich_post_favorite</a> — 帖子收藏记录（4字段）</li>
+<li><a href="#content_center_ich_post_like">ich_post_like</a> — 帖子点赞记录（4字段）</li>
+<li><a href="#content_center_search_history">search_history</a> — 搜索记录表（11字段）</li>
+<li><a href="#content_center_user_browse_history">user_browse_history</a> — 用户浏览历史表（11字段）</li>
+<li><a href="#content_center_user_favorite">user_favorite</a> — 用户收藏表（8字段）</li>
+<li><a href="#content_center_video_exhibition">video_exhibition</a> — 视频展览表（20字段）</li>
+</ul>
+<p class="db-name">📁 订单中心库（order_center）</p><ul>
+<li><a href="#order_center_order">order</a> — 订单表（27字段）</li>
+<li><a href="#order_center_order_address">order_address</a> — 订单地址表（12字段）</li>
+<li><a href="#order_center_order_item">order_item</a> — 订单商品表（19字段）</li>
+<li><a href="#order_center_order_log">order_log</a> — 订单操作日志表（9字段）</li>
+<li><a href="#order_center_shopping_cart">shopping_cart</a> — 购物车表（14字段）</li>
+</ul>
+<p class="db-name">📁 商品中心库（product_center）</p><ul>
+<li><a href="#product_center_inventory_record">inventory_record</a> — 库存变动记录表（14字段）</li>
+<li><a href="#product_center_product">product</a> — 商品表（25字段）</li>
+<li><a href="#product_center_product_category">product_category</a> — 商品分类表（15字段）</li>
+<li><a href="#product_center_product_comment">product_comment</a> — 商品评价表（11字段）</li>
+<li><a href="#product_center_product_image">product_image</a> — 商品图片表（18字段）</li>
+<li><a href="#product_center_shop">shop</a> — 店铺表（10字段）</li>
+<li><a href="#product_center_shopping_cart">shopping_cart</a> — 购物车（11字段）</li>
+</ul>
+<p class="db-name">📁 AI服务库（ai_service）</p><ul>
+<li><a href="#ai_service_ai_agent_config">ai_agent_config</a> — AI子代理配置表(动态Agent)（14字段）</li>
+<li><a href="#ai_service_ai_conversation">ai_conversation</a> — AI对话表（9字段）</li>
+<li><a href="#ai_service_ai_knowledge_base">ai_knowledge_base</a> — AI知识库表（9字段）</li>
+<li><a href="#ai_service_ai_message">ai_message</a> — AI消息表（10字段）</li>
+<li><a href="#ai_service_ai_model_config">ai_model_config</a> — AI模型配置表（15字段）</li>
+<li><a href="#ai_service_ai_prompt_config">ai_prompt_config</a> — AI Prompt配置表（11字段）</li>
+<li><a href="#ai_service_ai_service_log">ai_service_log</a> — AI服务调用记录表（14字段）</li>
+<li><a href="#ai_service_ai_skill_config">ai_skill_config</a> — AI技能配置表（12字段）</li>
+<li><a href="#ai_service_ai_system_memory">ai_system_memory</a> — 系统全局记忆(第四层)（10字段）</li>
+<li><a href="#ai_service_ai_trace_log">ai_trace_log</a> — AI追踪日志表（20字段）</li>
+<li><a href="#ai_service_ai_trace_span">ai_trace_span</a> — AI 嵌套追踪 Span（10字段）</li>
+<li><a href="#ai_service_ai_user_ai_config">ai_user_ai_config</a> — 用户AI配置(Ultra控制)（9字段）</li>
+<li><a href="#ai_service_ai_user_behavior">ai_user_behavior</a> — 用户行为记录表（7字段）</li>
+<li><a href="#ai_service_ai_user_memory">ai_user_memory</a> — 用户长期记忆表(跨会话画像)（11字段）</li>
+</ul>
+<p class="db-name">📁 系统管理库（system_manage）</p><ul>
+<li><a href="#system_manage_app_version">app_version</a> — 应用版本表（14字段）</li>
+<li><a href="#system_manage_menu">menu</a> — 菜单表（12字段）</li>
+<li><a href="#system_manage_role_menu">role_menu</a> — 角色菜单关联表（7字段）</li>
+<li><a href="#system_manage_stat_content_access">stat_content_access</a> — 内容访问统计表（12字段）</li>
+<li><a href="#system_manage_stat_daily">stat_daily</a> — 每日统计表（19字段）</li>
+<li><a href="#system_manage_stat_user_active_daily">stat_user_active_daily</a> — 用户活跃统计表(按天)（8字段）</li>
+<li><a href="#system_manage_sys_captcha">sys_captcha</a> — 系统验证码表，用于存储图形验证码信息（8字段）</li>
+<li><a href="#system_manage_sys_config">sys_config</a> — 系统配置表（9字段）</li>
+<li><a href="#system_manage_sys_file_upload">sys_file_upload</a> — 文件上传记录表（12字段）</li>
+<li><a href="#system_manage_sys_message">sys_message</a> — 系统消息表，存储系统发送给用户的各种消息和通知（14字段）</li>
+<li><a href="#system_manage_sys_operation_log">sys_operation_log</a> — 操作日志表（20字段）</li>
+<li><a href="#system_manage_sys_role">sys_role</a> — 角色表（10字段）</li>
+<li><a href="#system_manage_sys_user">sys_user</a> — 系统用户表（13字段）</li>
+<li><a href="#system_manage_sys_user_message">sys_user_message</a> — 用户消息关联表，记录用户与消息的关联关系（9字段）</li>
+<li><a href="#system_manage_sys_user_role">sys_user_role</a> — 用户角色关联表（4字段）</li>
+<li><a href="#system_manage_user_feedback">user_feedback</a> — 用户反馈表（13字段）</li>
+</ul>
+<p class="db-name">📁 公共基础库（common_db）</p><ul>
+<li><a href="#common_db_browse_history">browse_history</a> — 用户浏览历史(不可删除)（10字段）</li>
+<li><a href="#common_db_sys_captcha">sys_captcha</a> — 系统验证码（10字段）</li>
+<li><a href="#common_db_sys_config">sys_config</a> — 系统配置表（9字段）</li>
+<li><a href="#common_db_sys_file_upload">sys_file_upload</a> — 文件上传记录表（15字段）</li>
+</ul>
+</div>
+<h2>📁 用户中心库（user_center）— 共5张表</h2>
+<h3 id="user_center_sys_message">sys_message — 系统消息表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>消息ID</td></tr>
+<tr><td>2</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>接收用户ID</td></tr>
+<tr><td>3</td><td>title</td><td>varchar(100)</td><td>否</td><td></td><td></td><td>消息标题</td></tr>
+<tr><td>4</td><td>content</td><td>text</td><td>是</td><td></td><td></td><td>消息内容</td></tr>
+<tr><td>5</td><td>msg_type</td><td>tinyint</td><td>否</td><td>MUL</td><td></td><td>消息类型：1-系统通知 2-订单通知 3-评论回复 4-点赞通知</td></tr>
+<tr><td>6</td><td>is_read</td><td>tinyint(1)</td><td>是</td><td>MUL</td><td>0</td><td>是否已读：0-未读 1-已读</td></tr>
+<tr><td>7</td><td>related_id</td><td>bigint</td><td>是</td><td></td><td></td><td>相关业务ID</td></tr>
+<tr><td>8</td><td>create_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>9</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>10</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>11</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+<tr><td>12</td><td>create_by</td><td>bigint</td><td>是</td><td></td><td></td><td>创建人ID</td></tr>
+<tr><td>13</td><td>update_by</td><td>bigint</td><td>是</td><td></td><td></td><td>更新人ID</td></tr>
+</table>
+<h3 id="user_center_user">user — 用户表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>用户ID</td></tr>
+<tr><td>2</td><td>username</td><td>varchar(50)</td><td>否</td><td>UNI</td><td></td><td>用户名</td></tr>
+<tr><td>3</td><td>password</td><td>varchar(100)</td><td>否</td><td></td><td></td><td>密码（加密存储）</td></tr>
+<tr><td>4</td><td>nickname</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>昵称</td></tr>
+<tr><td>5</td><td>avatar</td><td>longtext</td><td>是</td><td></td><td></td><td>头像（Base64存储）</td></tr>
+<tr><td>6</td><td>email</td><td>varchar(100)</td><td>是</td><td>MUL</td><td></td><td>邮箱</td></tr>
+<tr><td>7</td><td>phone</td><td>varchar(20)</td><td>是</td><td>MUL</td><td></td><td>手机号</td></tr>
+<tr><td>8</td><td>status</td><td>tinyint(1)</td><td>是</td><td></td><td>1</td><td>状态：0-禁用，1-启用</td></tr>
+<tr><td>9</td><td>last_login_time</td><td>datetime</td><td>是</td><td></td><td></td><td>最后登录时间</td></tr>
+<tr><td>10</td><td>last_login_ip</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>最后登录IP</td></tr>
+<tr><td>11</td><td>is_online</td><td>tinyint(1)</td><td>否</td><td>MUL</td><td>0</td><td>是否在线 0-离线 1-在线</td></tr>
+<tr><td>12</td><td>last_active_time</td><td>datetime</td><td>是</td><td></td><td></td><td>最后活跃时间</td></tr>
+<tr><td>13</td><td>heritage_flag</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>传承人标识 0-否 1-是</td></tr>
+<tr><td>14</td><td>qualification_id</td><td>bigint</td><td>是</td><td></td><td></td><td>资格认证ID</td></tr>
+<tr><td>15</td><td>create_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>16</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>17</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>18</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h3 id="user_center_user_address">user_address — 用户收货地址表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>地址ID</td></tr>
+<tr><td>2</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>用户ID</td></tr>
+<tr><td>3</td><td>receiver_name</td><td>varchar(50)</td><td>否</td><td></td><td></td><td>收货人姓名</td></tr>
+<tr><td>4</td><td>receiver_phone</td><td>varchar(20)</td><td>否</td><td></td><td></td><td>收货人电话</td></tr>
+<tr><td>5</td><td>province</td><td>varchar(50)</td><td>否</td><td></td><td></td><td>省</td></tr>
+<tr><td>6</td><td>city</td><td>varchar(50)</td><td>否</td><td></td><td></td><td>市</td></tr>
+<tr><td>7</td><td>district</td><td>varchar(50)</td><td>否</td><td></td><td></td><td>区/县</td></tr>
+<tr><td>8</td><td>detail_address</td><td>varchar(255)</td><td>否</td><td></td><td></td><td>详细地址</td></tr>
+<tr><td>9</td><td>is_default</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否默认：0-否，1-是</td></tr>
+<tr><td>10</td><td>create_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>11</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>12</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>13</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h3 id="user_center_user_browse_history">user_browse_history — 用户浏览历史表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>浏览记录ID</td></tr>
+<tr><td>2</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>用户ID</td></tr>
+<tr><td>3</td><td>content_type</td><td>tinyint</td><td>否</td><td>MUL</td><td></td><td>内容类型：1-非遗项目，2-文章，3-商品，4-店铺</td></tr>
+<tr><td>4</td><td>content_id</td><td>bigint</td><td>否</td><td></td><td></td><td>内容ID</td></tr>
+<tr><td>5</td><td>title</td><td>varchar(255)</td><td>是</td><td></td><td></td><td>内容标题</td></tr>
+<tr><td>6</td><td>cover_image</td><td>varchar(255)</td><td>是</td><td></td><td></td><td>封面图片</td></tr>
+<tr><td>7</td><td>browse_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>浏览时间</td></tr>
+<tr><td>8</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>9</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>10</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>逻辑删除：0-未删除，1-已删除</td></tr>
+<tr><td>11</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号</td></tr>
+</table>
+<h3 id="user_center_user_favorite">user_favorite — 用户收藏表，用于存储用户收藏的各种内容</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>收藏ID</td></tr>
+<tr><td>2</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>用户ID</td></tr>
+<tr><td>3</td><td>content_type</td><td>tinyint</td><td>否</td><td>MUL</td><td></td><td>内容类型：1-非遗项目，2-文章，3-商品，4-店铺</td></tr>
+<tr><td>4</td><td>content_id</td><td>bigint</td><td>否</td><td></td><td></td><td>内容ID</td></tr>
+<tr><td>5</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>6</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>7</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>逻辑删除：0-未删除，1-已删除</td></tr>
+<tr><td>8</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号</td></tr>
+</table>
+<h2>📁 内容中心库（content_center）— 共20张表</h2>
+<h3 id="content_center_article">article — 文章表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>文章ID</td></tr>
+<tr><td>2</td><td>title</td><td>varchar(100)</td><td>否</td><td></td><td></td><td>文章标题</td></tr>
+<tr><td>3</td><td>category_id</td><td>bigint</td><td>是</td><td>MUL</td><td></td><td>分类ID</td></tr>
+<tr><td>4</td><td>cover_image</td><td>longtext</td><td>是</td><td></td><td></td><td></td></tr>
+<tr><td>5</td><td>content</td><td>longtext</td><td>是</td><td></td><td></td><td>文章内容</td></tr>
+<tr><td>6</td><td>view_count</td><td>int</td><td>是</td><td></td><td>0</td><td>浏览次数</td></tr>
+<tr><td>7</td><td>status</td><td>tinyint</td><td>是</td><td>MUL</td><td>1</td><td>状态：0-禁用，1-正常</td></tr>
+<tr><td>8</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>9</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>10</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>逻辑删除：0-未删除，1-已删除</td></tr>
+<tr><td>11</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号</td></tr>
+</table>
+<h3 id="content_center_article_category">article_category — 文章分类表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>分类ID</td></tr>
+<tr><td>2</td><td>name</td><td>varchar(50)</td><td>否</td><td></td><td></td><td>分类名称</td></tr>
+<tr><td>3</td><td>sort</td><td>int</td><td>是</td><td></td><td>0</td><td>排序</td></tr>
+<tr><td>4</td><td>status</td><td>tinyint</td><td>是</td><td></td><td>1</td><td>状态：0-禁用，1-正常</td></tr>
+<tr><td>5</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>6</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>7</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>逻辑删除：0-未删除，1-已删除</td></tr>
+<tr><td>8</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号</td></tr>
+</table>
+<h3 id="content_center_content_comment">content_comment — 评论表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>评论ID</td></tr>
+<tr><td>2</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>评论用户ID</td></tr>
+<tr><td>3</td><td>content_type</td><td>tinyint</td><td>否</td><td>MUL</td><td></td><td>评论类型：1-非遗项目 2-商品 3-文章</td></tr>
+<tr><td>4</td><td>content_id</td><td>bigint</td><td>否</td><td></td><td></td><td>评论内容ID</td></tr>
+<tr><td>5</td><td>parent_id</td><td>bigint</td><td>是</td><td>MUL</td><td>0</td><td>父评论ID，0表示一级评论</td></tr>
+<tr><td>6</td><td>content</td><td>text</td><td>否</td><td></td><td></td><td>评论内容</td></tr>
+<tr><td>7</td><td>like_count</td><td>int</td><td>是</td><td></td><td>0</td><td>点赞数</td></tr>
+<tr><td>8</td><td>status</td><td>tinyint</td><td>是</td><td></td><td>1</td><td>状态：0-待审核 1-显示 2-隐藏</td></tr>
+<tr><td>9</td><td>create_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>10</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>11</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>12</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+<tr><td>13</td><td>create_by</td><td>bigint</td><td>是</td><td></td><td></td><td>创建人ID</td></tr>
+<tr><td>14</td><td>update_by</td><td>bigint</td><td>是</td><td></td><td></td><td>更新人ID</td></tr>
+</table>
+<h3 id="content_center_content_comment_like">content_comment_like — 评论点赞记录表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>主键ID</td></tr>
+<tr><td>2</td><td>comment_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>评论ID</td></tr>
+<tr><td>3</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>用户ID</td></tr>
+<tr><td>4</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>5</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>6</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>7</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h3 id="content_center_ich_activity">ich_activity — 非遗活动表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>活动ID</td></tr>
+<tr><td>2</td><td>name</td><td>varchar(100)</td><td>否</td><td></td><td></td><td>活动名称</td></tr>
+<tr><td>3</td><td>activity_type</td><td>tinyint</td><td>否</td><td>MUL</td><td>1</td><td>活动类型：1-展演 2-研习 3-讲座 4-展览 5-其他</td></tr>
+<tr><td>4</td><td>cover_image</td><td>longtext</td><td>是</td><td></td><td></td><td></td></tr>
+<tr><td>5</td><td>description</td><td>text</td><td>是</td><td></td><td></td><td>活动简介</td></tr>
+<tr><td>6</td><td>content</td><td>longtext</td><td>是</td><td></td><td></td><td>活动详情（富文本）</td></tr>
+<tr><td>7</td><td>location</td><td>varchar(255)</td><td>是</td><td></td><td></td><td>活动地点</td></tr>
+<tr><td>8</td><td>start_time</td><td>datetime</td><td>是</td><td>MUL</td><td></td><td>开始时间</td></tr>
+<tr><td>9</td><td>end_time</td><td>datetime</td><td>是</td><td></td><td></td><td>结束时间</td></tr>
+<tr><td>10</td><td>max_participants</td><td>int</td><td>是</td><td></td><td>0</td><td>最大参与人数，0表示不限</td></tr>
+<tr><td>11</td><td>current_participants</td><td>int</td><td>是</td><td></td><td>0</td><td>当前报名人数</td></tr>
+<tr><td>12</td><td>registration_deadline</td><td>datetime</td><td>是</td><td></td><td></td><td>报名截止时间</td></tr>
+<tr><td>13</td><td>contact_person</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>联系人</td></tr>
+<tr><td>14</td><td>contact_phone</td><td>varchar(20)</td><td>是</td><td></td><td></td><td>联系电话</td></tr>
+<tr><td>15</td><td>organizer</td><td>varchar(100)</td><td>是</td><td></td><td></td><td>主办方</td></tr>
+<tr><td>16</td><td>requester</td><td>varchar(100)</td><td>是</td><td></td><td></td><td>需求人</td></tr>
+<tr><td>17</td><td>request_unit</td><td>varchar(200)</td><td>是</td><td></td><td></td><td>需求单位</td></tr>
+<tr><td>18</td><td>detail_images</td><td>longtext</td><td>是</td><td></td><td></td><td></td></tr>
+<tr><td>19</td><td>videos</td><td>longtext</td><td>是</td><td></td><td></td><td></td></tr>
+<tr><td>20</td><td>timeline_data</td><td>longtext</td><td>是</td><td></td><td></td><td>时间线数据JSON</td></tr>
+<tr><td>21</td><td>item_id</td><td>bigint</td><td>是</td><td>MUL</td><td></td><td>关联非遗项目ID</td></tr>
+<tr><td>22</td><td>status</td><td>tinyint</td><td>是</td><td>MUL</td><td>0</td><td>状态：0-草稿 1-报名中 2-进行中 3-已结束 4-已取消</td></tr>
+<tr><td>23</td><td>sort</td><td>int</td><td>是</td><td></td><td>0</td><td>排序</td></tr>
+<tr><td>24</td><td>create_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>25</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>26</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>27</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+<tr><td>28</td><td>approval_status</td><td>int</td><td>是</td><td></td><td>0</td><td>审批状态: 0无需审批 1待审批 2审批通过 3审批拒绝</td></tr>
+<tr><td>29</td><td>reject_reason</td><td>varchar(500)</td><td>是</td><td></td><td></td><td>审批拒绝原因</td></tr>
+<tr><td>30</td><td>reviewer_id</td><td>bigint</td><td>是</td><td></td><td></td><td>审批人ID</td></tr>
+<tr><td>31</td><td>review_time</td><td>datetime</td><td>是</td><td></td><td></td><td>审批时间</td></tr>
+<tr><td>32</td><td>publisher_user_id</td><td>bigint</td><td>是</td><td></td><td></td><td>发布者用户ID</td></tr>
+</table>
+<h3 id="content_center_ich_activity_comment">ich_activity_comment — 活动评论表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>评论ID</td></tr>
+<tr><td>2</td><td>activity_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>活动ID</td></tr>
+<tr><td>3</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>用户ID</td></tr>
+<tr><td>4</td><td>user_name</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>用户昵称</td></tr>
+<tr><td>5</td><td>user_avatar</td><td>varchar(500)</td><td>是</td><td></td><td></td><td>用户头像</td></tr>
+<tr><td>6</td><td>content</td><td>text</td><td>否</td><td></td><td></td><td>评论内容</td></tr>
+<tr><td>7</td><td>status</td><td>tinyint</td><td>是</td><td></td><td>0</td><td>状态：0-正常 1-隐藏</td></tr>
+<tr><td>8</td><td>create_time</td><td>datetime</td><td>是</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>9</td><td>update_time</td><td>datetime</td><td>是</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>10</td><td>is_deleted</td><td>tinyint</td><td>是</td><td></td><td>0</td><td>是否删除：0-否 1-是</td></tr>
+</table>
+<h3 id="content_center_ich_activity_record">ich_activity_record — 活动报名记录表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>记录ID</td></tr>
+<tr><td>2</td><td>activity_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>活动ID</td></tr>
+<tr><td>3</td><td>user_id</td><td>bigint</td><td>是</td><td>MUL</td><td></td><td>用户ID</td></tr>
+<tr><td>4</td><td>user_name</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>报名姓名</td></tr>
+<tr><td>5</td><td>user_phone</td><td>varchar(20)</td><td>是</td><td></td><td></td><td>联系电话</td></tr>
+<tr><td>6</td><td>registration_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>报名时间</td></tr>
+<tr><td>7</td><td>check_in_time</td><td>datetime</td><td>是</td><td></td><td></td><td>签到时间</td></tr>
+<tr><td>8</td><td>status</td><td>tinyint</td><td>是</td><td>MUL</td><td>0</td><td>状态：0-待审核 1-已确认 2-已签到 3-已取消</td></tr>
+<tr><td>9</td><td>remark</td><td>varchar(500)</td><td>是</td><td></td><td></td><td>备注</td></tr>
+<tr><td>10</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>11</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>12</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>13</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h3 id="content_center_ich_activity_view_log">ich_activity_view_log — 活动浏览记录表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>ID</td></tr>
+<tr><td>2</td><td>activity_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>活动ID</td></tr>
+<tr><td>3</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>用户ID</td></tr>
+<tr><td>4</td><td>user_name</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>用户昵称</td></tr>
+<tr><td>5</td><td>view_time</td><td>datetime</td><td>是</td><td></td><td>CURRENT_TIMESTAMP</td><td>浏览时间</td></tr>
+</table>
+<h3 id="content_center_ich_category">ich_category — 非遗分类表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>分类ID</td></tr>
+<tr><td>2</td><td>name</td><td>varchar(50)</td><td>否</td><td></td><td></td><td>分类名称</td></tr>
+<tr><td>3</td><td>parent_id</td><td>bigint</td><td>是</td><td>MUL</td><td>0</td><td>父分类ID</td></tr>
+<tr><td>4</td><td>level</td><td>int</td><td>是</td><td></td><td>1</td><td>分类级别</td></tr>
+<tr><td>5</td><td>sort</td><td>int</td><td>是</td><td>MUL</td><td>0</td><td>排序</td></tr>
+<tr><td>6</td><td>icon</td><td>longtext</td><td>是</td><td></td><td></td><td></td></tr>
+<tr><td>7</td><td>detail_images</td><td>longtext</td><td>是</td><td></td><td></td><td></td></tr>
+<tr><td>8</td><td>videos</td><td>longtext</td><td>是</td><td></td><td></td><td></td></tr>
+<tr><td>9</td><td>status</td><td>tinyint</td><td>是</td><td>MUL</td><td>1</td><td>状态：0-禁用，1-启用</td></tr>
+<tr><td>10</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>11</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>12</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>13</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h3 id="content_center_ich_heritage_item_relation">ich_heritage_item_relation — 传承人与非遗项目关联表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>主键ID</td></tr>
+<tr><td>2</td><td>heritage_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>传承人ID</td></tr>
+<tr><td>3</td><td>item_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>非遗项目ID</td></tr>
+<tr><td>4</td><td>relation_type</td><td>tinyint</td><td>否</td><td></td><td>1</td><td>关联类型：1-主要传承人 2-次要传承人 3-其他</td></tr>
+<tr><td>5</td><td>start_time</td><td>date</td><td>是</td><td></td><td></td><td>开始传承时间</td></tr>
+<tr><td>6</td><td>end_time</td><td>date</td><td>是</td><td></td><td></td><td>结束传承时间</td></tr>
+<tr><td>7</td><td>is_current</td><td>tinyint(1)</td><td>是</td><td></td><td>1</td><td>是否当前传承人：0-否 1-是</td></tr>
+<tr><td>8</td><td>description</td><td>text</td><td>是</td><td></td><td></td><td>传承关系描述</td></tr>
+<tr><td>9</td><td>create_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>10</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>11</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除 1-已删除</td></tr>
+<tr><td>12</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+<tr><td>13</td><td>create_by</td><td>bigint</td><td>是</td><td></td><td></td><td>创建人ID</td></tr>
+<tr><td>14</td><td>update_by</td><td>bigint</td><td>是</td><td></td><td></td><td>更新人ID</td></tr>
+<tr><td>15</td><td>transaction_id</td><td>varchar(100)</td><td>是</td><td>MUL</td><td></td><td>全局事务ID</td></tr>
+<tr><td>16</td><td>transaction_status</td><td>tinyint</td><td>是</td><td></td><td>0</td><td>事务状态：0-未开始 1-进行中 2-已完成 3-已回滚</td></tr>
+</table>
+<h3 id="content_center_ich_heritage_man">ich_heritage_man — 非遗传承人表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>传承人ID</td></tr>
+<tr><td>2</td><td>name</td><td>varchar(50)</td><td>否</td><td>MUL</td><td></td><td>姓名</td></tr>
+<tr><td>3</td><td>gender</td><td>tinyint</td><td>是</td><td></td><td>0</td><td>性别：0-未知，1-男，2-女</td></tr>
+<tr><td>4</td><td>birth_date</td><td>date</td><td>是</td><td></td><td></td><td>出生日期</td></tr>
+<tr><td>5</td><td>id_card</td><td>varchar(18)</td><td>是</td><td>MUL</td><td></td><td>身份证号</td></tr>
+<tr><td>6</td><td>phone</td><td>varchar(20)</td><td>是</td><td></td><td></td><td>联系电话</td></tr>
+<tr><td>7</td><td>email</td><td>varchar(100)</td><td>是</td><td></td><td></td><td>电子邮箱</td></tr>
+<tr><td>8</td><td>address</td><td>varchar(255)</td><td>是</td><td></td><td></td><td>联系地址</td></tr>
+<tr><td>9</td><td>avatar</td><td>longtext</td><td>是</td><td></td><td></td><td>头像（Base64存储）</td></tr>
+<tr><td>10</td><td>level</td><td>tinyint</td><td>是</td><td></td><td></td><td>级别：1-国家级，2-省级，3-市级</td></tr>
+<tr><td>11</td><td>category_id</td><td>bigint</td><td>是</td><td>MUL</td><td></td><td>所属分类ID</td></tr>
+<tr><td>12</td><td>item_id</td><td>bigint</td><td>是</td><td>MUL</td><td></td><td>所属项目ID</td></tr>
+<tr><td>13</td><td>title</td><td>varchar(100)</td><td>是</td><td></td><td></td><td>称号</td></tr>
+<tr><td>14</td><td>skill</td><td>varchar(255)</td><td>是</td><td></td><td></td><td>技艺特长</td></tr>
+<tr><td>15</td><td>introduction</td><td>text</td><td>是</td><td></td><td></td><td>个人简介</td></tr>
+<tr><td>16</td><td>achievement</td><td>text</td><td>是</td><td></td><td></td><td>主要成就</td></tr>
+<tr><td>17</td><td>detail_images</td><td>longtext</td><td>是</td><td></td><td></td><td></td></tr>
+<tr><td>18</td><td>videos</td><td>longtext</td><td>是</td><td></td><td></td><td></td></tr>
+<tr><td>19</td><td>status</td><td>tinyint</td><td>是</td><td>MUL</td><td>1</td><td>状态：0-禁用，1-启用</td></tr>
+<tr><td>20</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>21</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>22</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>23</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h3 id="content_center_ich_item">ich_item — 非遗项目表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>项目ID</td></tr>
+<tr><td>2</td><td>category_id</td><td>bigint</td><td>是</td><td>MUL</td><td></td><td>分类ID</td></tr>
+<tr><td>3</td><td>name</td><td>varchar(100)</td><td>是</td><td></td><td></td><td>项目名称</td></tr>
+<tr><td>4</td><td>cover_image</td><td>longtext</td><td>是</td><td></td><td></td><td>封面图（Base64存储）</td></tr>
+<tr><td>5</td><td>level</td><td>tinyint</td><td>是</td><td></td><td></td><td>级别：1-国家级，2-省级，3-市级</td></tr>
+<tr><td>6</td><td>region_code</td><td>varchar(20)</td><td>是</td><td>MUL</td><td></td><td>地区编码</td></tr>
+<tr><td>7</td><td>region_name</td><td>varchar(100)</td><td>是</td><td></td><td></td><td>地区名称</td></tr>
+<tr><td>8</td><td>declaration_unit</td><td>varchar(200)</td><td>是</td><td></td><td></td><td>申报单位</td></tr>
+<tr><td>9</td><td>protection_unit</td><td>varchar(200)</td><td>是</td><td></td><td></td><td>保护单位</td></tr>
+<tr><td>10</td><td>declaration_time</td><td>date</td><td>是</td><td></td><td></td><td>申报时间</td></tr>
+<tr><td>11</td><td>description</td><td>text</td><td>是</td><td></td><td></td><td>项目简介</td></tr>
+<tr><td>12</td><td>content</td><td>longtext</td><td>是</td><td></td><td></td><td>项目详情</td></tr>
+<tr><td>13</td><td>detail_images</td><td>longtext</td><td>是</td><td></td><td></td><td></td></tr>
+<tr><td>14</td><td>videos</td><td>longtext</td><td>是</td><td></td><td></td><td></td></tr>
+<tr><td>15</td><td>status</td><td>tinyint</td><td>是</td><td>MUL</td><td>1</td><td>状态：0-禁用，1-启用</td></tr>
+<tr><td>16</td><td>sort</td><td>int</td><td>是</td><td></td><td>0</td><td>排序</td></tr>
+<tr><td>17</td><td>create_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>18</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>19</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>20</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h3 id="content_center_ich_post">ich_post — 非遗动态/笔记</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td></td></tr>
+<tr><td>2</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>发布者ID</td></tr>
+<tr><td>3</td><td>user_name</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>发布者昵称</td></tr>
+<tr><td>4</td><td>user_avatar</td><td>varchar(500)</td><td>是</td><td></td><td></td><td>发布者头像</td></tr>
+<tr><td>5</td><td>title</td><td>varchar(200)</td><td>否</td><td></td><td></td><td>标题</td></tr>
+<tr><td>6</td><td>content</td><td>text</td><td>是</td><td></td><td></td><td>正文内容</td></tr>
+<tr><td>7</td><td>images</td><td>longtext</td><td>是</td><td></td><td></td><td>图片列表JSON数组</td></tr>
+<tr><td>8</td><td>video_url</td><td>longtext</td><td>是</td><td></td><td></td><td>视频URL</td></tr>
+<tr><td>9</td><td>cover_image</td><td>longtext</td><td>是</td><td></td><td></td><td>封面图(取第一张图或视频封面)</td></tr>
+<tr><td>10</td><td>tags</td><td>varchar(500)</td><td>是</td><td></td><td></td><td>标签,逗号分隔</td></tr>
+<tr><td>11</td><td>type</td><td>tinyint</td><td>是</td><td></td><td>1</td><td>类型 1-图文 2-视频</td></tr>
+<tr><td>12</td><td>like_count</td><td>int</td><td>是</td><td></td><td>0</td><td>点赞数</td></tr>
+<tr><td>13</td><td>favorite_count</td><td>int</td><td>是</td><td></td><td>0</td><td>收藏数</td></tr>
+<tr><td>14</td><td>comment_count</td><td>int</td><td>是</td><td></td><td>0</td><td>评论数</td></tr>
+<tr><td>15</td><td>view_count</td><td>int</td><td>是</td><td></td><td>0</td><td>浏览数</td></tr>
+<tr><td>16</td><td>status</td><td>tinyint</td><td>是</td><td>MUL</td><td>1</td><td>状态 0-隐藏 1-显示</td></tr>
+<tr><td>17</td><td>is_deleted</td><td>tinyint</td><td>是</td><td></td><td>0</td><td></td></tr>
+<tr><td>18</td><td>create_time</td><td>datetime</td><td>是</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+<tr><td>19</td><td>update_time</td><td>datetime</td><td>是</td><td></td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+</table>
+<h3 id="content_center_ich_post_comment">ich_post_comment — 非遗动态评论</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td></td></tr>
+<tr><td>2</td><td>post_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>帖子ID</td></tr>
+<tr><td>3</td><td>user_id</td><td>bigint</td><td>否</td><td></td><td></td><td>评论者ID</td></tr>
+<tr><td>4</td><td>user_name</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>评论者昵称</td></tr>
+<tr><td>5</td><td>user_avatar</td><td>varchar(500)</td><td>是</td><td></td><td></td><td>评论者头像</td></tr>
+<tr><td>6</td><td>content</td><td>text</td><td>否</td><td></td><td></td><td>评论内容</td></tr>
+<tr><td>7</td><td>images</td><td>longtext</td><td>是</td><td></td><td></td><td>评论图片JSON数组</td></tr>
+<tr><td>8</td><td>like_count</td><td>int</td><td>是</td><td></td><td>0</td><td>点赞数</td></tr>
+<tr><td>9</td><td>location</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>评论地区</td></tr>
+<tr><td>10</td><td>status</td><td>tinyint</td><td>是</td><td></td><td>1</td><td>状态 0-隐藏 1-显示</td></tr>
+<tr><td>11</td><td>is_deleted</td><td>tinyint</td><td>是</td><td></td><td>0</td><td></td></tr>
+<tr><td>12</td><td>create_time</td><td>datetime</td><td>是</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+</table>
+<h3 id="content_center_ich_post_favorite">ich_post_favorite — 帖子收藏记录</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td></td></tr>
+<tr><td>2</td><td>post_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>帖子ID</td></tr>
+<tr><td>3</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>用户ID</td></tr>
+<tr><td>4</td><td>create_time</td><td>datetime</td><td>是</td><td></td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+</table>
+<h3 id="content_center_ich_post_like">ich_post_like — 帖子点赞记录</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td></td></tr>
+<tr><td>2</td><td>post_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>帖子ID</td></tr>
+<tr><td>3</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>用户ID</td></tr>
+<tr><td>4</td><td>create_time</td><td>datetime</td><td>是</td><td></td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+</table>
+<h3 id="content_center_search_history">search_history — 搜索记录表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>记录ID</td></tr>
+<tr><td>2</td><td>user_id</td><td>bigint</td><td>是</td><td>MUL</td><td></td><td>用户ID（未登录用户为null）</td></tr>
+<tr><td>3</td><td>keyword</td><td>varchar(100)</td><td>否</td><td>MUL</td><td></td><td>搜索关键词</td></tr>
+<tr><td>4</td><td>search_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>搜索时间</td></tr>
+<tr><td>5</td><td>device_id</td><td>varchar(100)</td><td>是</td><td></td><td></td><td>设备ID</td></tr>
+<tr><td>6</td><td>ip_address</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>IP地址</td></tr>
+<tr><td>7</td><td>search_result_count</td><td>int</td><td>是</td><td></td><td>0</td><td>搜索结果数量</td></tr>
+<tr><td>8</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>9</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>10</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>11</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h3 id="content_center_user_browse_history">user_browse_history — 用户浏览历史表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>主键ID</td></tr>
+<tr><td>2</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>用户ID</td></tr>
+<tr><td>3</td><td>content_type</td><td>tinyint</td><td>否</td><td></td><td></td><td>内容类型：1-非遗项目 2-商品 3-文章</td></tr>
+<tr><td>4</td><td>content_id</td><td>bigint</td><td>否</td><td></td><td></td><td>内容ID</td></tr>
+<tr><td>5</td><td>title</td><td>varchar(255)</td><td>是</td><td></td><td></td><td>内容标题</td></tr>
+<tr><td>6</td><td>cover_image</td><td>varchar(255)</td><td>是</td><td></td><td></td><td>封面图URL</td></tr>
+<tr><td>7</td><td>browse_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>浏览时间</td></tr>
+<tr><td>8</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>9</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>10</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>11</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h3 id="content_center_user_favorite">user_favorite — 用户收藏表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>主键ID</td></tr>
+<tr><td>2</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>用户ID</td></tr>
+<tr><td>3</td><td>favorite_type</td><td>tinyint</td><td>否</td><td>MUL</td><td></td><td>收藏类型：1-非遗项目 2-商品 3-文章</td></tr>
+<tr><td>4</td><td>content_id</td><td>bigint</td><td>否</td><td></td><td></td><td>收藏内容ID</td></tr>
+<tr><td>5</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>6</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>7</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>8</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h3 id="content_center_video_exhibition">video_exhibition — 视频展览表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>视频ID</td></tr>
+<tr><td>2</td><td>title</td><td>varchar(100)</td><td>否</td><td></td><td></td><td>视频标题</td></tr>
+<tr><td>3</td><td>cover_url</td><td>varchar(255)</td><td>是</td><td></td><td></td><td>封面图URL</td></tr>
+<tr><td>4</td><td>video_url</td><td>varchar(255)</td><td>否</td><td></td><td></td><td>视频URL</td></tr>
+<tr><td>5</td><td>duration</td><td>int</td><td>是</td><td></td><td></td><td>视频时长(秒)</td></tr>
+<tr><td>6</td><td>category_id</td><td>bigint</td><td>是</td><td>MUL</td><td></td><td>分类ID</td></tr>
+<tr><td>7</td><td>description</td><td>text</td><td>是</td><td></td><td></td><td>视频描述</td></tr>
+<tr><td>8</td><td>content</td><td>longtext</td><td>是</td><td></td><td></td><td>视频详情(富文本)</td></tr>
+<tr><td>9</td><td>view_count</td><td>int</td><td>是</td><td></td><td>0</td><td>浏览次数</td></tr>
+<tr><td>10</td><td>like_count</td><td>int</td><td>是</td><td></td><td>0</td><td>点赞数</td></tr>
+<tr><td>11</td><td>status</td><td>tinyint</td><td>是</td><td>MUL</td><td>1</td><td>状态：0-下架，1-上架</td></tr>
+<tr><td>12</td><td>sort</td><td>int</td><td>是</td><td>MUL</td><td>0</td><td>排序</td></tr>
+<tr><td>13</td><td>create_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>14</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>15</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>16</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+<tr><td>17</td><td>create_by</td><td>bigint</td><td>是</td><td></td><td></td><td>创建人ID</td></tr>
+<tr><td>18</td><td>update_by</td><td>bigint</td><td>是</td><td></td><td></td><td>更新人ID</td></tr>
+<tr><td>19</td><td>transaction_id</td><td>varchar(100)</td><td>是</td><td>MUL</td><td></td><td>全局事务ID</td></tr>
+<tr><td>20</td><td>transaction_status</td><td>tinyint</td><td>是</td><td></td><td>0</td><td>事务状态：0-未开始，1-进行中，2-已完成，3-已回滚</td></tr>
+</table>
+<h2>📁 订单中心库（order_center）— 共5张表</h2>
+<h3 id="order_center_order">order — 订单表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>订单ID</td></tr>
+<tr><td>2</td><td>order_no</td><td>varchar(32)</td><td>否</td><td>UNI</td><td></td><td>订单编号</td></tr>
+<tr><td>3</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>用户ID</td></tr>
+<tr><td>4</td><td>total_amount</td><td>decimal(10,2)</td><td>否</td><td></td><td></td><td>订单总金额</td></tr>
+<tr><td>5</td><td>pay_amount</td><td>decimal(10,2)</td><td>否</td><td></td><td></td><td>实付金额</td></tr>
+<tr><td>6</td><td>freight_amount</td><td>decimal(10,2)</td><td>是</td><td></td><td>0.00</td><td>运费金额</td></tr>
+<tr><td>7</td><td>discount_amount</td><td>decimal(10,2)</td><td>是</td><td></td><td>0.00</td><td>优惠金额</td></tr>
+<tr><td>8</td><td>pay_type</td><td>tinyint</td><td>是</td><td></td><td></td><td>支付方式：0-未支付，1-支付宝，2-微信</td></tr>
+<tr><td>9</td><td>status</td><td>tinyint</td><td>否</td><td>MUL</td><td>0</td><td>订单状态：0-待付款，1-待发货，2-待收货，3-已完成，4-已取消，5-已关闭</td></tr>
+<tr><td>10</td><td>payment_time</td><td>datetime</td><td>是</td><td></td><td></td><td>支付时间</td></tr>
+<tr><td>11</td><td>consign_time</td><td>datetime</td><td>是</td><td></td><td></td><td>发货时间</td></tr>
+<tr><td>12</td><td>end_time</td><td>datetime</td><td>是</td><td></td><td></td><td>交易完成时间</td></tr>
+<tr><td>13</td><td>close_time</td><td>datetime</td><td>是</td><td></td><td></td><td>交易关闭时间</td></tr>
+<tr><td>14</td><td>shipping_name</td><td>varchar(64)</td><td>是</td><td></td><td></td><td>物流公司</td></tr>
+<tr><td>15</td><td>shipping_code</td><td>varchar(64)</td><td>是</td><td></td><td></td><td>物流单号</td></tr>
+<tr><td>16</td><td>receiver_name</td><td>varchar(100)</td><td>否</td><td></td><td></td><td>收货人姓名</td></tr>
+<tr><td>17</td><td>receiver_phone</td><td>varchar(32)</td><td>否</td><td></td><td></td><td>收货人电话</td></tr>
+<tr><td>18</td><td>receiver_post_code</td><td>varchar(32)</td><td>是</td><td></td><td></td><td>收货人邮编</td></tr>
+<tr><td>19</td><td>receiver_province</td><td>varchar(100)</td><td>是</td><td></td><td></td><td>省份/直辖市</td></tr>
+<tr><td>20</td><td>receiver_city</td><td>varchar(100)</td><td>是</td><td></td><td></td><td>城市</td></tr>
+<tr><td>21</td><td>receiver_region</td><td>varchar(100)</td><td>是</td><td></td><td></td><td>区</td></tr>
+<tr><td>22</td><td>receiver_detail_address</td><td>varchar(255)</td><td>是</td><td></td><td></td><td>详细地址</td></tr>
+<tr><td>23</td><td>note</td><td>varchar(500)</td><td>是</td><td></td><td></td><td>订单备注</td></tr>
+<tr><td>24</td><td>create_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>25</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>26</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>27</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h3 id="order_center_order_address">order_address — 订单地址表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>地址ID</td></tr>
+<tr><td>2</td><td>order_id</td><td>bigint</td><td>否</td><td>UNI</td><td></td><td>订单ID</td></tr>
+<tr><td>3</td><td>receiver_name</td><td>varchar(50)</td><td>否</td><td></td><td></td><td>收货人姓名</td></tr>
+<tr><td>4</td><td>receiver_phone</td><td>varchar(20)</td><td>否</td><td></td><td></td><td>收货人电话</td></tr>
+<tr><td>5</td><td>province</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>省</td></tr>
+<tr><td>6</td><td>city</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>市</td></tr>
+<tr><td>7</td><td>district</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>区/县</td></tr>
+<tr><td>8</td><td>detail_address</td><td>varchar(255)</td><td>否</td><td></td><td></td><td>详细地址</td></tr>
+<tr><td>9</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>10</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>11</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>逻辑删除：0-未删除，1-已删除</td></tr>
+<tr><td>12</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号</td></tr>
+</table>
+<h3 id="order_center_order_item">order_item — 订单商品表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>订单商品ID</td></tr>
+<tr><td>2</td><td>order_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>订单ID</td></tr>
+<tr><td>3</td><td>order_no</td><td>varchar(32)</td><td>否</td><td>MUL</td><td></td><td>订单编号</td></tr>
+<tr><td>4</td><td>product_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>商品ID</td></tr>
+<tr><td>5</td><td>product_pic</td><td>varchar(500)</td><td>是</td><td></td><td></td><td>商品图片</td></tr>
+<tr><td>6</td><td>product_name</td><td>varchar(200)</td><td>否</td><td></td><td></td><td>商品名称</td></tr>
+<tr><td>7</td><td>product_brand</td><td>varchar(200)</td><td>是</td><td></td><td></td><td>商品品牌</td></tr>
+<tr><td>8</td><td>product_sn</td><td>varchar(64)</td><td>是</td><td></td><td></td><td>商品条码</td></tr>
+<tr><td>9</td><td>product_price</td><td>decimal(10,2)</td><td>否</td><td></td><td></td><td>销售价格</td></tr>
+<tr><td>10</td><td>product_quantity</td><td>int</td><td>否</td><td></td><td></td><td>购买数量</td></tr>
+<tr><td>11</td><td>product_sku_id</td><td>bigint</td><td>是</td><td></td><td></td><td>商品sku编号</td></tr>
+<tr><td>12</td><td>product_sku_code</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>商品sku条码</td></tr>
+<tr><td>13</td><td>product_category_id</td><td>bigint</td><td>是</td><td></td><td></td><td>商品分类ID</td></tr>
+<tr><td>14</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>15</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>16</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>17</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+<tr><td>18</td><td>create_by</td><td>bigint</td><td>是</td><td></td><td></td><td>创建人ID</td></tr>
+<tr><td>19</td><td>update_by</td><td>bigint</td><td>是</td><td></td><td></td><td>更新人ID</td></tr>
+</table>
+<h3 id="order_center_order_log">order_log — 订单操作日志表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>日志ID</td></tr>
+<tr><td>2</td><td>order_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>订单ID</td></tr>
+<tr><td>3</td><td>status</td><td>int</td><td>否</td><td></td><td></td><td>订单状态</td></tr>
+<tr><td>4</td><td>note</td><td>varchar(500)</td><td>是</td><td></td><td></td><td>操作备注</td></tr>
+<tr><td>5</td><td>operator</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>操作人</td></tr>
+<tr><td>6</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>7</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>8</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>逻辑删除：0-未删除，1-已删除</td></tr>
+<tr><td>9</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号</td></tr>
+</table>
+<h3 id="order_center_shopping_cart">shopping_cart — 购物车表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>购物车ID</td></tr>
+<tr><td>2</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>用户ID</td></tr>
+<tr><td>3</td><td>product_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>商品ID</td></tr>
+<tr><td>4</td><td>product_sku_id</td><td>bigint</td><td>是</td><td></td><td></td><td>商品SKU ID</td></tr>
+<tr><td>5</td><td>quantity</td><td>int</td><td>否</td><td></td><td>1</td><td>购买数量</td></tr>
+<tr><td>6</td><td>price</td><td>decimal(10,2)</td><td>否</td><td></td><td></td><td>加入时价格</td></tr>
+<tr><td>7</td><td>selected</td><td>tinyint(1)</td><td>是</td><td></td><td>1</td><td>是否选中：0-未选中 1-已选中</td></tr>
+<tr><td>8</td><td>source</td><td>tinyint</td><td>是</td><td></td><td>1</td><td>来源：1-PC 2-APP 3-小程序 4-H5 5-其他</td></tr>
+<tr><td>9</td><td>create_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>10</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>11</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除 1-已删除</td></tr>
+<tr><td>12</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+<tr><td>13</td><td>transaction_id</td><td>varchar(100)</td><td>是</td><td>MUL</td><td></td><td>全局事务ID</td></tr>
+<tr><td>14</td><td>transaction_status</td><td>tinyint</td><td>是</td><td></td><td>0</td><td>事务状态：0-未开始 1-进行中 2-已完成 3-已回滚</td></tr>
+</table>
+<h2>📁 商品中心库（product_center）— 共7张表</h2>
+<h3 id="product_center_inventory_record">inventory_record — 库存变动记录表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>记录ID</td></tr>
+<tr><td>2</td><td>product_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>商品ID</td></tr>
+<tr><td>3</td><td>product_name</td><td>varchar(200)</td><td>是</td><td></td><td></td><td>商品名称（冗余）</td></tr>
+<tr><td>4</td><td>type</td><td>tinyint</td><td>否</td><td>MUL</td><td></td><td>变动类型：1-入库 2-出库 3-调整</td></tr>
+<tr><td>5</td><td>quantity</td><td>int</td><td>否</td><td></td><td></td><td>变动数量（正数入库，负数出库）</td></tr>
+<tr><td>6</td><td>before_stock</td><td>int</td><td>否</td><td></td><td></td><td>变动前库存</td></tr>
+<tr><td>7</td><td>after_stock</td><td>int</td><td>否</td><td></td><td></td><td>变动后库存</td></tr>
+<tr><td>8</td><td>reason</td><td>varchar(500)</td><td>是</td><td></td><td></td><td>变动原因</td></tr>
+<tr><td>9</td><td>operator_id</td><td>bigint</td><td>是</td><td>MUL</td><td></td><td>操作人ID</td></tr>
+<tr><td>10</td><td>operator_name</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>操作人姓名</td></tr>
+<tr><td>11</td><td>create_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>12</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>13</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>14</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h3 id="product_center_product">product — 商品表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>商品ID</td></tr>
+<tr><td>2</td><td>product_sn</td><td>varchar(64)</td><td>否</td><td>UNI</td><td></td><td>商品编码</td></tr>
+<tr><td>3</td><td>name</td><td>varchar(200)</td><td>否</td><td></td><td></td><td>商品名称</td></tr>
+<tr><td>4</td><td>sub_title</td><td>varchar(500)</td><td>是</td><td></td><td></td><td>副标题</td></tr>
+<tr><td>5</td><td>brand_id</td><td>bigint</td><td>是</td><td>MUL</td><td></td><td>品牌ID</td></tr>
+<tr><td>6</td><td>category_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>分类ID</td></tr>
+<tr><td>7</td><td>heritage_man_id</td><td>bigint</td><td>是</td><td>MUL</td><td></td><td>关联传承人ID</td></tr>
+<tr><td>8</td><td>price</td><td>decimal(10,2)</td><td>否</td><td></td><td></td><td>销售价格</td></tr>
+<tr><td>9</td><td>original_price</td><td>decimal(10,2)</td><td>是</td><td></td><td></td><td>市场价</td></tr>
+<tr><td>10</td><td>stock</td><td>int</td><td>否</td><td></td><td>0</td><td>库存</td></tr>
+<tr><td>11</td><td>stock_alert_threshold</td><td>int</td><td>是</td><td></td><td>10</td><td>库存预警阈值</td></tr>
+<tr><td>12</td><td>sale</td><td>int</td><td>是</td><td></td><td>0</td><td>销量</td></tr>
+<tr><td>13</td><td>weight</td><td>decimal(10,2)</td><td>是</td><td></td><td></td><td>商品重量，默认为克</td></tr>
+<tr><td>14</td><td>keywords</td><td>varchar(255)</td><td>是</td><td></td><td></td><td>关键字</td></tr>
+<tr><td>15</td><td>description</td><td>text</td><td>是</td><td></td><td></td><td>商品描述</td></tr>
+<tr><td>16</td><td>detail_desc</td><td>longtext</td><td>是</td><td></td><td></td><td></td></tr>
+<tr><td>17</td><td>main_image</td><td>longtext</td><td>是</td><td></td><td></td><td>主图（Base64存储）</td></tr>
+<tr><td>18</td><td>sub_images</td><td>json</td><td>是</td><td></td><td></td><td>子图（JSON格式存储Base64图片数据）</td></tr>
+<tr><td>19</td><td>videos</td><td>longtext</td><td>是</td><td></td><td></td><td></td></tr>
+<tr><td>20</td><td>status</td><td>tinyint</td><td>是</td><td>MUL</td><td>1</td><td>商品状态：0-下架，1-上架</td></tr>
+<tr><td>21</td><td>sort</td><td>int</td><td>是</td><td></td><td>0</td><td>排序</td></tr>
+<tr><td>22</td><td>create_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>23</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>24</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>25</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h3 id="product_center_product_category">product_category — 商品分类表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>分类ID</td></tr>
+<tr><td>2</td><td>parent_id</td><td>bigint</td><td>是</td><td>MUL</td><td>0</td><td>上级分类ID，0表示一级分类</td></tr>
+<tr><td>3</td><td>ich_category_id</td><td>bigint</td><td>是</td><td>MUL</td><td></td><td>关联非遗分类ID</td></tr>
+<tr><td>4</td><td>name</td><td>varchar(64)</td><td>否</td><td></td><td></td><td>分类名称</td></tr>
+<tr><td>5</td><td>level</td><td>int</td><td>是</td><td></td><td>0</td><td>分类级别：0->1级；1->2级</td></tr>
+<tr><td>6</td><td>icon</td><td>longtext</td><td>是</td><td></td><td></td><td>图标（Base64存储）</td></tr>
+<tr><td>7</td><td>description</td><td>text</td><td>是</td><td></td><td></td><td>描述</td></tr>
+<tr><td>8</td><td>detail_images</td><td>json</td><td>是</td><td></td><td></td><td>详情图片，JSON格式存储Base64图片数据</td></tr>
+<tr><td>9</td><td>videos</td><td>longtext</td><td>是</td><td></td><td></td><td></td></tr>
+<tr><td>10</td><td>sort</td><td>int</td><td>是</td><td>MUL</td><td>0</td><td>排序</td></tr>
+<tr><td>11</td><td>status</td><td>tinyint</td><td>是</td><td></td><td>1</td><td>是否显示：0->不显示；1->显示</td></tr>
+<tr><td>12</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>13</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>14</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>15</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h3 id="product_center_product_comment">product_comment — 商品评价表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>评价ID</td></tr>
+<tr><td>2</td><td>order_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>订单ID</td></tr>
+<tr><td>3</td><td>product_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>商品ID</td></tr>
+<tr><td>4</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>用户ID</td></tr>
+<tr><td>5</td><td>content</td><td>text</td><td>是</td><td></td><td></td><td>评价内容</td></tr>
+<tr><td>6</td><td>score</td><td>int</td><td>是</td><td></td><td>5</td><td>评分：1-5星</td></tr>
+<tr><td>7</td><td>images</td><td>json</td><td>是</td><td></td><td></td><td>评价图片，JSON格式存储</td></tr>
+<tr><td>8</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>9</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>10</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>逻辑删除：0-未删除，1-已删除</td></tr>
+<tr><td>11</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号</td></tr>
+</table>
+<h3 id="product_center_product_image">product_image — 商品图片表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>图片ID</td></tr>
+<tr><td>2</td><td>product_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>商品ID</td></tr>
+<tr><td>3</td><td>image_url</td><td>varchar(255)</td><td>否</td><td></td><td></td><td>图片URL</td></tr>
+<tr><td>4</td><td>image_type</td><td>tinyint</td><td>否</td><td>MUL</td><td>1</td><td>图片类型：1-主图 2-详情图 3-轮播图 4-其他</td></tr>
+<tr><td>5</td><td>sort</td><td>int</td><td>是</td><td>MUL</td><td>0</td><td>排序</td></tr>
+<tr><td>6</td><td>is_main</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否主图：0-否 1-是</td></tr>
+<tr><td>7</td><td>alt</td><td>varchar(100)</td><td>是</td><td></td><td></td><td>图片替代文本</td></tr>
+<tr><td>8</td><td>width</td><td>int</td><td>是</td><td></td><td></td><td>图片宽度(px)</td></tr>
+<tr><td>9</td><td>height</td><td>int</td><td>是</td><td></td><td></td><td>图片高度(px)</td></tr>
+<tr><td>10</td><td>file_size</td><td>bigint</td><td>是</td><td></td><td></td><td>文件大小(字节)</td></tr>
+<tr><td>11</td><td>create_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>12</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>13</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除 1-已删除</td></tr>
+<tr><td>14</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+<tr><td>15</td><td>create_by</td><td>bigint</td><td>是</td><td></td><td></td><td>创建人ID</td></tr>
+<tr><td>16</td><td>update_by</td><td>bigint</td><td>是</td><td></td><td></td><td>更新人ID</td></tr>
+<tr><td>17</td><td>transaction_id</td><td>varchar(100)</td><td>是</td><td>MUL</td><td></td><td>全局事务ID</td></tr>
+<tr><td>18</td><td>transaction_status</td><td>tinyint</td><td>是</td><td></td><td>0</td><td>事务状态：0-未开始 1-进行中 2-已完成 3-已回滚</td></tr>
+</table>
+<h3 id="product_center_shop">shop — 店铺表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>店铺ID</td></tr>
+<tr><td>2</td><td>name</td><td>varchar(100)</td><td>否</td><td></td><td></td><td>店铺名称</td></tr>
+<tr><td>3</td><td>logo</td><td>varchar(255)</td><td>是</td><td></td><td></td><td>店铺logo</td></tr>
+<tr><td>4</td><td>description</td><td>text</td><td>是</td><td></td><td></td><td>店铺描述</td></tr>
+<tr><td>5</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>店主用户ID</td></tr>
+<tr><td>6</td><td>status</td><td>tinyint</td><td>是</td><td></td><td>1</td><td>状态：0-关闭，1-营业中</td></tr>
+<tr><td>7</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>8</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>9</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>逻辑删除：0-未删除，1-已删除</td></tr>
+<tr><td>10</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号</td></tr>
+</table>
+<h3 id="product_center_shopping_cart">shopping_cart — 购物车</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td></td></tr>
+<tr><td>2</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td></td></tr>
+<tr><td>3</td><td>product_id</td><td>bigint</td><td>否</td><td></td><td></td><td></td></tr>
+<tr><td>4</td><td>product_sku_id</td><td>bigint</td><td>是</td><td></td><td></td><td></td></tr>
+<tr><td>5</td><td>quantity</td><td>int</td><td>是</td><td></td><td>1</td><td></td></tr>
+<tr><td>6</td><td>price</td><td>decimal(10,2)</td><td>是</td><td></td><td>0.00</td><td></td></tr>
+<tr><td>7</td><td>selected</td><td>tinyint</td><td>是</td><td></td><td>1</td><td></td></tr>
+<tr><td>8</td><td>source</td><td>tinyint</td><td>是</td><td></td><td>1</td><td>1-PC 2-APP</td></tr>
+<tr><td>9</td><td>is_deleted</td><td>tinyint</td><td>是</td><td></td><td>0</td><td></td></tr>
+<tr><td>10</td><td>create_time</td><td>datetime</td><td>是</td><td></td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+<tr><td>11</td><td>update_time</td><td>datetime</td><td>是</td><td></td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+</table>
+<h2>📁 AI服务库（ai_service）— 共14张表</h2>
+<h3 id="ai_service_ai_agent_config">ai_agent_config — AI子代理配置表(动态Agent)</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td></td></tr>
+<tr><td>2</td><td>agent_code</td><td>varchar(50)</td><td>否</td><td>UNI</td><td></td><td>代理编码(唯一标识)</td></tr>
+<tr><td>3</td><td>agent_name</td><td>varchar(100)</td><td>否</td><td></td><td></td><td>代理名称</td></tr>
+<tr><td>4</td><td>icon</td><td>varchar(100)</td><td>是</td><td></td><td></td><td>图标</td></tr>
+<tr><td>5</td><td>description</td><td>varchar(500)</td><td>是</td><td></td><td></td><td>功能描述(影响路由选择)</td></tr>
+<tr><td>6</td><td>system_prompt</td><td>text</td><td>是</td><td></td><td></td><td>系统提示词</td></tr>
+<tr><td>7</td><td>routing_keywords</td><td>varchar(1000)</td><td>是</td><td></td><td></td><td>路由关键词(JSON数组)</td></tr>
+<tr><td>8</td><td>knowledge_base_id</td><td>bigint</td><td>是</td><td></td><td></td><td>绑定的知识库分类ID(可空)</td></tr>
+<tr><td>9</td><td>fallback_strategy</td><td>varchar(50)</td><td>是</td><td></td><td>general</td><td>降级策略: general/empty/error</td></tr>
+<tr><td>10</td><td>sort</td><td>int</td><td>是</td><td></td><td>0</td><td>排序号(越小越优先)</td></tr>
+<tr><td>11</td><td>status</td><td>tinyint</td><td>是</td><td>MUL</td><td>1</td><td>0=停用 1=启用</td></tr>
+<tr><td>12</td><td>version</td><td>bigint</td><td>是</td><td></td><td>1</td><td>版本号(缓存失效控制)</td></tr>
+<tr><td>13</td><td>create_time</td><td>datetime</td><td>是</td><td></td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+<tr><td>14</td><td>update_time</td><td>datetime</td><td>是</td><td></td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+</table>
+<h3 id="ai_service_ai_conversation">ai_conversation — AI对话表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td></td></tr>
+<tr><td>2</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>用户ID</td></tr>
+<tr><td>3</td><td>session_id</td><td>varchar(64)</td><td>否</td><td>UNI</td><td></td><td>会话唯一标识(UUID)</td></tr>
+<tr><td>4</td><td>title</td><td>varchar(100)</td><td>是</td><td></td><td>新对话</td><td>对话标题(AI自动生成)</td></tr>
+<tr><td>5</td><td>message_count</td><td>int</td><td>是</td><td></td><td>0</td><td>消息数量</td></tr>
+<tr><td>6</td><td>summary</td><td>text</td><td>是</td><td></td><td></td><td>对话摘要(LLM自动生成)</td></tr>
+<tr><td>7</td><td>status</td><td>tinyint</td><td>是</td><td></td><td>1</td><td>0=已删除 1=正常 2=归档</td></tr>
+<tr><td>8</td><td>create_time</td><td>datetime</td><td>是</td><td></td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+<tr><td>9</td><td>update_time</td><td>datetime</td><td>是</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+</table>
+<h3 id="ai_service_ai_knowledge_base">ai_knowledge_base — AI知识库表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td></td></tr>
+<tr><td>2</td><td>question</td><td>varchar(500)</td><td>否</td><td>MUL</td><td></td><td>问题</td></tr>
+<tr><td>3</td><td>answer</td><td>text</td><td>否</td><td></td><td></td><td>答案</td></tr>
+<tr><td>4</td><td>category_id</td><td>bigint</td><td>是</td><td>MUL</td><td></td><td>关联非遗分类ID(可空)</td></tr>
+<tr><td>5</td><td>keywords</td><td>varchar(500)</td><td>是</td><td></td><td></td><td>关键词(逗号分隔)</td></tr>
+<tr><td>6</td><td>hit_count</td><td>int</td><td>是</td><td></td><td>0</td><td>命中次数</td></tr>
+<tr><td>7</td><td>status</td><td>tinyint</td><td>是</td><td>MUL</td><td>1</td><td>0=禁用 1=启用</td></tr>
+<tr><td>8</td><td>create_time</td><td>datetime</td><td>是</td><td></td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+<tr><td>9</td><td>update_time</td><td>datetime</td><td>是</td><td></td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+</table>
+<h3 id="ai_service_ai_message">ai_message — AI消息表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td></td></tr>
+<tr><td>2</td><td>conversation_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>所属对话ID</td></tr>
+<tr><td>3</td><td>session_id</td><td>varchar(64)</td><td>否</td><td>MUL</td><td></td><td>会话标识(冗余加速查询)</td></tr>
+<tr><td>4</td><td>role</td><td>varchar(20)</td><td>否</td><td></td><td></td><td>system/user/assistant</td></tr>
+<tr><td>5</td><td>content</td><td>mediumtext</td><td>否</td><td></td><td></td><td>消息内容</td></tr>
+<tr><td>6</td><td>tokens</td><td>int</td><td>是</td><td></td><td>0</td><td>消耗token数</td></tr>
+<tr><td>7</td><td>model</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>使用的模型名</td></tr>
+<tr><td>8</td><td>sub_agent</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>处理该消息的子代理编码</td></tr>
+<tr><td>9</td><td>latency_ms</td><td>int</td><td>是</td><td></td><td></td><td>响应耗时(毫秒)</td></tr>
+<tr><td>10</td><td>create_time</td><td>datetime</td><td>是</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+</table>
+<h3 id="ai_service_ai_model_config">ai_model_config — AI模型配置表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>配置ID</td></tr>
+<tr><td>2</td><td>model_name</td><td>varchar(100)</td><td>否</td><td></td><td></td><td>模型名称</td></tr>
+<tr><td>3</td><td>model_key</td><td>varchar(100)</td><td>否</td><td>UNI</td><td></td><td>模型标识</td></tr>
+<tr><td>4</td><td>model_version</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>模型版本</td></tr>
+<tr><td>5</td><td>model_provider</td><td>varchar(100)</td><td>是</td><td></td><td></td><td>模型提供商</td></tr>
+<tr><td>6</td><td>api_key</td><td>varchar(255)</td><td>是</td><td></td><td></td><td>API密钥</td></tr>
+<tr><td>7</td><td>endpoint</td><td>varchar(255)</td><td>是</td><td></td><td></td><td>服务端点</td></tr>
+<tr><td>8</td><td>max_tokens</td><td>int</td><td>是</td><td></td><td></td><td>最大token数</td></tr>
+<tr><td>9</td><td>temperature</td><td>decimal(3,2)</td><td>是</td><td></td><td>0.70</td><td>温度参数</td></tr>
+<tr><td>10</td><td>status</td><td>tinyint</td><td>是</td><td>MUL</td><td>1</td><td>状态：0-禁用，1-启用</td></tr>
+<tr><td>11</td><td>description</td><td>text</td><td>是</td><td></td><td></td><td>模型描述</td></tr>
+<tr><td>12</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>13</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>14</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>15</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h3 id="ai_service_ai_prompt_config">ai_prompt_config — AI Prompt配置表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td></td></tr>
+<tr><td>2</td><td>prompt_key</td><td>varchar(100)</td><td>否</td><td>UNI</td><td></td><td>Prompt唯一标识</td></tr>
+<tr><td>3</td><td>prompt_name</td><td>varchar(100)</td><td>否</td><td></td><td></td><td>Prompt名称</td></tr>
+<tr><td>4</td><td>content</td><td>text</td><td>否</td><td></td><td></td><td>Prompt内容</td></tr>
+<tr><td>5</td><td>category</td><td>varchar(50)</td><td>是</td><td></td><td>system</td><td>system/agent/memory</td></tr>
+<tr><td>6</td><td>description</td><td>varchar(500)</td><td>是</td><td></td><td></td><td>说明</td></tr>
+<tr><td>7</td><td>status</td><td>tinyint</td><td>是</td><td></td><td>1</td><td>0=禁用 1=启用</td></tr>
+<tr><td>8</td><td>create_time</td><td>datetime</td><td>是</td><td></td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+<tr><td>9</td><td>update_time</td><td>datetime</td><td>是</td><td></td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+<tr><td>10</td><td>version</td><td>int</td><td>是</td><td></td><td>1</td><td>版本号</td></tr>
+<tr><td>11</td><td>is_active</td><td>tinyint</td><td>是</td><td></td><td>1</td><td>是否激活版本：1=激活, 0=历史</td></tr>
+</table>
+<h3 id="ai_service_ai_service_log">ai_service_log — AI服务调用记录表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>记录ID</td></tr>
+<tr><td>2</td><td>user_id</td><td>bigint</td><td>是</td><td>MUL</td><td></td><td>用户ID</td></tr>
+<tr><td>3</td><td>service_type</td><td>varchar(50)</td><td>否</td><td>MUL</td><td></td><td>服务类型</td></tr>
+<tr><td>4</td><td>request_data</td><td>text</td><td>是</td><td></td><td></td><td>请求数据</td></tr>
+<tr><td>5</td><td>response_data</td><td>longtext</td><td>是</td><td></td><td></td><td>响应数据</td></tr>
+<tr><td>6</td><td>status</td><td>tinyint</td><td>是</td><td></td><td>1</td><td>状态：0-失败，1-成功</td></tr>
+<tr><td>7</td><td>cost_time</td><td>int</td><td>是</td><td></td><td></td><td>耗时(毫秒)</td></tr>
+<tr><td>8</td><td>error_msg</td><td>text</td><td>是</td><td></td><td></td><td>错误信息</td></tr>
+<tr><td>9</td><td>create_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>10</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>11</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>12</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+<tr><td>13</td><td>create_by</td><td>bigint</td><td>是</td><td></td><td></td><td>创建人ID</td></tr>
+<tr><td>14</td><td>update_by</td><td>bigint</td><td>是</td><td></td><td></td><td>更新人ID</td></tr>
+</table>
+<h3 id="ai_service_ai_skill_config">ai_skill_config — AI技能配置表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">skill_id</td><td>varchar(64)</td><td>否</td><td>PRI</td><td></td><td>Skill唯一标识</td></tr>
+<tr><td>2</td><td>skill_name</td><td>varchar(128)</td><td>否</td><td></td><td></td><td>Skill名称</td></tr>
+<tr><td>3</td><td>description</td><td>text</td><td>是</td><td></td><td></td><td>Skill描述</td></tr>
+<tr><td>4</td><td>system_prompt</td><td>text</td><td>是</td><td></td><td></td><td>Skill的系统Prompt</td></tr>
+<tr><td>5</td><td>keywords</td><td>varchar(512)</td><td>是</td><td></td><td></td><td>关键词，多个用逗号分隔</td></tr>
+<tr><td>6</td><td>enabled</td><td>tinyint(1)</td><td>是</td><td></td><td>1</td><td>是否启用：0-禁用，1-启用</td></tr>
+<tr><td>7</td><td>display_order</td><td>int</td><td>是</td><td></td><td>0</td><td>显示顺序</td></tr>
+<tr><td>8</td><td>created_at</td><td>datetime</td><td>是</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>9</td><td>updated_at</td><td>datetime</td><td>是</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>10</td><td>created_by</td><td>varchar(64)</td><td>是</td><td></td><td></td><td>创建人</td></tr>
+<tr><td>11</td><td>updated_by</td><td>varchar(64)</td><td>是</td><td></td><td></td><td>更新人</td></tr>
+<tr><td>12</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号，用于缓存刷新</td></tr>
+</table>
+<h3 id="ai_service_ai_system_memory">ai_system_memory — 系统全局记忆(第四层)</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td></td></tr>
+<tr><td>2</td><td>memory_type</td><td>varchar(20)</td><td>否</td><td>MUL</td><td></td><td>policy/pattern/decision/insight/directive</td></tr>
+<tr><td>3</td><td>memory_key</td><td>varchar(100)</td><td>否</td><td>UNI</td><td></td><td>记忆唯一键</td></tr>
+<tr><td>4</td><td>memory_value</td><td>text</td><td>否</td><td></td><td></td><td>记忆内容</td></tr>
+<tr><td>5</td><td>created_by</td><td>varchar(50)</td><td>是</td><td></td><td>system</td><td>创建者(admin/ultra_ai/system)</td></tr>
+<tr><td>6</td><td>confidence</td><td>decimal(3,2)</td><td>是</td><td></td><td>0.80</td><td>置信度 0.50-1.00</td></tr>
+<tr><td>7</td><td>hit_count</td><td>int</td><td>是</td><td></td><td>0</td><td>命中次数</td></tr>
+<tr><td>8</td><td>is_active</td><td>tinyint</td><td>是</td><td>MUL</td><td>1</td><td>1=有效, 0=已失效</td></tr>
+<tr><td>9</td><td>create_time</td><td>datetime</td><td>是</td><td></td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+<tr><td>10</td><td>update_time</td><td>datetime</td><td>是</td><td></td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+</table>
+<h3 id="ai_service_ai_trace_log">ai_trace_log — AI追踪日志表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td></td></tr>
+<tr><td>2</td><td>trace_id</td><td>varchar(64)</td><td>否</td><td>MUL</td><td></td><td>追踪链路ID</td></tr>
+<tr><td>3</td><td>conversation_id</td><td>bigint</td><td>是</td><td>MUL</td><td></td><td>关联对话ID</td></tr>
+<tr><td>4</td><td>user_id</td><td>bigint</td><td>是</td><td>MUL</td><td></td><td>用户ID</td></tr>
+<tr><td>5</td><td>user_query</td><td>text</td><td>是</td><td></td><td></td><td>用户原始问题</td></tr>
+<tr><td>6</td><td>intent</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>识别到的意图</td></tr>
+<tr><td>7</td><td>sub_agent</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>实际调度的子代理</td></tr>
+<tr><td>8</td><td>model</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>使用的模型</td></tr>
+<tr><td>9</td><td>input_tokens</td><td>int</td><td>是</td><td></td><td>0</td><td>输入token数</td></tr>
+<tr><td>10</td><td>output_tokens</td><td>int</td><td>是</td><td></td><td>0</td><td>输出token数</td></tr>
+<tr><td>11</td><td>latency_ms</td><td>int</td><td>是</td><td></td><td>0</td><td>总耗时(毫秒)</td></tr>
+<tr><td>12</td><td>self_score</td><td>decimal(3,1)</td><td>是</td><td></td><td></td><td>AI自评分(0.0-10.0)</td></tr>
+<tr><td>13</td><td>status</td><td>varchar(20)</td><td>是</td><td></td><td>success</td><td>success/error/timeout</td></tr>
+<tr><td>14</td><td>error_message</td><td>text</td><td>是</td><td></td><td></td><td>错误信息</td></tr>
+<tr><td>15</td><td>user_feedback</td><td>tinyint</td><td>是</td><td></td><td></td><td>用户反馈: 1=点赞, -1=踩</td></tr>
+<tr><td>16</td><td>create_time</td><td>datetime</td><td>是</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+<tr><td>17</td><td>accuracy_score</td><td>decimal(3,1)</td><td>是</td><td></td><td></td><td>准确性评分 0-10</td></tr>
+<tr><td>18</td><td>completeness_score</td><td>decimal(3,1)</td><td>是</td><td></td><td></td><td>完整性评分 0-10</td></tr>
+<tr><td>19</td><td>safety_score</td><td>decimal(3,1)</td><td>是</td><td></td><td></td><td>安全性评分 0-10</td></tr>
+<tr><td>20</td><td>cost_rmb</td><td>decimal(10,6)</td><td>是</td><td></td><td></td><td>API调用成本(人民币)</td></tr>
+</table>
+<h3 id="ai_service_ai_trace_span">ai_trace_span — AI 嵌套追踪 Span</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td></td></tr>
+<tr><td>2</td><td>trace_id</td><td>varchar(32)</td><td>否</td><td>MUL</td><td></td><td>关联 ai_trace_log.trace_id</td></tr>
+<tr><td>3</td><td>span_id</td><td>varchar(64)</td><td>否</td><td></td><td></td><td>本 Span 唯一 ID</td></tr>
+<tr><td>4</td><td>parent_span_id</td><td>varchar(64)</td><td>是</td><td></td><td></td><td>父 Span ID（根 Span 为 NULL）</td></tr>
+<tr><td>5</td><td>span_type</td><td>varchar(20)</td><td>否</td><td>MUL</td><td></td><td>REQUEST/AGENT/TOOL/LLM/REPLAN/BLACKBOARD</td></tr>
+<tr><td>6</td><td>span_name</td><td>varchar(64)</td><td>否</td><td></td><td></td><td>Span 名称（agent代码/tool名/model名）</td></tr>
+<tr><td>7</td><td>duration_ms</td><td>int</td><td>是</td><td></td><td>0</td><td>耗时毫秒</td></tr>
+<tr><td>8</td><td>status</td><td>varchar(10)</td><td>是</td><td></td><td>success</td><td>success/error</td></tr>
+<tr><td>9</td><td>metadata</td><td>text</td><td>是</td><td></td><td></td><td>元数据 JSON</td></tr>
+<tr><td>10</td><td>create_time</td><td>datetime</td><td>是</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+</table>
+<h3 id="ai_service_ai_user_ai_config">ai_user_ai_config — 用户AI配置(Ultra控制)</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td></td></tr>
+<tr><td>2</td><td>user_id</td><td>bigint</td><td>否</td><td>UNI</td><td></td><td>被控制的用户ID</td></tr>
+<tr><td>3</td><td>ai_enabled</td><td>tinyint</td><td>是</td><td></td><td>1</td><td>1=启用, 0=禁用</td></tr>
+<tr><td>4</td><td>disabled_reason</td><td>varchar(200)</td><td>是</td><td></td><td></td><td>禁用原因</td></tr>
+<tr><td>5</td><td>disabled_by</td><td>bigint</td><td>是</td><td></td><td></td><td>操作管理员ID</td></tr>
+<tr><td>6</td><td>max_daily_queries</td><td>int</td><td>是</td><td></td><td>100</td><td>每日最大查询次数</td></tr>
+<tr><td>7</td><td>blocked_agents</td><td>varchar(500)</td><td>是</td><td></td><td></td><td>禁用的Agent列表(逗号分隔)</td></tr>
+<tr><td>8</td><td>create_time</td><td>datetime</td><td>是</td><td></td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+<tr><td>9</td><td>update_time</td><td>datetime</td><td>是</td><td></td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+</table>
+<h3 id="ai_service_ai_user_behavior">ai_user_behavior — 用户行为记录表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td></td></tr>
+<tr><td>2</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>用户ID</td></tr>
+<tr><td>3</td><td>item_id</td><td>bigint</td><td>是</td><td></td><td></td><td>关联项目/商品ID</td></tr>
+<tr><td>4</td><td>item_type</td><td>varchar(30)</td><td>否</td><td>MUL</td><td></td><td>ich_item/product/activity/post</td></tr>
+<tr><td>5</td><td>behavior_type</td><td>tinyint</td><td>否</td><td></td><td></td><td>1=浏览 2=收藏 3=购买 4=搜索 5=问AI</td></tr>
+<tr><td>6</td><td>keywords</td><td>varchar(255)</td><td>是</td><td></td><td></td><td>搜索/提问关键词</td></tr>
+<tr><td>7</td><td>create_time</td><td>datetime</td><td>是</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+</table>
+<h3 id="ai_service_ai_user_memory">ai_user_memory — 用户长期记忆表(跨会话画像)</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td></td></tr>
+<tr><td>2</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>用户ID</td></tr>
+<tr><td>3</td><td>memory_type</td><td>varchar(30)</td><td>否</td><td></td><td></td><td>记忆类型: preference/interest/fact/decision/lesson</td></tr>
+<tr><td>4</td><td>memory_key</td><td>varchar(100)</td><td>否</td><td></td><td></td><td>记忆键(如 interest_category, comm_style)</td></tr>
+<tr><td>5</td><td>memory_value</td><td>varchar(500)</td><td>否</td><td></td><td></td><td>记忆值(事实描述)</td></tr>
+<tr><td>6</td><td>confidence</td><td>decimal(3,2)</td><td>是</td><td></td><td>0.80</td><td>置信度(0.00-1.00)</td></tr>
+<tr><td>7</td><td>source</td><td>varchar(20)</td><td>是</td><td></td><td>conversation</td><td>来源: conversation/behavior/manual</td></tr>
+<tr><td>8</td><td>hit_count</td><td>int</td><td>是</td><td></td><td>0</td><td>被引用次数(用于价值衰减)</td></tr>
+<tr><td>9</td><td>status</td><td>tinyint</td><td>是</td><td>MUL</td><td>1</td><td>0=过期 1=有效</td></tr>
+<tr><td>10</td><td>create_time</td><td>datetime</td><td>是</td><td></td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+<tr><td>11</td><td>update_time</td><td>datetime</td><td>是</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+</table>
+<h2>📁 系统管理库（system_manage）— 共16张表</h2>
+<h3 id="system_manage_app_version">app_version — 应用版本表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>版本ID</td></tr>
+<tr><td>2</td><td>version_code</td><td>int</td><td>否</td><td></td><td></td><td>版本号(数字)</td></tr>
+<tr><td>3</td><td>version_name</td><td>varchar(50)</td><td>否</td><td></td><td></td><td>版本名称</td></tr>
+<tr><td>4</td><td>platform</td><td>tinyint</td><td>否</td><td>MUL</td><td></td><td>平台：1-Android 2-iOS</td></tr>
+<tr><td>5</td><td>update_type</td><td>tinyint</td><td>否</td><td></td><td>1</td><td>更新类型：1-普通更新 2-强制更新</td></tr>
+<tr><td>6</td><td>download_url</td><td>varchar(255)</td><td>否</td><td></td><td></td><td>下载地址</td></tr>
+<tr><td>7</td><td>update_content</td><td>text</td><td>否</td><td></td><td></td><td>更新内容</td></tr>
+<tr><td>8</td><td>file_size</td><td>bigint</td><td>是</td><td></td><td></td><td>文件大小(字节)</td></tr>
+<tr><td>9</td><td>is_released</td><td>tinyint(1)</td><td>是</td><td>MUL</td><td>0</td><td>是否发布：0-未发布 1-已发布</td></tr>
+<tr><td>10</td><td>release_time</td><td>datetime</td><td>是</td><td></td><td></td><td>发布时间</td></tr>
+<tr><td>11</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>12</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>13</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>14</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h3 id="system_manage_menu">menu — 菜单表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>菜单ID</td></tr>
+<tr><td>2</td><td>name</td><td>varchar(50)</td><td>否</td><td></td><td></td><td>菜单名称</td></tr>
+<tr><td>3</td><td>url</td><td>varchar(200)</td><td>是</td><td></td><td></td><td>菜单URL</td></tr>
+<tr><td>4</td><td>icon</td><td>varchar(100)</td><td>是</td><td></td><td></td><td>菜单图标</td></tr>
+<tr><td>5</td><td>sort</td><td>int</td><td>是</td><td></td><td>0</td><td>排序</td></tr>
+<tr><td>6</td><td>parent_id</td><td>bigint</td><td>是</td><td>MUL</td><td>0</td><td>父菜单ID</td></tr>
+<tr><td>7</td><td>permission</td><td>varchar(200)</td><td>是</td><td></td><td></td><td>权限标识</td></tr>
+<tr><td>8</td><td>type</td><td>tinyint</td><td>是</td><td></td><td>0</td><td>类型：0-目录，1-菜单，2-按钮</td></tr>
+<tr><td>9</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>10</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>11</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>逻辑删除：0-未删除，1-已删除</td></tr>
+<tr><td>12</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号</td></tr>
+</table>
+<h3 id="system_manage_role_menu">role_menu — 角色菜单关联表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td></td></tr>
+<tr><td>2</td><td>role_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>角色ID</td></tr>
+<tr><td>3</td><td>menu_id</td><td>bigint</td><td>否</td><td></td><td></td><td>菜单ID</td></tr>
+<tr><td>4</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>5</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>6</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>逻辑删除：0-未删除，1-已删除</td></tr>
+<tr><td>7</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号</td></tr>
+</table>
+<h3 id="system_manage_stat_content_access">stat_content_access — 内容访问统计表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>ID</td></tr>
+<tr><td>2</td><td>content_type</td><td>tinyint</td><td>否</td><td>MUL</td><td></td><td>内容类型：1-非遗项目 2-商品 3-文章</td></tr>
+<tr><td>3</td><td>content_id</td><td>bigint</td><td>否</td><td></td><td></td><td>内容ID</td></tr>
+<tr><td>4</td><td>view_count</td><td>int</td><td>是</td><td></td><td>0</td><td>浏览次数</td></tr>
+<tr><td>5</td><td>like_count</td><td>int</td><td>是</td><td></td><td>0</td><td>点赞数</td></tr>
+<tr><td>6</td><td>comment_count</td><td>int</td><td>是</td><td></td><td>0</td><td>评论数</td></tr>
+<tr><td>7</td><td>favorite_count</td><td>int</td><td>是</td><td></td><td>0</td><td>收藏数</td></tr>
+<tr><td>8</td><td>share_count</td><td>int</td><td>是</td><td></td><td>0</td><td>分享数</td></tr>
+<tr><td>9</td><td>stat_date</td><td>date</td><td>否</td><td>MUL</td><td></td><td>统计日期</td></tr>
+<tr><td>10</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>11</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>12</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h3 id="system_manage_stat_daily">stat_daily — 每日统计表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>统计ID</td></tr>
+<tr><td>2</td><td>stat_date</td><td>date</td><td>否</td><td>UNI</td><td></td><td>统计日期</td></tr>
+<tr><td>3</td><td>pv</td><td>int</td><td>是</td><td></td><td>0</td><td>页面访问量</td></tr>
+<tr><td>4</td><td>uv</td><td>int</td><td>是</td><td></td><td>0</td><td>独立访客数</td></tr>
+<tr><td>5</td><td>new_users</td><td>int</td><td>是</td><td></td><td>0</td><td>新增用户数</td></tr>
+<tr><td>6</td><td>order_count</td><td>int</td><td>是</td><td></td><td>0</td><td>订单数</td></tr>
+<tr><td>7</td><td>order_amount</td><td>decimal(10,2)</td><td>是</td><td></td><td>0.00</td><td>订单金额</td></tr>
+<tr><td>8</td><td>product_view_count</td><td>int</td><td>是</td><td></td><td>0</td><td>商品浏览数</td></tr>
+<tr><td>9</td><td>product_fav_count</td><td>int</td><td>是</td><td></td><td>0</td><td>商品收藏数</td></tr>
+<tr><td>10</td><td>content_view_count</td><td>int</td><td>是</td><td></td><td>0</td><td>内容浏览数</td></tr>
+<tr><td>11</td><td>content_comment_count</td><td>int</td><td>是</td><td></td><td>0</td><td>内容评论数</td></tr>
+<tr><td>12</td><td>create_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>13</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>14</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>15</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+<tr><td>16</td><td>create_by</td><td>bigint</td><td>是</td><td></td><td></td><td>创建人ID</td></tr>
+<tr><td>17</td><td>update_by</td><td>bigint</td><td>是</td><td></td><td></td><td>更新人ID</td></tr>
+<tr><td>18</td><td>transaction_id</td><td>varchar(100)</td><td>是</td><td>MUL</td><td></td><td>全局事务ID</td></tr>
+<tr><td>19</td><td>transaction_status</td><td>tinyint</td><td>是</td><td></td><td>0</td><td>事务状态：0-未开始，1-进行中，2-已完成，3-已回滚</td></tr>
+</table>
+<h3 id="system_manage_stat_user_active_daily">stat_user_active_daily — 用户活跃统计表(按天)</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>ID</td></tr>
+<tr><td>2</td><td>stat_date</td><td>date</td><td>否</td><td>UNI</td><td></td><td>统计日期</td></tr>
+<tr><td>3</td><td>active_user_count</td><td>int</td><td>是</td><td></td><td>0</td><td>活跃用户数</td></tr>
+<tr><td>4</td><td>new_user_count</td><td>int</td><td>是</td><td></td><td>0</td><td>新增用户数</td></tr>
+<tr><td>5</td><td>login_count</td><td>int</td><td>是</td><td></td><td>0</td><td>登录次数</td></tr>
+<tr><td>6</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>7</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>8</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h3 id="system_manage_sys_captcha">sys_captcha — 系统验证码表，用于存储图形验证码信息</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>ID</td></tr>
+<tr><td>2</td><td>uuid</td><td>varchar(36)</td><td>否</td><td>UNI</td><td></td><td>UUID</td></tr>
+<tr><td>3</td><td>code</td><td>varchar(6)</td><td>否</td><td></td><td></td><td>验证码</td></tr>
+<tr><td>4</td><td>expire_time</td><td>datetime</td><td>否</td><td>MUL</td><td></td><td>过期时间</td></tr>
+<tr><td>5</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>6</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>7</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>逻辑删除：0-未删除，1-已删除</td></tr>
+<tr><td>8</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号</td></tr>
+</table>
+<h3 id="system_manage_sys_config">sys_config — 系统配置表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>配置ID</td></tr>
+<tr><td>2</td><td>config_key</td><td>varchar(100)</td><td>否</td><td>UNI</td><td></td><td>配置键</td></tr>
+<tr><td>3</td><td>config_value</td><td>text</td><td>是</td><td></td><td></td><td>配置值</td></tr>
+<tr><td>4</td><td>config_name</td><td>varchar(100)</td><td>是</td><td></td><td></td><td>配置名称</td></tr>
+<tr><td>5</td><td>remark</td><td>varchar(500)</td><td>是</td><td></td><td></td><td>备注</td></tr>
+<tr><td>6</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>7</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>8</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>逻辑删除：0-未删除，1-已删除</td></tr>
+<tr><td>9</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号</td></tr>
+</table>
+<h3 id="system_manage_sys_file_upload">sys_file_upload — 文件上传记录表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>文件ID</td></tr>
+<tr><td>2</td><td>file_name</td><td>varchar(255)</td><td>否</td><td></td><td></td><td>原始文件名</td></tr>
+<tr><td>3</td><td>file_key</td><td>varchar(255)</td><td>否</td><td>MUL</td><td></td><td>文件存储key</td></tr>
+<tr><td>4</td><td>file_url</td><td>varchar(500)</td><td>否</td><td>MUL</td><td></td><td>文件访问URL</td></tr>
+<tr><td>5</td><td>file_type</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>文件类型</td></tr>
+<tr><td>6</td><td>file_size</td><td>bigint</td><td>是</td><td></td><td>0</td><td>文件大小(字节)</td></tr>
+<tr><td>7</td><td>upload_type</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>上传类型</td></tr>
+<tr><td>8</td><td>create_by</td><td>bigint</td><td>是</td><td>MUL</td><td></td><td>上传人ID</td></tr>
+<tr><td>9</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>10</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>11</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>逻辑删除：0-未删除，1-已删除</td></tr>
+<tr><td>12</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号</td></tr>
+</table>
+<h3 id="system_manage_sys_message">sys_message — 系统消息表，存储系统发送给用户的各种消息和通知</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>消息ID</td></tr>
+<tr><td>2</td><td>title</td><td>varchar(100)</td><td>否</td><td></td><td></td><td>消息标题</td></tr>
+<tr><td>3</td><td>content</td><td>text</td><td>否</td><td></td><td></td><td>消息内容</td></tr>
+<tr><td>4</td><td>message_type</td><td>tinyint</td><td>否</td><td>MUL</td><td></td><td>消息类型：1-系统公告，2-活动通知，3-订单通知，4-账户安全</td></tr>
+<tr><td>5</td><td>receiver_type</td><td>tinyint</td><td>否</td><td></td><td>0</td><td>接收者类型：0-全部用户，1-指定用户，2-指定角色</td></tr>
+<tr><td>6</td><td>receiver_ids</td><td>varchar(1000)</td><td>是</td><td></td><td></td><td>接收者ID，多个用逗号分隔</td></tr>
+<tr><td>7</td><td>is_published</td><td>tinyint(1)</td><td>是</td><td>MUL</td><td>0</td><td>是否发布：0-未发布，1-已发布</td></tr>
+<tr><td>8</td><td>publish_time</td><td>datetime</td><td>是</td><td></td><td></td><td>发布时间</td></tr>
+<tr><td>9</td><td>expire_time</td><td>datetime</td><td>是</td><td></td><td></td><td>过期时间</td></tr>
+<tr><td>10</td><td>create_by</td><td>bigint</td><td>是</td><td>MUL</td><td></td><td>创建人ID</td></tr>
+<tr><td>11</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>12</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>13</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>逻辑删除：0-未删除，1-已删除</td></tr>
+<tr><td>14</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号</td></tr>
+</table>
+<h3 id="system_manage_sys_operation_log">sys_operation_log — 操作日志表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>日志ID</td></tr>
+<tr><td>2</td><td>user_id</td><td>bigint</td><td>是</td><td>MUL</td><td></td><td>操作用户ID</td></tr>
+<tr><td>3</td><td>username</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>操作用户名</td></tr>
+<tr><td>4</td><td>module</td><td>varchar(50)</td><td>是</td><td>MUL</td><td></td><td>模块名</td></tr>
+<tr><td>5</td><td>operation</td><td>varchar(50)</td><td>是</td><td>MUL</td><td></td><td>操作类型</td></tr>
+<tr><td>6</td><td>method</td><td>varchar(200)</td><td>是</td><td></td><td></td><td>方法名</td></tr>
+<tr><td>7</td><td>request_method</td><td>varchar(10)</td><td>是</td><td></td><td></td><td>请求方式</td></tr>
+<tr><td>8</td><td>request_uri</td><td>varchar(500)</td><td>是</td><td></td><td></td><td>请求URI</td></tr>
+<tr><td>9</td><td>request_params</td><td>text</td><td>是</td><td></td><td></td><td>请求参数</td></tr>
+<tr><td>10</td><td>response_result</td><td>text</td><td>是</td><td></td><td></td><td>响应结果</td></tr>
+<tr><td>11</td><td>ip</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>IP地址</td></tr>
+<tr><td>12</td><td>user_agent</td><td>varchar(500)</td><td>是</td><td></td><td></td><td>用户代理</td></tr>
+<tr><td>13</td><td>status</td><td>tinyint</td><td>是</td><td>MUL</td><td>0</td><td>状态：0-成功，1-失败</td></tr>
+<tr><td>14</td><td>error_msg</td><td>text</td><td>是</td><td></td><td></td><td>错误信息</td></tr>
+<tr><td>15</td><td>execute_time</td><td>bigint</td><td>是</td><td></td><td></td><td>执行时长(毫秒)</td></tr>
+<tr><td>16</td><td>operation_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>操作时间</td></tr>
+<tr><td>17</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>18</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>19</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>20</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h3 id="system_manage_sys_role">sys_role — 角色表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>角色ID</td></tr>
+<tr><td>2</td><td>name</td><td>varchar(50)</td><td>否</td><td></td><td></td><td>角色名称</td></tr>
+<tr><td>3</td><td>code</td><td>varchar(50)</td><td>否</td><td>UNI</td><td></td><td>角色编码</td></tr>
+<tr><td>4</td><td>description</td><td>varchar(255)</td><td>是</td><td></td><td></td><td>描述</td></tr>
+<tr><td>5</td><td>status</td><td>tinyint(1)</td><td>是</td><td>MUL</td><td>1</td><td>状态：0-禁用，1-启用</td></tr>
+<tr><td>6</td><td>sort</td><td>int</td><td>是</td><td></td><td>0</td><td>排序</td></tr>
+<tr><td>7</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>8</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>9</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>10</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h3 id="system_manage_sys_user">sys_user — 系统用户表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>用户ID</td></tr>
+<tr><td>2</td><td>username</td><td>varchar(50)</td><td>否</td><td>UNI</td><td></td><td>用户名</td></tr>
+<tr><td>3</td><td>password</td><td>varchar(100)</td><td>否</td><td></td><td></td><td>密码</td></tr>
+<tr><td>4</td><td>nickname</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>昵称</td></tr>
+<tr><td>5</td><td>avatar</td><td>longtext</td><td>是</td><td></td><td></td><td>头像（Base64存储）</td></tr>
+<tr><td>6</td><td>email</td><td>varchar(100)</td><td>是</td><td></td><td></td><td>邮箱</td></tr>
+<tr><td>7</td><td>phone</td><td>varchar(20)</td><td>是</td><td></td><td></td><td>手机号</td></tr>
+<tr><td>8</td><td>status</td><td>tinyint(1)</td><td>是</td><td></td><td>1</td><td>状态：0-禁用，1-启用</td></tr>
+<tr><td>9</td><td>last_login_time</td><td>datetime</td><td>是</td><td></td><td></td><td>最后登录时间</td></tr>
+<tr><td>10</td><td>last_login_ip</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>最后登录IP</td></tr>
+<tr><td>11</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>12</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>13</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+</table>
+<h3 id="system_manage_sys_user_message">sys_user_message — 用户消息关联表，记录用户与消息的关联关系</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>ID</td></tr>
+<tr><td>2</td><td>message_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>消息ID</td></tr>
+<tr><td>3</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>用户ID</td></tr>
+<tr><td>4</td><td>is_read</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否已读：0-未读，1-已读</td></tr>
+<tr><td>5</td><td>read_time</td><td>datetime</td><td>是</td><td></td><td></td><td>阅读时间</td></tr>
+<tr><td>6</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>7</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>8</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>逻辑删除：0-未删除，1-已删除</td></tr>
+<tr><td>9</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号</td></tr>
+</table>
+<h3 id="system_manage_sys_user_role">sys_user_role — 用户角色关联表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>主键ID</td></tr>
+<tr><td>2</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>用户ID</td></tr>
+<tr><td>3</td><td>role_id</td><td>bigint</td><td>否</td><td></td><td></td><td>角色ID</td></tr>
+<tr><td>4</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+</table>
+<h3 id="system_manage_user_feedback">user_feedback — 用户反馈表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>反馈ID</td></tr>
+<tr><td>2</td><td>user_id</td><td>bigint</td><td>是</td><td>MUL</td><td></td><td>用户ID（未登录用户为null）</td></tr>
+<tr><td>3</td><td>feedback_type</td><td>tinyint</td><td>否</td><td></td><td></td><td>反馈类型：1-功能建议 2-问题反馈 3-其他</td></tr>
+<tr><td>4</td><td>content</td><td>text</td><td>否</td><td></td><td></td><td>反馈内容</td></tr>
+<tr><td>5</td><td>contact</td><td>varchar(100)</td><td>是</td><td></td><td></td><td>联系方式</td></tr>
+<tr><td>6</td><td>status</td><td>tinyint</td><td>是</td><td>MUL</td><td>0</td><td>处理状态：0-待处理 1-处理中 2-已处理</td></tr>
+<tr><td>7</td><td>handler_id</td><td>bigint</td><td>是</td><td></td><td></td><td>处理人ID</td></tr>
+<tr><td>8</td><td>handle_remark</td><td>text</td><td>是</td><td></td><td></td><td>处理备注</td></tr>
+<tr><td>9</td><td>handle_time</td><td>datetime</td><td>是</td><td></td><td></td><td>处理时间</td></tr>
+<tr><td>10</td><td>create_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>11</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>12</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>13</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h2>📁 公共基础库（common_db）— 共4张表</h2>
+<h3 id="common_db_browse_history">browse_history — 用户浏览历史(不可删除)</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td></td></tr>
+<tr><td>2</td><td>user_id</td><td>bigint</td><td>否</td><td>MUL</td><td></td><td>用户ID</td></tr>
+<tr><td>3</td><td>target_type</td><td>varchar(30)</td><td>否</td><td>MUL</td><td></td><td>浏览目标类型: ich_item/heritage_man/activity/product/knowledge</td></tr>
+<tr><td>4</td><td>target_id</td><td>bigint</td><td>否</td><td></td><td></td><td>浏览目标ID</td></tr>
+<tr><td>5</td><td>target_title</td><td>varchar(200)</td><td>是</td><td></td><td></td><td>浏览目标标题(冗余存储,避免跨库查询)</td></tr>
+<tr><td>6</td><td>browse_date</td><td>date</td><td>否</td><td>MUL</td><td></td><td>浏览日期(用于按天分组)</td></tr>
+<tr><td>7</td><td>browse_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>浏览时间(精确时间)</td></tr>
+<tr><td>8</td><td>duration_seconds</td><td>int</td><td>是</td><td></td><td>0</td><td>停留时长(秒)</td></tr>
+<tr><td>9</td><td>source</td><td>varchar(30)</td><td>是</td><td></td><td>web</td><td>来源: web/app/mini_program</td></tr>
+<tr><td>10</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td></td></tr>
+</table>
+<h3 id="common_db_sys_captcha">sys_captcha — 系统验证码</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>ID</td></tr>
+<tr><td>2</td><td>uuid</td><td>varchar(64)</td><td>否</td><td>UNI</td><td></td><td>UUID</td></tr>
+<tr><td>3</td><td>code</td><td>varchar(10)</td><td>否</td><td></td><td></td><td>验证码</td></tr>
+<tr><td>4</td><td>type</td><td>tinyint</td><td>否</td><td></td><td></td><td>类型：1-登录 2-注册 3-找回密码 4-修改手机号</td></tr>
+<tr><td>5</td><td>target</td><td>varchar(100)</td><td>否</td><td>MUL</td><td></td><td>目标（手机号/邮箱）</td></tr>
+<tr><td>6</td><td>expire_time</td><td>datetime</td><td>否</td><td>MUL</td><td></td><td>过期时间</td></tr>
+<tr><td>7</td><td>is_used</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否已使用：0-未使用 1-已使用</td></tr>
+<tr><td>8</td><td>create_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>9</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>10</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h3 id="common_db_sys_config">sys_config — 系统配置表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>配置ID</td></tr>
+<tr><td>2</td><td>config_key</td><td>varchar(100)</td><td>否</td><td>UNI</td><td></td><td>配置键</td></tr>
+<tr><td>3</td><td>config_value</td><td>text</td><td>是</td><td></td><td></td><td>配置值</td></tr>
+<tr><td>4</td><td>config_name</td><td>varchar(100)</td><td>是</td><td></td><td></td><td>配置名称</td></tr>
+<tr><td>5</td><td>description</td><td>varchar(500)</td><td>是</td><td></td><td></td><td>描述</td></tr>
+<tr><td>6</td><td>create_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>7</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>8</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>9</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<h3 id="common_db_sys_file_upload">sys_file_upload — 文件上传记录表</h3>
+<table><tr><th>序号</th><th>字段名</th><th>类型</th><th>允许空</th><th>键</th><th>默认值</th><th>说明</th></tr>
+<tr><td>1</td><td class="pk">id</td><td>bigint</td><td>否</td><td>PRI</td><td></td><td>文件ID</td></tr>
+<tr><td>2</td><td>file_name</td><td>varchar(255)</td><td>否</td><td></td><td></td><td>文件名</td></tr>
+<tr><td>3</td><td>file_key</td><td>varchar(255)</td><td>否</td><td>MUL</td><td></td><td>文件key（七牛云存储）</td></tr>
+<tr><td>4</td><td>file_url</td><td>varchar(500)</td><td>否</td><td>MUL</td><td></td><td>文件URL</td></tr>
+<tr><td>5</td><td>file_size</td><td>bigint</td><td>否</td><td></td><td></td><td>文件大小（字节）</td></tr>
+<tr><td>6</td><td>file_type</td><td>varchar(100)</td><td>是</td><td></td><td></td><td>文件类型</td></tr>
+<tr><td>7</td><td>storage_type</td><td>varchar(20)</td><td>是</td><td></td><td>QINIU</td><td>存储类型：LOCAL-本地，QINIU-七牛云，ALIYUN-阿里云</td></tr>
+<tr><td>8</td><td>biz_type</td><td>varchar(50)</td><td>是</td><td>MUL</td><td></td><td>业务类型</td></tr>
+<tr><td>9</td><td>biz_id</td><td>varchar(64)</td><td>是</td><td></td><td></td><td>业务ID</td></tr>
+<tr><td>10</td><td>upload_user_id</td><td>bigint</td><td>是</td><td>MUL</td><td></td><td>上传用户ID</td></tr>
+<tr><td>11</td><td>upload_ip</td><td>varchar(50)</td><td>是</td><td></td><td></td><td>上传IP</td></tr>
+<tr><td>12</td><td>create_time</td><td>datetime</td><td>否</td><td>MUL</td><td>CURRENT_TIMESTAMP</td><td>创建时间</td></tr>
+<tr><td>13</td><td>update_time</td><td>datetime</td><td>否</td><td></td><td>CURRENT_TIMESTAMP</td><td>更新时间</td></tr>
+<tr><td>14</td><td>is_deleted</td><td>tinyint(1)</td><td>是</td><td></td><td>0</td><td>是否删除：0-未删除，1-已删除</td></tr>
+<tr><td>15</td><td>version</td><td>int</td><td>是</td><td></td><td>0</td><td>版本号（乐观锁）</td></tr>
+</table>
+<p style="text-align:center;color:#999;margin:30px 0;font-size:12px">自动生成于 MySQL 8.0 information_schema</p>
+</body></html>

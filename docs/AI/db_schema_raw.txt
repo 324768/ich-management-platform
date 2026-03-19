@@ -1,0 +1,899 @@
+﻿db_name	tbl	col	type	nullable	key_type	comment
+ai_service	ai_agent_config	id	bigint	NO	PRI	
+ai_service	ai_agent_config	agent_code	varchar(50)	NO	UNI	浠ｇ悊缂栫爜(鍞竴鏍囪瘑)
+ai_service	ai_agent_config	agent_name	varchar(100)	NO		浠ｇ悊鍚嶇О
+ai_service	ai_agent_config	icon	varchar(100)	YES		鍥炬爣
+ai_service	ai_agent_config	description	varchar(500)	YES		鍔熻兘鎻忚堪(褰卞搷璺敱閫夋嫨)
+ai_service	ai_agent_config	system_prompt	text	YES		绯荤粺鎻愮ず璇?
+ai_service	ai_agent_config	routing_keywords	varchar(1000)	YES		璺敱鍏抽敭璇?JSON鏁扮粍)
+ai_service	ai_agent_config	knowledge_base_id	bigint	YES		缁戝畾鐨勭煡璇嗗簱鍒嗙被ID(鍙┖)
+ai_service	ai_agent_config	fallback_strategy	varchar(50)	YES		闄嶇骇绛栫暐: general/empty/error
+ai_service	ai_agent_config	sort	int	YES		鎺掑簭鍙?瓒婂皬瓒婁紭鍏?
+ai_service	ai_agent_config	status	tinyint	YES	MUL	0=鍋滅敤 1=鍚敤
+ai_service	ai_agent_config	version	bigint	YES		鐗堟湰鍙?缂撳瓨澶辨晥鎺у埗)
+ai_service	ai_agent_config	create_time	datetime	YES		
+ai_service	ai_agent_config	update_time	datetime	YES		
+ai_service	ai_conversation	id	bigint	NO	PRI	
+ai_service	ai_conversation	user_id	bigint	NO	MUL	鐢ㄦ埛ID
+ai_service	ai_conversation	session_id	varchar(64)	NO	UNI	浼氳瘽鍞竴鏍囪瘑(UUID)
+ai_service	ai_conversation	title	varchar(100)	YES		瀵硅瘽鏍囬(AI鑷姩鐢熸垚)
+ai_service	ai_conversation	message_count	int	YES		娑堟伅鏁伴噺
+ai_service	ai_conversation	summary	text	YES		瀵硅瘽鎽樿(LLM鑷姩鐢熸垚)
+ai_service	ai_conversation	status	tinyint	YES		0=宸插垹闄?1=姝ｅ父 2=褰掓。
+ai_service	ai_conversation	create_time	datetime	YES		
+ai_service	ai_conversation	update_time	datetime	YES	MUL	
+ai_service	ai_knowledge_base	id	bigint	NO	PRI	
+ai_service	ai_knowledge_base	question	varchar(500)	NO	MUL	闂
+ai_service	ai_knowledge_base	answer	text	NO		绛旀
+ai_service	ai_knowledge_base	category_id	bigint	YES	MUL	鍏宠仈闈為仐鍒嗙被ID(鍙┖)
+ai_service	ai_knowledge_base	keywords	varchar(500)	YES		鍏抽敭璇?閫楀彿鍒嗛殧)
+ai_service	ai_knowledge_base	hit_count	int	YES		鍛戒腑娆℃暟
+ai_service	ai_knowledge_base	status	tinyint	YES	MUL	0=绂佺敤 1=鍚敤
+ai_service	ai_knowledge_base	create_time	datetime	YES		
+ai_service	ai_knowledge_base	update_time	datetime	YES		
+ai_service	ai_message	id	bigint	NO	PRI	
+ai_service	ai_message	conversation_id	bigint	NO	MUL	鎵€灞炲璇滻D
+ai_service	ai_message	session_id	varchar(64)	NO	MUL	浼氳瘽鏍囪瘑(鍐椾綑鍔犻€熸煡璇?
+ai_service	ai_message	role	varchar(20)	NO		system/user/assistant
+ai_service	ai_message	content	mediumtext	NO		娑堟伅鍐呭
+ai_service	ai_message	tokens	int	YES		娑堣€梩oken鏁?
+ai_service	ai_message	model	varchar(50)	YES		浣跨敤鐨勬ā鍨嬪悕
+ai_service	ai_message	sub_agent	varchar(50)	YES		澶勭悊璇ユ秷鎭殑瀛愪唬鐞嗙紪鐮?
+ai_service	ai_message	latency_ms	int	YES		鍝嶅簲鑰楁椂(姣)
+ai_service	ai_message	create_time	datetime	YES	MUL	
+ai_service	ai_model_config	id	bigint	NO	PRI	閰嶇疆ID
+ai_service	ai_model_config	model_name	varchar(100)	NO		妯″瀷鍚嶇О
+ai_service	ai_model_config	model_key	varchar(100)	NO	UNI	妯″瀷鏍囪瘑
+ai_service	ai_model_config	model_version	varchar(50)	YES		妯″瀷鐗堟湰
+ai_service	ai_model_config	model_provider	varchar(100)	YES		妯″瀷鎻愪緵鍟?
+ai_service	ai_model_config	api_key	varchar(255)	YES		API瀵嗛挜
+ai_service	ai_model_config	endpoint	varchar(255)	YES		鏈嶅姟绔偣
+ai_service	ai_model_config	max_tokens	int	YES		鏈€澶oken鏁?
+ai_service	ai_model_config	temperature	decimal(3,2)	YES		娓╁害鍙傛暟
+ai_service	ai_model_config	status	tinyint	YES	MUL	鐘舵€侊細0-绂佺敤锛?-鍚敤
+ai_service	ai_model_config	description	text	YES		妯″瀷鎻忚堪
+ai_service	ai_model_config	create_time	datetime	NO		鍒涘缓鏃堕棿
+ai_service	ai_model_config	update_time	datetime	NO		鏇存柊鏃堕棿
+ai_service	ai_model_config	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+ai_service	ai_model_config	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+ai_service	ai_prompt_config	id	bigint	NO	PRI	
+ai_service	ai_prompt_config	prompt_key	varchar(100)	NO	UNI	Prompt鍞竴鏍囪瘑
+ai_service	ai_prompt_config	prompt_name	varchar(100)	NO		Prompt鍚嶇О
+ai_service	ai_prompt_config	content	text	NO		Prompt鍐呭
+ai_service	ai_prompt_config	category	varchar(50)	YES		system/agent/memory
+ai_service	ai_prompt_config	description	varchar(500)	YES		璇存槑
+ai_service	ai_prompt_config	status	tinyint	YES		0=绂佺敤 1=鍚敤
+ai_service	ai_prompt_config	create_time	datetime	YES		
+ai_service	ai_prompt_config	update_time	datetime	YES		
+ai_service	ai_prompt_config	version	int	YES		鐗堟湰鍙?
+ai_service	ai_prompt_config	is_active	tinyint	YES		鏄惁婵€娲荤増鏈細1=婵€娲? 0=鍘嗗彶
+ai_service	ai_service_log	id	bigint	NO	PRI	璁板綍ID
+ai_service	ai_service_log	user_id	bigint	YES	MUL	鐢ㄦ埛ID
+ai_service	ai_service_log	service_type	varchar(50)	NO	MUL	鏈嶅姟绫诲瀷
+ai_service	ai_service_log	request_data	text	YES		璇锋眰鏁版嵁
+ai_service	ai_service_log	response_data	longtext	YES		鍝嶅簲鏁版嵁
+ai_service	ai_service_log	status	tinyint	YES		鐘舵€侊細0-澶辫触锛?-鎴愬姛
+ai_service	ai_service_log	cost_time	int	YES		鑰楁椂(姣)
+ai_service	ai_service_log	error_msg	text	YES		閿欒淇℃伅
+ai_service	ai_service_log	create_time	datetime	NO	MUL	鍒涘缓鏃堕棿
+ai_service	ai_service_log	update_time	datetime	NO		鏇存柊鏃堕棿
+ai_service	ai_service_log	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+ai_service	ai_service_log	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+ai_service	ai_service_log	create_by	bigint	YES		鍒涘缓浜篒D
+ai_service	ai_service_log	update_by	bigint	YES		鏇存柊浜篒D
+ai_service	ai_skill_config	skill_id	varchar(64)	NO	PRI	Skill鍞竴鏍囪瘑
+ai_service	ai_skill_config	skill_name	varchar(128)	NO		Skill鍚嶇О
+ai_service	ai_skill_config	description	text	YES		Skill鎻忚堪
+ai_service	ai_skill_config	system_prompt	text	YES		Skill鐨勭郴缁烶rompt
+ai_service	ai_skill_config	keywords	varchar(512)	YES		鍏抽敭璇嶏紝澶氫釜鐢ㄩ€楀彿鍒嗛殧
+ai_service	ai_skill_config	enabled	tinyint(1)	YES		鏄惁鍚敤锛?-绂佺敤锛?-鍚敤
+ai_service	ai_skill_config	display_order	int	YES		鏄剧ず椤哄簭
+ai_service	ai_skill_config	created_at	datetime	YES		鍒涘缓鏃堕棿
+ai_service	ai_skill_config	updated_at	datetime	YES		鏇存柊鏃堕棿
+ai_service	ai_skill_config	created_by	varchar(64)	YES		鍒涘缓浜?
+ai_service	ai_skill_config	updated_by	varchar(64)	YES		鏇存柊浜?
+ai_service	ai_skill_config	version	int	YES		鐗堟湰鍙凤紝鐢ㄤ簬缂撳瓨鍒锋柊
+ai_service	ai_system_memory	id	bigint	NO	PRI	
+ai_service	ai_system_memory	memory_type	varchar(20)	NO	MUL	policy/pattern/decision/insight/directive
+ai_service	ai_system_memory	memory_key	varchar(100)	NO	UNI	璁板繂鍞竴閿?
+ai_service	ai_system_memory	memory_value	text	NO		璁板繂鍐呭
+ai_service	ai_system_memory	created_by	varchar(50)	YES		鍒涘缓鑰?admin/ultra_ai/system)
+ai_service	ai_system_memory	confidence	decimal(3,2)	YES		缃俊搴?0.50-1.00
+ai_service	ai_system_memory	hit_count	int	YES		鍛戒腑娆℃暟
+ai_service	ai_system_memory	is_active	tinyint	YES	MUL	1=鏈夋晥, 0=宸插け鏁?
+ai_service	ai_system_memory	create_time	datetime	YES		
+ai_service	ai_system_memory	update_time	datetime	YES		
+ai_service	ai_trace_log	id	bigint	NO	PRI	
+ai_service	ai_trace_log	trace_id	varchar(64)	NO	MUL	杩借釜閾捐矾ID
+ai_service	ai_trace_log	conversation_id	bigint	YES	MUL	鍏宠仈瀵硅瘽ID
+ai_service	ai_trace_log	user_id	bigint	YES	MUL	鐢ㄦ埛ID
+ai_service	ai_trace_log	user_query	text	YES		鐢ㄦ埛鍘熷闂
+ai_service	ai_trace_log	intent	varchar(50)	YES		璇嗗埆鍒扮殑鎰忓浘
+ai_service	ai_trace_log	sub_agent	varchar(50)	YES		瀹為檯璋冨害鐨勫瓙浠ｇ悊
+ai_service	ai_trace_log	model	varchar(50)	YES		浣跨敤鐨勬ā鍨?
+ai_service	ai_trace_log	input_tokens	int	YES		杈撳叆token鏁?
+ai_service	ai_trace_log	output_tokens	int	YES		杈撳嚭token鏁?
+ai_service	ai_trace_log	latency_ms	int	YES		鎬昏€楁椂(姣)
+ai_service	ai_trace_log	self_score	decimal(3,1)	YES		AI鑷瘎鍒?0.0-10.0)
+ai_service	ai_trace_log	status	varchar(20)	YES		success/error/timeout
+ai_service	ai_trace_log	error_message	text	YES		閿欒淇℃伅
+ai_service	ai_trace_log	user_feedback	tinyint	YES		鐢ㄦ埛鍙嶉: 1=鐐硅禐, -1=韪?
+ai_service	ai_trace_log	create_time	datetime	YES	MUL	
+ai_service	ai_trace_log	accuracy_score	decimal(3,1)	YES		鍑嗙‘鎬ц瘎鍒?0-10
+ai_service	ai_trace_log	completeness_score	decimal(3,1)	YES		瀹屾暣鎬ц瘎鍒?0-10
+ai_service	ai_trace_log	safety_score	decimal(3,1)	YES		瀹夊叏鎬ц瘎鍒?0-10
+ai_service	ai_trace_log	cost_rmb	decimal(10,6)	YES		API璋冪敤鎴愭湰(浜烘皯甯?
+ai_service	ai_trace_span	id	bigint	NO	PRI	
+ai_service	ai_trace_span	trace_id	varchar(32)	NO	MUL	鍏宠仈 ai_trace_log.trace_id
+ai_service	ai_trace_span	span_id	varchar(64)	NO		鏈?Span 鍞竴 ID
+ai_service	ai_trace_span	parent_span_id	varchar(64)	YES		鐖?Span ID锛堟牴 Span 涓?NULL锛?
+ai_service	ai_trace_span	span_type	varchar(20)	NO	MUL	REQUEST/AGENT/TOOL/LLM/REPLAN/BLACKBOARD
+ai_service	ai_trace_span	span_name	varchar(64)	NO		Span 鍚嶇О锛坅gent浠ｇ爜/tool鍚?model鍚嶏級
+ai_service	ai_trace_span	duration_ms	int	YES		鑰楁椂姣
+ai_service	ai_trace_span	status	varchar(10)	YES		success/error
+ai_service	ai_trace_span	metadata	text	YES		鍏冩暟鎹?JSON
+ai_service	ai_trace_span	create_time	datetime	YES	MUL	
+ai_service	ai_user_ai_config	id	bigint	NO	PRI	
+ai_service	ai_user_ai_config	user_id	bigint	NO	UNI	琚帶鍒剁殑鐢ㄦ埛ID
+ai_service	ai_user_ai_config	ai_enabled	tinyint	YES		1=鍚敤, 0=绂佺敤
+ai_service	ai_user_ai_config	disabled_reason	varchar(200)	YES		绂佺敤鍘熷洜
+ai_service	ai_user_ai_config	disabled_by	bigint	YES		鎿嶄綔绠＄悊鍛業D
+ai_service	ai_user_ai_config	max_daily_queries	int	YES		姣忔棩鏈€澶ф煡璇㈡鏁?
+ai_service	ai_user_ai_config	blocked_agents	varchar(500)	YES		绂佺敤鐨凙gent鍒楄〃(閫楀彿鍒嗛殧)
+ai_service	ai_user_ai_config	create_time	datetime	YES		
+ai_service	ai_user_ai_config	update_time	datetime	YES		
+ai_service	ai_user_behavior	id	bigint	NO	PRI	
+ai_service	ai_user_behavior	user_id	bigint	NO	MUL	鐢ㄦ埛ID
+ai_service	ai_user_behavior	item_id	bigint	YES		鍏宠仈椤圭洰/鍟嗗搧ID
+ai_service	ai_user_behavior	item_type	varchar(30)	NO	MUL	ich_item/product/activity/post
+ai_service	ai_user_behavior	behavior_type	tinyint	NO		1=娴忚 2=鏀惰棌 3=璐拱 4=鎼滅储 5=闂瓵I
+ai_service	ai_user_behavior	keywords	varchar(255)	YES		鎼滅储/鎻愰棶鍏抽敭璇?
+ai_service	ai_user_behavior	create_time	datetime	YES	MUL	
+ai_service	ai_user_memory	id	bigint	NO	PRI	
+ai_service	ai_user_memory	user_id	bigint	NO	MUL	鐢ㄦ埛ID
+ai_service	ai_user_memory	memory_type	varchar(30)	NO		璁板繂绫诲瀷: preference/interest/fact/decision/lesson
+ai_service	ai_user_memory	memory_key	varchar(100)	NO		璁板繂閿?濡?interest_category, comm_style)
+ai_service	ai_user_memory	memory_value	varchar(500)	NO		璁板繂鍊?浜嬪疄鎻忚堪)
+ai_service	ai_user_memory	confidence	decimal(3,2)	YES		缃俊搴?0.00-1.00)
+ai_service	ai_user_memory	source	varchar(20)	YES		鏉ユ簮: conversation/behavior/manual
+ai_service	ai_user_memory	hit_count	int	YES		琚紩鐢ㄦ鏁?鐢ㄤ簬浠峰€艰“鍑?
+ai_service	ai_user_memory	status	tinyint	YES	MUL	0=杩囨湡 1=鏈夋晥
+ai_service	ai_user_memory	create_time	datetime	YES		
+ai_service	ai_user_memory	update_time	datetime	YES	MUL	
+common_db	browse_history	id	bigint	NO	PRI	
+common_db	browse_history	user_id	bigint	NO	MUL	鐢ㄦ埛ID
+common_db	browse_history	target_type	varchar(30)	NO	MUL	娴忚鐩爣绫诲瀷: ich_item/heritage_man/activity/product/knowledge
+common_db	browse_history	target_id	bigint	NO		娴忚鐩爣ID
+common_db	browse_history	target_title	varchar(200)	YES		娴忚鐩爣鏍囬(鍐椾綑瀛樺偍,閬垮厤璺ㄥ簱鏌ヨ)
+common_db	browse_history	browse_date	date	NO	MUL	娴忚鏃ユ湡(鐢ㄤ簬鎸夊ぉ鍒嗙粍)
+common_db	browse_history	browse_time	datetime	NO		娴忚鏃堕棿(绮剧‘鏃堕棿)
+common_db	browse_history	duration_seconds	int	YES		鍋滅暀鏃堕暱(绉?
+common_db	browse_history	source	varchar(30)	YES		鏉ユ簮: web/app/mini_program
+common_db	browse_history	create_time	datetime	NO		
+common_db	sys_captcha	id	bigint	NO	PRI	ID
+common_db	sys_captcha	uuid	varchar(64)	NO	UNI	UUID
+common_db	sys_captcha	code	varchar(10)	NO		楠岃瘉鐮?
+common_db	sys_captcha	type	tinyint	NO		绫诲瀷锛?-鐧诲綍 2-娉ㄥ唽 3-鎵惧洖瀵嗙爜 4-淇敼鎵嬫満鍙?
+common_db	sys_captcha	target	varchar(100)	NO	MUL	鐩爣锛堟墜鏈哄彿/閭锛?
+common_db	sys_captcha	expire_time	datetime	NO	MUL	杩囨湡鏃堕棿
+common_db	sys_captcha	is_used	tinyint(1)	YES		鏄惁宸蹭娇鐢細0-鏈娇鐢?1-宸蹭娇鐢?
+common_db	sys_captcha	create_time	datetime	NO		鍒涘缓鏃堕棿
+common_db	sys_captcha	update_time	datetime	NO		鏇存柊鏃堕棿
+common_db	sys_captcha	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+common_db	sys_config	id	bigint	NO	PRI	閰嶇疆ID
+common_db	sys_config	config_key	varchar(100)	NO	UNI	閰嶇疆閿?
+common_db	sys_config	config_value	text	YES		閰嶇疆鍊?
+common_db	sys_config	config_name	varchar(100)	YES		閰嶇疆鍚嶇О
+common_db	sys_config	description	varchar(500)	YES		鎻忚堪
+common_db	sys_config	create_time	datetime	NO	MUL	鍒涘缓鏃堕棿
+common_db	sys_config	update_time	datetime	NO		鏇存柊鏃堕棿
+common_db	sys_config	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+common_db	sys_config	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+common_db	sys_file_upload	id	bigint	NO	PRI	鏂囦欢ID
+common_db	sys_file_upload	file_name	varchar(255)	NO		鏂囦欢鍚?
+common_db	sys_file_upload	file_key	varchar(255)	NO	MUL	鏂囦欢key锛堜竷鐗涗簯瀛樺偍锛?
+common_db	sys_file_upload	file_url	varchar(500)	NO	MUL	鏂囦欢URL
+common_db	sys_file_upload	file_size	bigint	NO		鏂囦欢澶у皬锛堝瓧鑺傦級
+common_db	sys_file_upload	file_type	varchar(100)	YES		鏂囦欢绫诲瀷
+common_db	sys_file_upload	storage_type	varchar(20)	YES		瀛樺偍绫诲瀷锛歀OCAL-鏈湴锛孮INIU-涓冪墰浜戯紝ALIYUN-闃块噷浜?
+common_db	sys_file_upload	biz_type	varchar(50)	YES	MUL	涓氬姟绫诲瀷
+common_db	sys_file_upload	biz_id	varchar(64)	YES		涓氬姟ID
+common_db	sys_file_upload	upload_user_id	bigint	YES	MUL	涓婁紶鐢ㄦ埛ID
+common_db	sys_file_upload	upload_ip	varchar(50)	YES		涓婁紶IP
+common_db	sys_file_upload	create_time	datetime	NO	MUL	鍒涘缓鏃堕棿
+common_db	sys_file_upload	update_time	datetime	NO		鏇存柊鏃堕棿
+common_db	sys_file_upload	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+common_db	sys_file_upload	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+content_center	article	id	bigint	NO	PRI	鏂囩珷ID
+content_center	article	title	varchar(100)	NO		鏂囩珷鏍囬
+content_center	article	category_id	bigint	YES	MUL	鍒嗙被ID
+content_center	article	cover_image	longtext	YES		
+content_center	article	content	longtext	YES		鏂囩珷鍐呭
+content_center	article	view_count	int	YES		娴忚娆℃暟
+content_center	article	status	tinyint	YES	MUL	鐘舵€侊細0-绂佺敤锛?-姝ｅ父
+content_center	article	create_time	datetime	NO		鍒涘缓鏃堕棿
+content_center	article	update_time	datetime	NO		鏇存柊鏃堕棿
+content_center	article	is_deleted	tinyint(1)	YES		閫昏緫鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+content_center	article	version	int	YES		鐗堟湰鍙?
+content_center	article_category	id	bigint	NO	PRI	鍒嗙被ID
+content_center	article_category	name	varchar(50)	NO		鍒嗙被鍚嶇О
+content_center	article_category	sort	int	YES		鎺掑簭
+content_center	article_category	status	tinyint	YES		鐘舵€侊細0-绂佺敤锛?-姝ｅ父
+content_center	article_category	create_time	datetime	NO		鍒涘缓鏃堕棿
+content_center	article_category	update_time	datetime	NO		鏇存柊鏃堕棿
+content_center	article_category	is_deleted	tinyint(1)	YES		閫昏緫鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+content_center	article_category	version	int	YES		鐗堟湰鍙?
+content_center	content_comment	id	bigint	NO	PRI	璇勮ID
+content_center	content_comment	user_id	bigint	NO	MUL	璇勮鐢ㄦ埛ID
+content_center	content_comment	content_type	tinyint	NO	MUL	璇勮绫诲瀷锛?-闈為仐椤圭洰 2-鍟嗗搧 3-鏂囩珷
+content_center	content_comment	content_id	bigint	NO		璇勮鍐呭ID
+content_center	content_comment	parent_id	bigint	YES	MUL	鐖惰瘎璁篒D锛?琛ㄧず涓€绾ц瘎璁?
+content_center	content_comment	content	text	NO		璇勮鍐呭
+content_center	content_comment	like_count	int	YES		鐐硅禐鏁?
+content_center	content_comment	status	tinyint	YES		鐘舵€侊細0-寰呭鏍?1-鏄剧ず 2-闅愯棌
+content_center	content_comment	create_time	datetime	NO	MUL	鍒涘缓鏃堕棿
+content_center	content_comment	update_time	datetime	NO		鏇存柊鏃堕棿
+content_center	content_comment	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+content_center	content_comment	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+content_center	content_comment	create_by	bigint	YES		鍒涘缓浜篒D
+content_center	content_comment	update_by	bigint	YES		鏇存柊浜篒D
+content_center	content_comment_like	id	bigint	NO	PRI	涓婚敭ID
+content_center	content_comment_like	comment_id	bigint	NO	MUL	璇勮ID
+content_center	content_comment_like	user_id	bigint	NO	MUL	鐢ㄦ埛ID
+content_center	content_comment_like	create_time	datetime	NO		鍒涘缓鏃堕棿
+content_center	content_comment_like	update_time	datetime	NO		鏇存柊鏃堕棿
+content_center	content_comment_like	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+content_center	content_comment_like	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+content_center	ich_activity	id	bigint	NO	PRI	娲诲姩ID
+content_center	ich_activity	name	varchar(100)	NO		娲诲姩鍚嶇О
+content_center	ich_activity	activity_type	tinyint	NO	MUL	娲诲姩绫诲瀷锛?-灞曟紨 2-鐮斾範 3-璁插骇 4-灞曡 5-鍏朵粬
+content_center	ich_activity	cover_image	longtext	YES		
+content_center	ich_activity	description	text	YES		娲诲姩绠€浠?
+content_center	ich_activity	content	longtext	YES		娲诲姩璇︽儏锛堝瘜鏂囨湰锛?
+content_center	ich_activity	location	varchar(255)	YES		娲诲姩鍦扮偣
+content_center	ich_activity	start_time	datetime	YES	MUL	寮€濮嬫椂闂?
+content_center	ich_activity	end_time	datetime	YES		缁撴潫鏃堕棿
+content_center	ich_activity	max_participants	int	YES		鏈€澶у弬涓庝汉鏁帮紝0琛ㄧず涓嶉檺
+content_center	ich_activity	current_participants	int	YES		褰撳墠鎶ュ悕浜烘暟
+content_center	ich_activity	registration_deadline	datetime	YES		鎶ュ悕鎴鏃堕棿
+content_center	ich_activity	contact_person	varchar(50)	YES		鑱旂郴浜?
+content_center	ich_activity	contact_phone	varchar(20)	YES		鑱旂郴鐢佃瘽
+content_center	ich_activity	organizer	varchar(100)	YES		涓诲姙鏂?
+content_center	ich_activity	requester	varchar(100)	YES		闇€姹備汉
+content_center	ich_activity	request_unit	varchar(200)	YES		闇€姹傚崟浣?
+content_center	ich_activity	detail_images	longtext	YES		
+content_center	ich_activity	videos	longtext	YES		
+content_center	ich_activity	timeline_data	longtext	YES		鏃堕棿绾挎暟鎹甁SON
+content_center	ich_activity	item_id	bigint	YES	MUL	鍏宠仈闈為仐椤圭洰ID
+content_center	ich_activity	status	tinyint	YES	MUL	鐘舵€侊細0-鑽夌 1-鎶ュ悕涓?2-杩涜涓?3-宸茬粨鏉?4-宸插彇娑?
+content_center	ich_activity	sort	int	YES		鎺掑簭
+content_center	ich_activity	create_time	datetime	NO	MUL	鍒涘缓鏃堕棿
+content_center	ich_activity	update_time	datetime	NO		鏇存柊鏃堕棿
+content_center	ich_activity	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+content_center	ich_activity	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+content_center	ich_activity	approval_status	int	YES		瀹℃壒鐘舵€? 0鏃犻渶瀹℃壒 1寰呭鎵?2瀹℃壒閫氳繃 3瀹℃壒鎷掔粷
+content_center	ich_activity	reject_reason	varchar(500)	YES		瀹℃壒鎷掔粷鍘熷洜
+content_center	ich_activity	reviewer_id	bigint	YES		瀹℃壒浜篒D
+content_center	ich_activity	review_time	datetime	YES		瀹℃壒鏃堕棿
+content_center	ich_activity	publisher_user_id	bigint	YES		鍙戝竷鑰呯敤鎴稩D
+content_center	ich_activity_comment	id	bigint	NO	PRI	璇勮ID
+content_center	ich_activity_comment	activity_id	bigint	NO	MUL	娲诲姩ID
+content_center	ich_activity_comment	user_id	bigint	NO	MUL	鐢ㄦ埛ID
+content_center	ich_activity_comment	user_name	varchar(50)	YES		鐢ㄦ埛鏄电О
+content_center	ich_activity_comment	user_avatar	varchar(500)	YES		鐢ㄦ埛澶村儚
+content_center	ich_activity_comment	content	text	NO		璇勮鍐呭
+content_center	ich_activity_comment	status	tinyint	YES		鐘舵€侊細0-姝ｅ父 1-闅愯棌
+content_center	ich_activity_comment	create_time	datetime	YES	MUL	鍒涘缓鏃堕棿
+content_center	ich_activity_comment	update_time	datetime	YES		鏇存柊鏃堕棿
+content_center	ich_activity_comment	is_deleted	tinyint	YES		鏄惁鍒犻櫎锛?-鍚?1-鏄?
+content_center	ich_activity_record	id	bigint	NO	PRI	璁板綍ID
+content_center	ich_activity_record	activity_id	bigint	NO	MUL	娲诲姩ID
+content_center	ich_activity_record	user_id	bigint	YES	MUL	鐢ㄦ埛ID
+content_center	ich_activity_record	user_name	varchar(50)	YES		鎶ュ悕濮撳悕
+content_center	ich_activity_record	user_phone	varchar(20)	YES		鑱旂郴鐢佃瘽
+content_center	ich_activity_record	registration_time	datetime	NO	MUL	鎶ュ悕鏃堕棿
+content_center	ich_activity_record	check_in_time	datetime	YES		绛惧埌鏃堕棿
+content_center	ich_activity_record	status	tinyint	YES	MUL	鐘舵€侊細0-寰呭鏍?1-宸茬‘璁?2-宸茬鍒?3-宸插彇娑?
+content_center	ich_activity_record	remark	varchar(500)	YES		澶囨敞
+content_center	ich_activity_record	create_time	datetime	NO		鍒涘缓鏃堕棿
+content_center	ich_activity_record	update_time	datetime	NO		鏇存柊鏃堕棿
+content_center	ich_activity_record	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+content_center	ich_activity_record	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+content_center	ich_activity_view_log	id	bigint	NO	PRI	ID
+content_center	ich_activity_view_log	activity_id	bigint	NO	MUL	娲诲姩ID
+content_center	ich_activity_view_log	user_id	bigint	NO	MUL	鐢ㄦ埛ID
+content_center	ich_activity_view_log	user_name	varchar(50)	YES		鐢ㄦ埛鏄电О
+content_center	ich_activity_view_log	view_time	datetime	YES		娴忚鏃堕棿
+content_center	ich_category	id	bigint	NO	PRI	鍒嗙被ID
+content_center	ich_category	name	varchar(50)	NO		鍒嗙被鍚嶇О
+content_center	ich_category	parent_id	bigint	YES	MUL	鐖跺垎绫籌D
+content_center	ich_category	level	int	YES		鍒嗙被绾у埆
+content_center	ich_category	sort	int	YES	MUL	鎺掑簭
+content_center	ich_category	icon	longtext	YES		
+content_center	ich_category	detail_images	longtext	YES		
+content_center	ich_category	videos	longtext	YES		
+content_center	ich_category	status	tinyint	YES	MUL	鐘舵€侊細0-绂佺敤锛?-鍚敤
+content_center	ich_category	create_time	datetime	NO		鍒涘缓鏃堕棿
+content_center	ich_category	update_time	datetime	NO		鏇存柊鏃堕棿
+content_center	ich_category	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+content_center	ich_category	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+content_center	ich_heritage_item_relation	id	bigint	NO	PRI	涓婚敭ID
+content_center	ich_heritage_item_relation	heritage_id	bigint	NO	MUL	浼犳壙浜篒D
+content_center	ich_heritage_item_relation	item_id	bigint	NO	MUL	闈為仐椤圭洰ID
+content_center	ich_heritage_item_relation	relation_type	tinyint	NO		鍏宠仈绫诲瀷锛?-涓昏浼犳壙浜?2-娆¤浼犳壙浜?3-鍏朵粬
+content_center	ich_heritage_item_relation	start_time	date	YES		寮€濮嬩紶鎵挎椂闂?
+content_center	ich_heritage_item_relation	end_time	date	YES		缁撴潫浼犳壙鏃堕棿
+content_center	ich_heritage_item_relation	is_current	tinyint(1)	YES		鏄惁褰撳墠浼犳壙浜猴細0-鍚?1-鏄?
+content_center	ich_heritage_item_relation	description	text	YES		浼犳壙鍏崇郴鎻忚堪
+content_center	ich_heritage_item_relation	create_time	datetime	NO	MUL	鍒涘缓鏃堕棿
+content_center	ich_heritage_item_relation	update_time	datetime	NO		鏇存柊鏃堕棿
+content_center	ich_heritage_item_relation	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄?1-宸插垹闄?
+content_center	ich_heritage_item_relation	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+content_center	ich_heritage_item_relation	create_by	bigint	YES		鍒涘缓浜篒D
+content_center	ich_heritage_item_relation	update_by	bigint	YES		鏇存柊浜篒D
+content_center	ich_heritage_item_relation	transaction_id	varchar(100)	YES	MUL	鍏ㄥ眬浜嬪姟ID
+content_center	ich_heritage_item_relation	transaction_status	tinyint	YES		浜嬪姟鐘舵€侊細0-鏈紑濮?1-杩涜涓?2-宸插畬鎴?3-宸插洖婊?
+content_center	ich_heritage_man	id	bigint	NO	PRI	浼犳壙浜篒D
+content_center	ich_heritage_man	name	varchar(50)	NO	MUL	濮撳悕
+content_center	ich_heritage_man	gender	tinyint	YES		鎬у埆锛?-鏈煡锛?-鐢凤紝2-濂?
+content_center	ich_heritage_man	birth_date	date	YES		鍑虹敓鏃ユ湡
+content_center	ich_heritage_man	id_card	varchar(18)	YES	MUL	韬唤璇佸彿
+content_center	ich_heritage_man	phone	varchar(20)	YES		鑱旂郴鐢佃瘽
+content_center	ich_heritage_man	email	varchar(100)	YES		鐢靛瓙閭
+content_center	ich_heritage_man	address	varchar(255)	YES		鑱旂郴鍦板潃
+content_center	ich_heritage_man	avatar	longtext	YES		澶村儚锛圔ase64瀛樺偍锛?
+content_center	ich_heritage_man	level	tinyint	YES		绾у埆锛?-鍥藉绾э紝2-鐪佺骇锛?-甯傜骇
+content_center	ich_heritage_man	category_id	bigint	YES	MUL	鎵€灞炲垎绫籌D
+content_center	ich_heritage_man	item_id	bigint	YES	MUL	鎵€灞為」鐩甀D
+content_center	ich_heritage_man	title	varchar(100)	YES		绉板彿
+content_center	ich_heritage_man	skill	varchar(255)	YES		鎶€鑹虹壒闀?
+content_center	ich_heritage_man	introduction	text	YES		涓汉绠€浠?
+content_center	ich_heritage_man	achievement	text	YES		涓昏鎴愬氨
+content_center	ich_heritage_man	detail_images	longtext	YES		
+content_center	ich_heritage_man	videos	longtext	YES		
+content_center	ich_heritage_man	status	tinyint	YES	MUL	鐘舵€侊細0-绂佺敤锛?-鍚敤
+content_center	ich_heritage_man	create_time	datetime	NO		鍒涘缓鏃堕棿
+content_center	ich_heritage_man	update_time	datetime	NO		鏇存柊鏃堕棿
+content_center	ich_heritage_man	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+content_center	ich_heritage_man	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+content_center	ich_item	id	bigint	NO	PRI	椤圭洰ID
+content_center	ich_item	category_id	bigint	YES	MUL	鍒嗙被ID
+content_center	ich_item	name	varchar(100)	YES		椤圭洰鍚嶇О
+content_center	ich_item	cover_image	longtext	YES		灏侀潰鍥撅紙Base64瀛樺偍锛?
+content_center	ich_item	level	tinyint	YES		绾у埆锛?-鍥藉绾э紝2-鐪佺骇锛?-甯傜骇
+content_center	ich_item	region_code	varchar(20)	YES	MUL	鍦板尯缂栫爜
+content_center	ich_item	region_name	varchar(100)	YES		鍦板尯鍚嶇О
+content_center	ich_item	declaration_unit	varchar(200)	YES		鐢虫姤鍗曚綅
+content_center	ich_item	protection_unit	varchar(200)	YES		淇濇姢鍗曚綅
+content_center	ich_item	declaration_time	date	YES		鐢虫姤鏃堕棿
+content_center	ich_item	description	text	YES		椤圭洰绠€浠?
+content_center	ich_item	content	longtext	YES		椤圭洰璇︽儏
+content_center	ich_item	detail_images	longtext	YES		
+content_center	ich_item	videos	longtext	YES		
+content_center	ich_item	status	tinyint	YES	MUL	鐘舵€侊細0-绂佺敤锛?-鍚敤
+content_center	ich_item	sort	int	YES		鎺掑簭
+content_center	ich_item	create_time	datetime	NO	MUL	鍒涘缓鏃堕棿
+content_center	ich_item	update_time	datetime	NO		鏇存柊鏃堕棿
+content_center	ich_item	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+content_center	ich_item	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+content_center	ich_post	id	bigint	NO	PRI	
+content_center	ich_post	user_id	bigint	NO	MUL	鍙戝竷鑰匢D
+content_center	ich_post	user_name	varchar(50)	YES		鍙戝竷鑰呮樀绉?
+content_center	ich_post	user_avatar	varchar(500)	YES		鍙戝竷鑰呭ご鍍?
+content_center	ich_post	title	varchar(200)	NO		鏍囬
+content_center	ich_post	content	text	YES		姝ｆ枃鍐呭
+content_center	ich_post	images	longtext	YES		鍥剧墖鍒楄〃JSON鏁扮粍
+content_center	ich_post	video_url	longtext	YES		瑙嗛URL
+content_center	ich_post	cover_image	longtext	YES		灏侀潰鍥?鍙栫涓€寮犲浘鎴栬棰戝皝闈?
+content_center	ich_post	tags	varchar(500)	YES		鏍囩,閫楀彿鍒嗛殧
+content_center	ich_post	type	tinyint	YES		绫诲瀷 1-鍥炬枃 2-瑙嗛
+content_center	ich_post	like_count	int	YES		鐐硅禐鏁?
+content_center	ich_post	favorite_count	int	YES		鏀惰棌鏁?
+content_center	ich_post	comment_count	int	YES		璇勮鏁?
+content_center	ich_post	view_count	int	YES		娴忚鏁?
+content_center	ich_post	status	tinyint	YES	MUL	鐘舵€?0-闅愯棌 1-鏄剧ず
+content_center	ich_post	is_deleted	tinyint	YES		
+content_center	ich_post	create_time	datetime	YES	MUL	
+content_center	ich_post	update_time	datetime	YES		
+content_center	ich_post_comment	id	bigint	NO	PRI	
+content_center	ich_post_comment	post_id	bigint	NO	MUL	甯栧瓙ID
+content_center	ich_post_comment	user_id	bigint	NO		璇勮鑰匢D
+content_center	ich_post_comment	user_name	varchar(50)	YES		璇勮鑰呮樀绉?
+content_center	ich_post_comment	user_avatar	varchar(500)	YES		璇勮鑰呭ご鍍?
+content_center	ich_post_comment	content	text	NO		璇勮鍐呭
+content_center	ich_post_comment	images	longtext	YES		璇勮鍥剧墖JSON鏁扮粍
+content_center	ich_post_comment	like_count	int	YES		鐐硅禐鏁?
+content_center	ich_post_comment	location	varchar(50)	YES		璇勮鍦板尯
+content_center	ich_post_comment	status	tinyint	YES		鐘舵€?0-闅愯棌 1-鏄剧ず
+content_center	ich_post_comment	is_deleted	tinyint	YES		
+content_center	ich_post_comment	create_time	datetime	YES	MUL	
+content_center	ich_post_favorite	id	bigint	NO	PRI	
+content_center	ich_post_favorite	post_id	bigint	NO	MUL	甯栧瓙ID
+content_center	ich_post_favorite	user_id	bigint	NO	MUL	鐢ㄦ埛ID
+content_center	ich_post_favorite	create_time	datetime	YES		
+content_center	ich_post_like	id	bigint	NO	PRI	
+content_center	ich_post_like	post_id	bigint	NO	MUL	甯栧瓙ID
+content_center	ich_post_like	user_id	bigint	NO	MUL	鐢ㄦ埛ID
+content_center	ich_post_like	create_time	datetime	YES		
+content_center	search_history	id	bigint	NO	PRI	璁板綍ID
+content_center	search_history	user_id	bigint	YES	MUL	鐢ㄦ埛ID锛堟湭鐧诲綍鐢ㄦ埛涓簄ull锛?
+content_center	search_history	keyword	varchar(100)	NO	MUL	鎼滅储鍏抽敭璇?
+content_center	search_history	search_time	datetime	NO	MUL	鎼滅储鏃堕棿
+content_center	search_history	device_id	varchar(100)	YES		璁惧ID
+content_center	search_history	ip_address	varchar(50)	YES		IP鍦板潃
+content_center	search_history	search_result_count	int	YES		鎼滅储缁撴灉鏁伴噺
+content_center	search_history	create_time	datetime	NO		鍒涘缓鏃堕棿
+content_center	search_history	update_time	datetime	NO		鏇存柊鏃堕棿
+content_center	search_history	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+content_center	search_history	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+content_center	user_browse_history	id	bigint	NO	PRI	涓婚敭ID
+content_center	user_browse_history	user_id	bigint	NO	MUL	鐢ㄦ埛ID
+content_center	user_browse_history	content_type	tinyint	NO		鍐呭绫诲瀷锛?-闈為仐椤圭洰 2-鍟嗗搧 3-鏂囩珷
+content_center	user_browse_history	content_id	bigint	NO		鍐呭ID
+content_center	user_browse_history	title	varchar(255)	YES		鍐呭鏍囬
+content_center	user_browse_history	cover_image	varchar(255)	YES		灏侀潰鍥綰RL
+content_center	user_browse_history	browse_time	datetime	NO	MUL	娴忚鏃堕棿
+content_center	user_browse_history	create_time	datetime	NO		鍒涘缓鏃堕棿
+content_center	user_browse_history	update_time	datetime	NO		鏇存柊鏃堕棿
+content_center	user_browse_history	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+content_center	user_browse_history	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+content_center	user_favorite	id	bigint	NO	PRI	涓婚敭ID
+content_center	user_favorite	user_id	bigint	NO	MUL	鐢ㄦ埛ID
+content_center	user_favorite	favorite_type	tinyint	NO	MUL	鏀惰棌绫诲瀷锛?-闈為仐椤圭洰 2-鍟嗗搧 3-鏂囩珷
+content_center	user_favorite	content_id	bigint	NO		鏀惰棌鍐呭ID
+content_center	user_favorite	create_time	datetime	NO		鍒涘缓鏃堕棿
+content_center	user_favorite	update_time	datetime	NO		鏇存柊鏃堕棿
+content_center	user_favorite	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+content_center	user_favorite	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+content_center	video_exhibition	id	bigint	NO	PRI	瑙嗛ID
+content_center	video_exhibition	title	varchar(100)	NO		瑙嗛鏍囬
+content_center	video_exhibition	cover_url	varchar(255)	YES		灏侀潰鍥綰RL
+content_center	video_exhibition	video_url	varchar(255)	NO		瑙嗛URL
+content_center	video_exhibition	duration	int	YES		瑙嗛鏃堕暱(绉?
+content_center	video_exhibition	category_id	bigint	YES	MUL	鍒嗙被ID
+content_center	video_exhibition	description	text	YES		瑙嗛鎻忚堪
+content_center	video_exhibition	content	longtext	YES		瑙嗛璇︽儏(瀵屾枃鏈?
+content_center	video_exhibition	view_count	int	YES		娴忚娆℃暟
+content_center	video_exhibition	like_count	int	YES		鐐硅禐鏁?
+content_center	video_exhibition	status	tinyint	YES	MUL	鐘舵€侊細0-涓嬫灦锛?-涓婃灦
+content_center	video_exhibition	sort	int	YES	MUL	鎺掑簭
+content_center	video_exhibition	create_time	datetime	NO	MUL	鍒涘缓鏃堕棿
+content_center	video_exhibition	update_time	datetime	NO		鏇存柊鏃堕棿
+content_center	video_exhibition	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+content_center	video_exhibition	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+content_center	video_exhibition	create_by	bigint	YES		鍒涘缓浜篒D
+content_center	video_exhibition	update_by	bigint	YES		鏇存柊浜篒D
+content_center	video_exhibition	transaction_id	varchar(100)	YES	MUL	鍏ㄥ眬浜嬪姟ID
+content_center	video_exhibition	transaction_status	tinyint	YES		浜嬪姟鐘舵€侊細0-鏈紑濮嬶紝1-杩涜涓紝2-宸插畬鎴愶紝3-宸插洖婊?
+order_center	order	id	bigint	NO	PRI	璁㈠崟ID
+order_center	order	order_no	varchar(32)	NO	UNI	璁㈠崟缂栧彿
+order_center	order	user_id	bigint	NO	MUL	鐢ㄦ埛ID
+order_center	order	total_amount	decimal(10,2)	NO		璁㈠崟鎬婚噾棰?
+order_center	order	pay_amount	decimal(10,2)	NO		瀹炰粯閲戦
+order_center	order	freight_amount	decimal(10,2)	YES		杩愯垂閲戦
+order_center	order	discount_amount	decimal(10,2)	YES		浼樻儬閲戦
+order_center	order	pay_type	tinyint	YES		鏀粯鏂瑰紡锛?-鏈敮浠橈紝1-鏀粯瀹濓紝2-寰俊
+order_center	order	status	tinyint	NO	MUL	璁㈠崟鐘舵€侊細0-寰呬粯娆撅紝1-寰呭彂璐э紝2-寰呮敹璐э紝3-宸插畬鎴愶紝4-宸插彇娑堬紝5-宸插叧闂?
+order_center	order	payment_time	datetime	YES		鏀粯鏃堕棿
+order_center	order	consign_time	datetime	YES		鍙戣揣鏃堕棿
+order_center	order	end_time	datetime	YES		浜ゆ槗瀹屾垚鏃堕棿
+order_center	order	close_time	datetime	YES		浜ゆ槗鍏抽棴鏃堕棿
+order_center	order	shipping_name	varchar(64)	YES		鐗╂祦鍏徃
+order_center	order	shipping_code	varchar(64)	YES		鐗╂祦鍗曞彿
+order_center	order	receiver_name	varchar(100)	NO		鏀惰揣浜哄鍚?
+order_center	order	receiver_phone	varchar(32)	NO		鏀惰揣浜虹數璇?
+order_center	order	receiver_post_code	varchar(32)	YES		鏀惰揣浜洪偖缂?
+order_center	order	receiver_province	varchar(100)	YES		鐪佷唤/鐩磋緰甯?
+order_center	order	receiver_city	varchar(100)	YES		鍩庡競
+order_center	order	receiver_region	varchar(100)	YES		鍖?
+order_center	order	receiver_detail_address	varchar(255)	YES		璇︾粏鍦板潃
+order_center	order	note	varchar(500)	YES		璁㈠崟澶囨敞
+order_center	order	create_time	datetime	NO	MUL	鍒涘缓鏃堕棿
+order_center	order	update_time	datetime	NO		鏇存柊鏃堕棿
+order_center	order	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+order_center	order	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+order_center	order_address	id	bigint	NO	PRI	鍦板潃ID
+order_center	order_address	order_id	bigint	NO	UNI	璁㈠崟ID
+order_center	order_address	receiver_name	varchar(50)	NO		鏀惰揣浜哄鍚?
+order_center	order_address	receiver_phone	varchar(20)	NO		鏀惰揣浜虹數璇?
+order_center	order_address	province	varchar(50)	YES		鐪?
+order_center	order_address	city	varchar(50)	YES		甯?
+order_center	order_address	district	varchar(50)	YES		鍖?鍘?
+order_center	order_address	detail_address	varchar(255)	NO		璇︾粏鍦板潃
+order_center	order_address	create_time	datetime	NO		鍒涘缓鏃堕棿
+order_center	order_address	update_time	datetime	NO		鏇存柊鏃堕棿
+order_center	order_address	is_deleted	tinyint(1)	YES		閫昏緫鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+order_center	order_address	version	int	YES		鐗堟湰鍙?
+order_center	order_item	id	bigint	NO	PRI	璁㈠崟鍟嗗搧ID
+order_center	order_item	order_id	bigint	NO	MUL	璁㈠崟ID
+order_center	order_item	order_no	varchar(32)	NO	MUL	璁㈠崟缂栧彿
+order_center	order_item	product_id	bigint	NO	MUL	鍟嗗搧ID
+order_center	order_item	product_pic	varchar(500)	YES		鍟嗗搧鍥剧墖
+order_center	order_item	product_name	varchar(200)	NO		鍟嗗搧鍚嶇О
+order_center	order_item	product_brand	varchar(200)	YES		鍟嗗搧鍝佺墝
+order_center	order_item	product_sn	varchar(64)	YES		鍟嗗搧鏉＄爜
+order_center	order_item	product_price	decimal(10,2)	NO		閿€鍞环鏍?
+order_center	order_item	product_quantity	int	NO		璐拱鏁伴噺
+order_center	order_item	product_sku_id	bigint	YES		鍟嗗搧sku缂栧彿
+order_center	order_item	product_sku_code	varchar(50)	YES		鍟嗗搧sku鏉＄爜
+order_center	order_item	product_category_id	bigint	YES		鍟嗗搧鍒嗙被ID
+order_center	order_item	create_time	datetime	NO		鍒涘缓鏃堕棿
+order_center	order_item	update_time	datetime	NO		鏇存柊鏃堕棿
+order_center	order_item	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+order_center	order_item	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+order_center	order_item	create_by	bigint	YES		鍒涘缓浜篒D
+order_center	order_item	update_by	bigint	YES		鏇存柊浜篒D
+order_center	order_log	id	bigint	NO	PRI	鏃ュ織ID
+order_center	order_log	order_id	bigint	NO	MUL	璁㈠崟ID
+order_center	order_log	status	int	NO		璁㈠崟鐘舵€?
+order_center	order_log	note	varchar(500)	YES		鎿嶄綔澶囨敞
+order_center	order_log	operator	varchar(50)	YES		鎿嶄綔浜?
+order_center	order_log	create_time	datetime	NO		鍒涘缓鏃堕棿
+order_center	order_log	update_time	datetime	NO		鏇存柊鏃堕棿
+order_center	order_log	is_deleted	tinyint(1)	YES		閫昏緫鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+order_center	order_log	version	int	YES		鐗堟湰鍙?
+order_center	shopping_cart	id	bigint	NO	PRI	璐墿杞D
+order_center	shopping_cart	user_id	bigint	NO	MUL	鐢ㄦ埛ID
+order_center	shopping_cart	product_id	bigint	NO	MUL	鍟嗗搧ID
+order_center	shopping_cart	product_sku_id	bigint	YES		鍟嗗搧SKU ID
+order_center	shopping_cart	quantity	int	NO		璐拱鏁伴噺
+order_center	shopping_cart	price	decimal(10,2)	NO		鍔犲叆鏃朵环鏍?
+order_center	shopping_cart	selected	tinyint(1)	YES		鏄惁閫変腑锛?-鏈€変腑 1-宸查€変腑
+order_center	shopping_cart	source	tinyint	YES		鏉ユ簮锛?-PC 2-APP 3-灏忕▼搴?4-H5 5-鍏朵粬
+order_center	shopping_cart	create_time	datetime	NO	MUL	鍒涘缓鏃堕棿
+order_center	shopping_cart	update_time	datetime	NO		鏇存柊鏃堕棿
+order_center	shopping_cart	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄?1-宸插垹闄?
+order_center	shopping_cart	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+order_center	shopping_cart	transaction_id	varchar(100)	YES	MUL	鍏ㄥ眬浜嬪姟ID
+order_center	shopping_cart	transaction_status	tinyint	YES		浜嬪姟鐘舵€侊細0-鏈紑濮?1-杩涜涓?2-宸插畬鎴?3-宸插洖婊?
+product_center	inventory_record	id	bigint	NO	PRI	璁板綍ID
+product_center	inventory_record	product_id	bigint	NO	MUL	鍟嗗搧ID
+product_center	inventory_record	product_name	varchar(200)	YES		鍟嗗搧鍚嶇О锛堝啑浣欙級
+product_center	inventory_record	type	tinyint	NO	MUL	鍙樺姩绫诲瀷锛?-鍏ュ簱 2-鍑哄簱 3-璋冩暣
+product_center	inventory_record	quantity	int	NO		鍙樺姩鏁伴噺锛堟鏁板叆搴擄紝璐熸暟鍑哄簱锛?
+product_center	inventory_record	before_stock	int	NO		鍙樺姩鍓嶅簱瀛?
+product_center	inventory_record	after_stock	int	NO		鍙樺姩鍚庡簱瀛?
+product_center	inventory_record	reason	varchar(500)	YES		鍙樺姩鍘熷洜
+product_center	inventory_record	operator_id	bigint	YES	MUL	鎿嶄綔浜篒D
+product_center	inventory_record	operator_name	varchar(50)	YES		鎿嶄綔浜哄鍚?
+product_center	inventory_record	create_time	datetime	NO	MUL	鍒涘缓鏃堕棿
+product_center	inventory_record	update_time	datetime	NO		鏇存柊鏃堕棿
+product_center	inventory_record	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+product_center	inventory_record	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+product_center	product	id	bigint	NO	PRI	鍟嗗搧ID
+product_center	product	product_sn	varchar(64)	NO	UNI	鍟嗗搧缂栫爜
+product_center	product	name	varchar(200)	NO		鍟嗗搧鍚嶇О
+product_center	product	sub_title	varchar(500)	YES		鍓爣棰?
+product_center	product	brand_id	bigint	YES	MUL	鍝佺墝ID
+product_center	product	category_id	bigint	NO	MUL	鍒嗙被ID
+product_center	product	heritage_man_id	bigint	YES	MUL	鍏宠仈浼犳壙浜篒D
+product_center	product	price	decimal(10,2)	NO		閿€鍞环鏍?
+product_center	product	original_price	decimal(10,2)	YES		甯傚満浠?
+product_center	product	stock	int	NO		搴撳瓨
+product_center	product	stock_alert_threshold	int	YES		搴撳瓨棰勮闃堝€?
+product_center	product	sale	int	YES		閿€閲?
+product_center	product	weight	decimal(10,2)	YES		鍟嗗搧閲嶉噺锛岄粯璁や负鍏?
+product_center	product	keywords	varchar(255)	YES		鍏抽敭瀛?
+product_center	product	description	text	YES		鍟嗗搧鎻忚堪
+product_center	product	detail_desc	longtext	YES		
+product_center	product	main_image	longtext	YES		涓诲浘锛圔ase64瀛樺偍锛?
+product_center	product	sub_images	json	YES		瀛愬浘锛圝SON鏍煎紡瀛樺偍Base64鍥剧墖鏁版嵁锛?
+product_center	product	videos	longtext	YES		
+product_center	product	status	tinyint	YES	MUL	鍟嗗搧鐘舵€侊細0-涓嬫灦锛?-涓婃灦
+product_center	product	sort	int	YES		鎺掑簭
+product_center	product	create_time	datetime	NO	MUL	鍒涘缓鏃堕棿
+product_center	product	update_time	datetime	NO		鏇存柊鏃堕棿
+product_center	product	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+product_center	product	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+product_center	product_category	id	bigint	NO	PRI	鍒嗙被ID
+product_center	product_category	parent_id	bigint	YES	MUL	涓婄骇鍒嗙被ID锛?琛ㄧず涓€绾у垎绫?
+product_center	product_category	ich_category_id	bigint	YES	MUL	鍏宠仈闈為仐鍒嗙被ID
+product_center	product_category	name	varchar(64)	NO		鍒嗙被鍚嶇О
+product_center	product_category	level	int	YES		鍒嗙被绾у埆锛?->1绾э紱1->2绾?
+product_center	product_category	icon	longtext	YES		鍥炬爣锛圔ase64瀛樺偍锛?
+product_center	product_category	description	text	YES		鎻忚堪
+product_center	product_category	detail_images	json	YES		璇︽儏鍥剧墖锛孞SON鏍煎紡瀛樺偍Base64鍥剧墖鏁版嵁
+product_center	product_category	videos	longtext	YES		
+product_center	product_category	sort	int	YES	MUL	鎺掑簭
+product_center	product_category	status	tinyint	YES		鏄惁鏄剧ず锛?->涓嶆樉绀猴紱1->鏄剧ず
+product_center	product_category	create_time	datetime	NO		鍒涘缓鏃堕棿
+product_center	product_category	update_time	datetime	NO		鏇存柊鏃堕棿
+product_center	product_category	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+product_center	product_category	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+product_center	product_comment	id	bigint	NO	PRI	璇勪环ID
+product_center	product_comment	order_id	bigint	NO	MUL	璁㈠崟ID
+product_center	product_comment	product_id	bigint	NO	MUL	鍟嗗搧ID
+product_center	product_comment	user_id	bigint	NO	MUL	鐢ㄦ埛ID
+product_center	product_comment	content	text	YES		璇勪环鍐呭
+product_center	product_comment	score	int	YES		璇勫垎锛?-5鏄?
+product_center	product_comment	images	json	YES		璇勪环鍥剧墖锛孞SON鏍煎紡瀛樺偍
+product_center	product_comment	create_time	datetime	NO		鍒涘缓鏃堕棿
+product_center	product_comment	update_time	datetime	NO		鏇存柊鏃堕棿
+product_center	product_comment	is_deleted	tinyint(1)	YES		閫昏緫鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+product_center	product_comment	version	int	YES		鐗堟湰鍙?
+product_center	product_image	id	bigint	NO	PRI	鍥剧墖ID
+product_center	product_image	product_id	bigint	NO	MUL	鍟嗗搧ID
+product_center	product_image	image_url	varchar(255)	NO		鍥剧墖URL
+product_center	product_image	image_type	tinyint	NO	MUL	鍥剧墖绫诲瀷锛?-涓诲浘 2-璇︽儏鍥?3-杞挱鍥?4-鍏朵粬
+product_center	product_image	sort	int	YES	MUL	鎺掑簭
+product_center	product_image	is_main	tinyint(1)	YES		鏄惁涓诲浘锛?-鍚?1-鏄?
+product_center	product_image	alt	varchar(100)	YES		鍥剧墖鏇夸唬鏂囨湰
+product_center	product_image	width	int	YES		鍥剧墖瀹藉害(px)
+product_center	product_image	height	int	YES		鍥剧墖楂樺害(px)
+product_center	product_image	file_size	bigint	YES		鏂囦欢澶у皬(瀛楄妭)
+product_center	product_image	create_time	datetime	NO	MUL	鍒涘缓鏃堕棿
+product_center	product_image	update_time	datetime	NO		鏇存柊鏃堕棿
+product_center	product_image	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄?1-宸插垹闄?
+product_center	product_image	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+product_center	product_image	create_by	bigint	YES		鍒涘缓浜篒D
+product_center	product_image	update_by	bigint	YES		鏇存柊浜篒D
+product_center	product_image	transaction_id	varchar(100)	YES	MUL	鍏ㄥ眬浜嬪姟ID
+product_center	product_image	transaction_status	tinyint	YES		浜嬪姟鐘舵€侊細0-鏈紑濮?1-杩涜涓?2-宸插畬鎴?3-宸插洖婊?
+product_center	shop	id	bigint	NO	PRI	搴楅摵ID
+product_center	shop	name	varchar(100)	NO		搴楅摵鍚嶇О
+product_center	shop	logo	varchar(255)	YES		搴楅摵logo
+product_center	shop	description	text	YES		搴楅摵鎻忚堪
+product_center	shop	user_id	bigint	NO	MUL	搴椾富鐢ㄦ埛ID
+product_center	shop	status	tinyint	YES		鐘舵€侊細0-鍏抽棴锛?-钀ヤ笟涓?
+product_center	shop	create_time	datetime	NO		鍒涘缓鏃堕棿
+product_center	shop	update_time	datetime	NO		鏇存柊鏃堕棿
+product_center	shop	is_deleted	tinyint(1)	YES		閫昏緫鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+product_center	shop	version	int	YES		鐗堟湰鍙?
+product_center	shopping_cart	id	bigint	NO	PRI	
+product_center	shopping_cart	user_id	bigint	NO	MUL	
+product_center	shopping_cart	product_id	bigint	NO		
+product_center	shopping_cart	product_sku_id	bigint	YES		
+product_center	shopping_cart	quantity	int	YES		
+product_center	shopping_cart	price	decimal(10,2)	YES		
+product_center	shopping_cart	selected	tinyint	YES		
+product_center	shopping_cart	source	tinyint	YES		1-PC 2-APP
+product_center	shopping_cart	is_deleted	tinyint	YES		
+product_center	shopping_cart	create_time	datetime	YES		
+product_center	shopping_cart	update_time	datetime	YES		
+system_manage	app_version	id	bigint	NO	PRI	鐗堟湰ID
+system_manage	app_version	version_code	int	NO		鐗堟湰鍙?鏁板瓧)
+system_manage	app_version	version_name	varchar(50)	NO		鐗堟湰鍚嶇О
+system_manage	app_version	platform	tinyint	NO	MUL	骞冲彴锛?-Android 2-iOS
+system_manage	app_version	update_type	tinyint	NO		鏇存柊绫诲瀷锛?-鏅€氭洿鏂?2-寮哄埗鏇存柊
+system_manage	app_version	download_url	varchar(255)	NO		涓嬭浇鍦板潃
+system_manage	app_version	update_content	text	NO		鏇存柊鍐呭
+system_manage	app_version	file_size	bigint	YES		鏂囦欢澶у皬(瀛楄妭)
+system_manage	app_version	is_released	tinyint(1)	YES	MUL	鏄惁鍙戝竷锛?-鏈彂甯?1-宸插彂甯?
+system_manage	app_version	release_time	datetime	YES		鍙戝竷鏃堕棿
+system_manage	app_version	create_time	datetime	NO		鍒涘缓鏃堕棿
+system_manage	app_version	update_time	datetime	NO		鏇存柊鏃堕棿
+system_manage	app_version	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+system_manage	app_version	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+system_manage	menu	id	bigint	NO	PRI	鑿滃崟ID
+system_manage	menu	name	varchar(50)	NO		鑿滃崟鍚嶇О
+system_manage	menu	url	varchar(200)	YES		鑿滃崟URL
+system_manage	menu	icon	varchar(100)	YES		鑿滃崟鍥炬爣
+system_manage	menu	sort	int	YES		鎺掑簭
+system_manage	menu	parent_id	bigint	YES	MUL	鐖惰彍鍗旾D
+system_manage	menu	permission	varchar(200)	YES		鏉冮檺鏍囪瘑
+system_manage	menu	type	tinyint	YES		绫诲瀷锛?-鐩綍锛?-鑿滃崟锛?-鎸夐挳
+system_manage	menu	create_time	datetime	NO		鍒涘缓鏃堕棿
+system_manage	menu	update_time	datetime	NO		鏇存柊鏃堕棿
+system_manage	menu	is_deleted	tinyint(1)	YES		閫昏緫鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+system_manage	menu	version	int	YES		鐗堟湰鍙?
+system_manage	role_menu	id	bigint	NO	PRI	
+system_manage	role_menu	role_id	bigint	NO	MUL	瑙掕壊ID
+system_manage	role_menu	menu_id	bigint	NO		鑿滃崟ID
+system_manage	role_menu	create_time	datetime	NO		鍒涘缓鏃堕棿
+system_manage	role_menu	update_time	datetime	NO		鏇存柊鏃堕棿
+system_manage	role_menu	is_deleted	tinyint(1)	YES		閫昏緫鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+system_manage	role_menu	version	int	YES		鐗堟湰鍙?
+system_manage	stat_content_access	id	bigint	NO	PRI	ID
+system_manage	stat_content_access	content_type	tinyint	NO	MUL	鍐呭绫诲瀷锛?-闈為仐椤圭洰 2-鍟嗗搧 3-鏂囩珷
+system_manage	stat_content_access	content_id	bigint	NO		鍐呭ID
+system_manage	stat_content_access	view_count	int	YES		娴忚娆℃暟
+system_manage	stat_content_access	like_count	int	YES		鐐硅禐鏁?
+system_manage	stat_content_access	comment_count	int	YES		璇勮鏁?
+system_manage	stat_content_access	favorite_count	int	YES		鏀惰棌鏁?
+system_manage	stat_content_access	share_count	int	YES		鍒嗕韩鏁?
+system_manage	stat_content_access	stat_date	date	NO	MUL	缁熻鏃ユ湡
+system_manage	stat_content_access	create_time	datetime	NO		鍒涘缓鏃堕棿
+system_manage	stat_content_access	update_time	datetime	NO		鏇存柊鏃堕棿
+system_manage	stat_content_access	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+system_manage	stat_daily	id	bigint	NO	PRI	缁熻ID
+system_manage	stat_daily	stat_date	date	NO	UNI	缁熻鏃ユ湡
+system_manage	stat_daily	pv	int	YES		椤甸潰璁块棶閲?
+system_manage	stat_daily	uv	int	YES		鐙珛璁垮鏁?
+system_manage	stat_daily	new_users	int	YES		鏂板鐢ㄦ埛鏁?
+system_manage	stat_daily	order_count	int	YES		璁㈠崟鏁?
+system_manage	stat_daily	order_amount	decimal(10,2)	YES		璁㈠崟閲戦
+system_manage	stat_daily	product_view_count	int	YES		鍟嗗搧娴忚鏁?
+system_manage	stat_daily	product_fav_count	int	YES		鍟嗗搧鏀惰棌鏁?
+system_manage	stat_daily	content_view_count	int	YES		鍐呭娴忚鏁?
+system_manage	stat_daily	content_comment_count	int	YES		鍐呭璇勮鏁?
+system_manage	stat_daily	create_time	datetime	NO	MUL	鍒涘缓鏃堕棿
+system_manage	stat_daily	update_time	datetime	NO		鏇存柊鏃堕棿
+system_manage	stat_daily	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+system_manage	stat_daily	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+system_manage	stat_daily	create_by	bigint	YES		鍒涘缓浜篒D
+system_manage	stat_daily	update_by	bigint	YES		鏇存柊浜篒D
+system_manage	stat_daily	transaction_id	varchar(100)	YES	MUL	鍏ㄥ眬浜嬪姟ID
+system_manage	stat_daily	transaction_status	tinyint	YES		浜嬪姟鐘舵€侊細0-鏈紑濮嬶紝1-杩涜涓紝2-宸插畬鎴愶紝3-宸插洖婊?
+system_manage	stat_user_active_daily	id	bigint	NO	PRI	ID
+system_manage	stat_user_active_daily	stat_date	date	NO	UNI	缁熻鏃ユ湡
+system_manage	stat_user_active_daily	active_user_count	int	YES		娲昏穬鐢ㄦ埛鏁?
+system_manage	stat_user_active_daily	new_user_count	int	YES		鏂板鐢ㄦ埛鏁?
+system_manage	stat_user_active_daily	login_count	int	YES		鐧诲綍娆℃暟
+system_manage	stat_user_active_daily	create_time	datetime	NO		鍒涘缓鏃堕棿
+system_manage	stat_user_active_daily	update_time	datetime	NO		鏇存柊鏃堕棿
+system_manage	stat_user_active_daily	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+system_manage	sys_captcha	id	bigint	NO	PRI	ID
+system_manage	sys_captcha	uuid	varchar(36)	NO	UNI	UUID
+system_manage	sys_captcha	code	varchar(6)	NO		楠岃瘉鐮?
+system_manage	sys_captcha	expire_time	datetime	NO	MUL	杩囨湡鏃堕棿
+system_manage	sys_captcha	create_time	datetime	NO		鍒涘缓鏃堕棿
+system_manage	sys_captcha	update_time	datetime	NO		鏇存柊鏃堕棿
+system_manage	sys_captcha	is_deleted	tinyint(1)	YES		閫昏緫鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+system_manage	sys_captcha	version	int	YES		鐗堟湰鍙?
+system_manage	sys_config	id	bigint	NO	PRI	閰嶇疆ID
+system_manage	sys_config	config_key	varchar(100)	NO	UNI	閰嶇疆閿?
+system_manage	sys_config	config_value	text	YES		閰嶇疆鍊?
+system_manage	sys_config	config_name	varchar(100)	YES		閰嶇疆鍚嶇О
+system_manage	sys_config	remark	varchar(500)	YES		澶囨敞
+system_manage	sys_config	create_time	datetime	NO		鍒涘缓鏃堕棿
+system_manage	sys_config	update_time	datetime	NO		鏇存柊鏃堕棿
+system_manage	sys_config	is_deleted	tinyint(1)	YES		閫昏緫鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+system_manage	sys_config	version	int	YES		鐗堟湰鍙?
+system_manage	sys_file_upload	id	bigint	NO	PRI	鏂囦欢ID
+system_manage	sys_file_upload	file_name	varchar(255)	NO		鍘熷鏂囦欢鍚?
+system_manage	sys_file_upload	file_key	varchar(255)	NO	MUL	鏂囦欢瀛樺偍key
+system_manage	sys_file_upload	file_url	varchar(500)	NO	MUL	鏂囦欢璁块棶URL
+system_manage	sys_file_upload	file_type	varchar(50)	YES		鏂囦欢绫诲瀷
+system_manage	sys_file_upload	file_size	bigint	YES		鏂囦欢澶у皬(瀛楄妭)
+system_manage	sys_file_upload	upload_type	varchar(50)	YES		涓婁紶绫诲瀷
+system_manage	sys_file_upload	create_by	bigint	YES	MUL	涓婁紶浜篒D
+system_manage	sys_file_upload	create_time	datetime	NO		鍒涘缓鏃堕棿
+system_manage	sys_file_upload	update_time	datetime	NO		鏇存柊鏃堕棿
+system_manage	sys_file_upload	is_deleted	tinyint(1)	YES		閫昏緫鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+system_manage	sys_file_upload	version	int	YES		鐗堟湰鍙?
+system_manage	sys_message	id	bigint	NO	PRI	娑堟伅ID
+system_manage	sys_message	title	varchar(100)	NO		娑堟伅鏍囬
+system_manage	sys_message	content	text	NO		娑堟伅鍐呭
+system_manage	sys_message	message_type	tinyint	NO	MUL	娑堟伅绫诲瀷锛?-绯荤粺鍏憡锛?-娲诲姩閫氱煡锛?-璁㈠崟閫氱煡锛?-璐︽埛瀹夊叏
+system_manage	sys_message	receiver_type	tinyint	NO		鎺ユ敹鑰呯被鍨嬶細0-鍏ㄩ儴鐢ㄦ埛锛?-鎸囧畾鐢ㄦ埛锛?-鎸囧畾瑙掕壊
+system_manage	sys_message	receiver_ids	varchar(1000)	YES		鎺ユ敹鑰匢D锛屽涓敤閫楀彿鍒嗛殧
+system_manage	sys_message	is_published	tinyint(1)	YES	MUL	鏄惁鍙戝竷锛?-鏈彂甯冿紝1-宸插彂甯?
+system_manage	sys_message	publish_time	datetime	YES		鍙戝竷鏃堕棿
+system_manage	sys_message	expire_time	datetime	YES		杩囨湡鏃堕棿
+system_manage	sys_message	create_by	bigint	YES	MUL	鍒涘缓浜篒D
+system_manage	sys_message	create_time	datetime	NO		鍒涘缓鏃堕棿
+system_manage	sys_message	update_time	datetime	NO		鏇存柊鏃堕棿
+system_manage	sys_message	is_deleted	tinyint(1)	YES		閫昏緫鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+system_manage	sys_message	version	int	YES		鐗堟湰鍙?
+system_manage	sys_operation_log	id	bigint	NO	PRI	鏃ュ織ID
+system_manage	sys_operation_log	user_id	bigint	YES	MUL	鎿嶄綔鐢ㄦ埛ID
+system_manage	sys_operation_log	username	varchar(50)	YES		鎿嶄綔鐢ㄦ埛鍚?
+system_manage	sys_operation_log	module	varchar(50)	YES	MUL	妯″潡鍚?
+system_manage	sys_operation_log	operation	varchar(50)	YES	MUL	鎿嶄綔绫诲瀷
+system_manage	sys_operation_log	method	varchar(200)	YES		鏂规硶鍚?
+system_manage	sys_operation_log	request_method	varchar(10)	YES		璇锋眰鏂瑰紡
+system_manage	sys_operation_log	request_uri	varchar(500)	YES		璇锋眰URI
+system_manage	sys_operation_log	request_params	text	YES		璇锋眰鍙傛暟
+system_manage	sys_operation_log	response_result	text	YES		鍝嶅簲缁撴灉
+system_manage	sys_operation_log	ip	varchar(50)	YES		IP鍦板潃
+system_manage	sys_operation_log	user_agent	varchar(500)	YES		鐢ㄦ埛浠ｇ悊
+system_manage	sys_operation_log	status	tinyint	YES	MUL	鐘舵€侊細0-鎴愬姛锛?-澶辫触
+system_manage	sys_operation_log	error_msg	text	YES		閿欒淇℃伅
+system_manage	sys_operation_log	execute_time	bigint	YES		鎵ц鏃堕暱(姣)
+system_manage	sys_operation_log	operation_time	datetime	NO	MUL	鎿嶄綔鏃堕棿
+system_manage	sys_operation_log	create_time	datetime	NO		鍒涘缓鏃堕棿
+system_manage	sys_operation_log	update_time	datetime	NO		鏇存柊鏃堕棿
+system_manage	sys_operation_log	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+system_manage	sys_operation_log	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+system_manage	sys_role	id	bigint	NO	PRI	瑙掕壊ID
+system_manage	sys_role	name	varchar(50)	NO		瑙掕壊鍚嶇О
+system_manage	sys_role	code	varchar(50)	NO	UNI	瑙掕壊缂栫爜
+system_manage	sys_role	description	varchar(255)	YES		鎻忚堪
+system_manage	sys_role	status	tinyint(1)	YES	MUL	鐘舵€侊細0-绂佺敤锛?-鍚敤
+system_manage	sys_role	sort	int	YES		鎺掑簭
+system_manage	sys_role	create_time	datetime	NO		鍒涘缓鏃堕棿
+system_manage	sys_role	update_time	datetime	NO		鏇存柊鏃堕棿
+system_manage	sys_role	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+system_manage	sys_role	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+system_manage	sys_user	id	bigint	NO	PRI	閻劍鍩汭D
+system_manage	sys_user	username	varchar(50)	NO	UNI	閻劍鍩涢崥
+system_manage	sys_user	password	varchar(100)	NO		鐎靛棛鐖?
+system_manage	sys_user	nickname	varchar(50)	YES		閺勭數袨
+system_manage	sys_user	avatar	longtext	YES		澶村儚锛圔ase64瀛樺偍锛?
+system_manage	sys_user	email	varchar(100)	YES		闁??
+system_manage	sys_user	phone	varchar(20)	YES		閹靛婧€閸?
+system_manage	sys_user	status	tinyint(1)	YES		閻樿埖?閿?-缁備胶鏁ら敍?-閸?鏁?
+system_manage	sys_user	last_login_time	datetime	YES		閺?鎮楅惂璇茬秿閺冨爼妫?
+system_manage	sys_user	last_login_ip	varchar(50)	YES		閺?鎮楅惂璇茬秿IP
+system_manage	sys_user	create_time	datetime	NO		閸掓稑缂撻弮鍫曟？
+system_manage	sys_user	update_time	datetime	NO		閺囧瓨鏌婇弮鍫曟？
+system_manage	sys_user	is_deleted	tinyint(1)	YES		閺?鎯侀崚鐘绘珟閿?-閺?鍨归梽銈忕礉1-瀹告彃鍨归梽
+system_manage	sys_user_message	id	bigint	NO	PRI	ID
+system_manage	sys_user_message	message_id	bigint	NO	MUL	娑堟伅ID
+system_manage	sys_user_message	user_id	bigint	NO	MUL	鐢ㄦ埛ID
+system_manage	sys_user_message	is_read	tinyint(1)	YES		鏄惁宸茶锛?-鏈锛?-宸茶
+system_manage	sys_user_message	read_time	datetime	YES		闃呰鏃堕棿
+system_manage	sys_user_message	create_time	datetime	NO		鍒涘缓鏃堕棿
+system_manage	sys_user_message	update_time	datetime	NO		鏇存柊鏃堕棿
+system_manage	sys_user_message	is_deleted	tinyint(1)	YES		閫昏緫鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+system_manage	sys_user_message	version	int	YES		鐗堟湰鍙?
+system_manage	sys_user_role	id	bigint	NO	PRI	娑撳鏁璉D
+system_manage	sys_user_role	user_id	bigint	NO	MUL	閻劍鍩汭D
+system_manage	sys_user_role	role_id	bigint	NO		鐟欐帟澹奍D
+system_manage	sys_user_role	create_time	datetime	NO		閸掓稑缂撻弮鍫曟？
+system_manage	user_feedback	id	bigint	NO	PRI	鍙嶉ID
+system_manage	user_feedback	user_id	bigint	YES	MUL	鐢ㄦ埛ID锛堟湭鐧诲綍鐢ㄦ埛涓簄ull锛?
+system_manage	user_feedback	feedback_type	tinyint	NO		鍙嶉绫诲瀷锛?-鍔熻兘寤鸿 2-闂鍙嶉 3-鍏朵粬
+system_manage	user_feedback	content	text	NO		鍙嶉鍐呭
+system_manage	user_feedback	contact	varchar(100)	YES		鑱旂郴鏂瑰紡
+system_manage	user_feedback	status	tinyint	YES	MUL	澶勭悊鐘舵€侊細0-寰呭鐞?1-澶勭悊涓?2-宸插鐞?
+system_manage	user_feedback	handler_id	bigint	YES		澶勭悊浜篒D
+system_manage	user_feedback	handle_remark	text	YES		澶勭悊澶囨敞
+system_manage	user_feedback	handle_time	datetime	YES		澶勭悊鏃堕棿
+system_manage	user_feedback	create_time	datetime	NO	MUL	鍒涘缓鏃堕棿
+system_manage	user_feedback	update_time	datetime	NO		鏇存柊鏃堕棿
+system_manage	user_feedback	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+system_manage	user_feedback	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+user_center	sys_message	id	bigint	NO	PRI	娑堟伅ID
+user_center	sys_message	user_id	bigint	NO	MUL	鎺ユ敹鐢ㄦ埛ID
+user_center	sys_message	title	varchar(100)	NO		娑堟伅鏍囬
+user_center	sys_message	content	text	YES		娑堟伅鍐呭
+user_center	sys_message	msg_type	tinyint	NO	MUL	娑堟伅绫诲瀷锛?-绯荤粺閫氱煡 2-璁㈠崟閫氱煡 3-璇勮鍥炲 4-鐐硅禐閫氱煡
+user_center	sys_message	is_read	tinyint(1)	YES	MUL	鏄惁宸茶锛?-鏈 1-宸茶
+user_center	sys_message	related_id	bigint	YES		鐩稿叧涓氬姟ID
+user_center	sys_message	create_time	datetime	NO	MUL	鍒涘缓鏃堕棿
+user_center	sys_message	update_time	datetime	NO		鏇存柊鏃堕棿
+user_center	sys_message	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+user_center	sys_message	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+user_center	sys_message	create_by	bigint	YES		鍒涘缓浜篒D
+user_center	sys_message	update_by	bigint	YES		鏇存柊浜篒D
+user_center	user	id	bigint	NO	PRI	鐢ㄦ埛ID
+user_center	user	username	varchar(50)	NO	UNI	鐢ㄦ埛鍚?
+user_center	user	password	varchar(100)	NO		瀵嗙爜锛堝姞瀵嗗瓨鍌級
+user_center	user	nickname	varchar(50)	YES		鏄电О
+user_center	user	avatar	longtext	YES		澶村儚锛圔ase64瀛樺偍锛?
+user_center	user	email	varchar(100)	YES	MUL	閭
+user_center	user	phone	varchar(20)	YES	MUL	鎵嬫満鍙?
+user_center	user	status	tinyint(1)	YES		鐘舵€侊細0-绂佺敤锛?-鍚敤
+user_center	user	last_login_time	datetime	YES		鏈€鍚庣櫥褰曟椂闂?
+user_center	user	last_login_ip	varchar(50)	YES		鏈€鍚庣櫥褰旾P
+user_center	user	is_online	tinyint(1)	NO	MUL	鏄惁鍦ㄧ嚎 0-绂荤嚎 1-鍦ㄧ嚎
+user_center	user	last_active_time	datetime	YES		鏈€鍚庢椿璺冩椂闂?
+user_center	user	heritage_flag	tinyint(1)	YES		浼犳壙浜烘爣璇?0-鍚?1-鏄?
+user_center	user	qualification_id	bigint	YES		璧勬牸璁よ瘉ID
+user_center	user	create_time	datetime	NO	MUL	鍒涘缓鏃堕棿
+user_center	user	update_time	datetime	NO		鏇存柊鏃堕棿
+user_center	user	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+user_center	user	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+user_center	user_address	id	bigint	NO	PRI	鍦板潃ID
+user_center	user_address	user_id	bigint	NO	MUL	鐢ㄦ埛ID
+user_center	user_address	receiver_name	varchar(50)	NO		鏀惰揣浜哄鍚?
+user_center	user_address	receiver_phone	varchar(20)	NO		鏀惰揣浜虹數璇?
+user_center	user_address	province	varchar(50)	NO		鐪?
+user_center	user_address	city	varchar(50)	NO		甯?
+user_center	user_address	district	varchar(50)	NO		鍖?鍘?
+user_center	user_address	detail_address	varchar(255)	NO		璇︾粏鍦板潃
+user_center	user_address	is_default	tinyint(1)	YES		鏄惁榛樿锛?-鍚︼紝1-鏄?
+user_center	user_address	create_time	datetime	NO	MUL	鍒涘缓鏃堕棿
+user_center	user_address	update_time	datetime	NO		鏇存柊鏃堕棿
+user_center	user_address	is_deleted	tinyint(1)	YES		鏄惁鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+user_center	user_address	version	int	YES		鐗堟湰鍙凤紙涔愯閿侊級
+user_center	user_browse_history	id	bigint	NO	PRI	娴忚璁板綍ID
+user_center	user_browse_history	user_id	bigint	NO	MUL	鐢ㄦ埛ID
+user_center	user_browse_history	content_type	tinyint	NO	MUL	鍐呭绫诲瀷锛?-闈為仐椤圭洰锛?-鏂囩珷锛?-鍟嗗搧锛?-搴楅摵
+user_center	user_browse_history	content_id	bigint	NO		鍐呭ID
+user_center	user_browse_history	title	varchar(255)	YES		鍐呭鏍囬
+user_center	user_browse_history	cover_image	varchar(255)	YES		灏侀潰鍥剧墖
+user_center	user_browse_history	browse_time	datetime	NO	MUL	娴忚鏃堕棿
+user_center	user_browse_history	create_time	datetime	NO		鍒涘缓鏃堕棿
+user_center	user_browse_history	update_time	datetime	NO		鏇存柊鏃堕棿
+user_center	user_browse_history	is_deleted	tinyint(1)	YES		閫昏緫鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+user_center	user_browse_history	version	int	YES		鐗堟湰鍙?
+user_center	user_favorite	id	bigint	NO	PRI	鏀惰棌ID
+user_center	user_favorite	user_id	bigint	NO	MUL	鐢ㄦ埛ID
+user_center	user_favorite	content_type	tinyint	NO	MUL	鍐呭绫诲瀷锛?-闈為仐椤圭洰锛?-鏂囩珷锛?-鍟嗗搧锛?-搴楅摵
+user_center	user_favorite	content_id	bigint	NO		鍐呭ID
+user_center	user_favorite	create_time	datetime	NO		鍒涘缓鏃堕棿
+user_center	user_favorite	update_time	datetime	NO		鏇存柊鏃堕棿
+user_center	user_favorite	is_deleted	tinyint(1)	YES		閫昏緫鍒犻櫎锛?-鏈垹闄わ紝1-宸插垹闄?
+user_center	user_favorite	version	int	YES		鐗堟湰鍙?

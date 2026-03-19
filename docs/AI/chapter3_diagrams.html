@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第三章 系统需求分析 - 图表</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: '宋体', 'SimSun', serif; 
+            background: #f5f5f5; 
+            padding: 40px; 
+        }
+        .diagram-container {
+            background: white;
+            border: 2px solid #333;
+            margin: 30px auto;
+            padding: 20px;
+            max-width: 800px;
+            text-align: center;
+        }
+        .diagram-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 0 20px 0;
+            text-align: center;
+        }
+        .page-title {
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        .note {
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+            margin-top: 5px;
+        }
+        svg text {
+            font-family: '宋体', 'SimSun', serif;
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-title">第三章 系统需求分析 — 图表集</div>
+
+<!-- ==================== 图3-1 用户用例图 ==================== -->
+<div class="diagram-container">
+    <svg width="560" height="520" viewBox="0 0 560 520" xmlns="http://www.w3.org/2000/svg">
+        <!-- 系统边界框 -->
+        <rect x="160" y="20" width="380" height="480" fill="none" stroke="#333" stroke-width="2"/>
+        <text x="350" y="45" text-anchor="middle" font-size="15" font-weight="bold">非遗管理平台（用户端）</text>
+
+        <!-- 用户 stick figure -->
+        <!-- 头 -->
+        <circle cx="70" cy="200" r="18" fill="none" stroke="#333" stroke-width="2"/>
+        <!-- 身体 -->
+        <line x1="70" y1="218" x2="70" y2="280" stroke="#333" stroke-width="2"/>
+        <!-- 手臂 -->
+        <line x1="70" y1="240" x2="40" y2="265" stroke="#333" stroke-width="2"/>
+        <line x1="70" y1="240" x2="100" y2="265" stroke="#333" stroke-width="2"/>
+        <!-- 腿 -->
+        <line x1="70" y1="280" x2="45" y2="320" stroke="#333" stroke-width="2"/>
+        <line x1="70" y1="280" x2="95" y2="320" stroke="#333" stroke-width="2"/>
+        <!-- 标签 -->
+        <text x="70" y="345" text-anchor="middle" font-size="14" font-weight="bold">用户</text>
+
+        <!-- 用例椭圆 -->
+        <!-- 1. 注册登录 -->
+        <ellipse cx="350" cy="70" rx="75" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="350" y="75" text-anchor="middle" font-size="13">注册登录</text>
+        <line x1="100" y1="220" x2="275" y2="70" stroke="#333" stroke-width="1"/>
+
+        <!-- 2. 浏览非遗项目 -->
+        <ellipse cx="350" cy="120" rx="75" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="350" y="125" text-anchor="middle" font-size="13">浏览非遗项目</text>
+        <line x1="100" y1="230" x2="275" y2="120" stroke="#333" stroke-width="1"/>
+
+        <!-- 3. 查看传承人 -->
+        <ellipse cx="350" cy="170" rx="75" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="350" y="175" text-anchor="middle" font-size="13">查看传承人</text>
+        <line x1="100" y1="240" x2="275" y2="170" stroke="#333" stroke-width="1"/>
+
+        <!-- 4. 参与非遗活动 -->
+        <ellipse cx="350" cy="220" rx="75" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="350" y="225" text-anchor="middle" font-size="13">参与非遗活动</text>
+        <line x1="100" y1="250" x2="275" y2="220" stroke="#333" stroke-width="1"/>
+
+        <!-- 5. 购买文创商品 -->
+        <ellipse cx="350" cy="270" rx="75" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="350" y="275" text-anchor="middle" font-size="13">购买文创商品</text>
+        <line x1="100" y1="260" x2="275" y2="270" stroke="#333" stroke-width="1"/>
+
+        <!-- 6. 管理购物车 -->
+        <ellipse cx="350" cy="320" rx="75" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="350" y="325" text-anchor="middle" font-size="13">管理购物车</text>
+        <line x1="100" y1="270" x2="275" y2="320" stroke="#333" stroke-width="1"/>
+
+        <!-- 7. 查看订单 -->
+        <ellipse cx="350" cy="370" rx="75" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="350" y="375" text-anchor="middle" font-size="13">查看订单</text>
+        <line x1="100" y1="275" x2="275" y2="370" stroke="#333" stroke-width="1"/>
+
+        <!-- 8. AI智能问答 -->
+        <ellipse cx="350" cy="420" rx="75" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="350" y="425" text-anchor="middle" font-size="13">AI智能问答</text>
+        <line x1="100" y1="280" x2="275" y2="420" stroke="#333" stroke-width="1"/>
+
+        <!-- 9. 个人信息管理 -->
+        <ellipse cx="350" cy="470" rx="75" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="350" y="475" text-anchor="middle" font-size="13">个人信息管理</text>
+        <line x1="100" y1="285" x2="275" y2="470" stroke="#333" stroke-width="1"/>
+    </svg>
+    <div class="diagram-title">图3-1 用户用例图</div>
+</div>
+
+
+<!-- ==================== 图3-2 管理员用例图 ==================== -->
+<div class="diagram-container">
+    <svg width="560" height="520" viewBox="0 0 560 520" xmlns="http://www.w3.org/2000/svg">
+        <!-- 系统边界框 -->
+        <rect x="160" y="20" width="380" height="480" fill="none" stroke="#333" stroke-width="2"/>
+        <text x="350" y="45" text-anchor="middle" font-size="15" font-weight="bold">非遗管理平台（管理端）</text>
+
+        <!-- 管理员 stick figure -->
+        <circle cx="70" cy="200" r="18" fill="none" stroke="#333" stroke-width="2"/>
+        <line x1="70" y1="218" x2="70" y2="280" stroke="#333" stroke-width="2"/>
+        <line x1="70" y1="240" x2="40" y2="265" stroke="#333" stroke-width="2"/>
+        <line x1="70" y1="240" x2="100" y2="265" stroke="#333" stroke-width="2"/>
+        <line x1="70" y1="280" x2="45" y2="320" stroke="#333" stroke-width="2"/>
+        <line x1="70" y1="280" x2="95" y2="320" stroke="#333" stroke-width="2"/>
+        <text x="70" y="345" text-anchor="middle" font-size="14" font-weight="bold">管理员</text>
+
+        <!-- 用例椭圆 -->
+        <!-- 1. 登录 -->
+        <ellipse cx="350" cy="70" rx="80" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="350" y="75" text-anchor="middle" font-size="13">登录</text>
+        <line x1="100" y1="220" x2="270" y2="70" stroke="#333" stroke-width="1"/>
+
+        <!-- 2. 用户管理 -->
+        <ellipse cx="350" cy="120" rx="80" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="350" y="125" text-anchor="middle" font-size="13">用户管理</text>
+        <line x1="100" y1="230" x2="270" y2="120" stroke="#333" stroke-width="1"/>
+
+        <!-- 3. 非遗内容管理 -->
+        <ellipse cx="350" cy="170" rx="80" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="350" y="175" text-anchor="middle" font-size="13">非遗内容管理</text>
+        <line x1="100" y1="240" x2="270" y2="170" stroke="#333" stroke-width="1"/>
+
+        <!-- 4. 商品管理 -->
+        <ellipse cx="350" cy="220" rx="80" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="350" y="225" text-anchor="middle" font-size="13">商品管理</text>
+        <line x1="100" y1="250" x2="270" y2="220" stroke="#333" stroke-width="1"/>
+
+        <!-- 5. 订单管理 -->
+        <ellipse cx="350" cy="270" rx="80" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="350" y="275" text-anchor="middle" font-size="13">订单管理</text>
+        <line x1="100" y1="260" x2="270" y2="270" stroke="#333" stroke-width="1"/>
+
+        <!-- 6. 数据统计 -->
+        <ellipse cx="350" cy="320" rx="80" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="350" y="325" text-anchor="middle" font-size="13">数据统计</text>
+        <line x1="100" y1="268" x2="270" y2="320" stroke="#333" stroke-width="1"/>
+
+        <!-- 7. 库存预警处理 -->
+        <ellipse cx="350" cy="370" rx="80" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="350" y="375" text-anchor="middle" font-size="13">库存预警处理</text>
+        <line x1="100" y1="275" x2="270" y2="370" stroke="#333" stroke-width="1"/>
+
+        <!-- 8. 公告管理 -->
+        <ellipse cx="350" cy="420" rx="80" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="350" y="425" text-anchor="middle" font-size="13">公告管理</text>
+        <line x1="100" y1="280" x2="270" y2="420" stroke="#333" stroke-width="1"/>
+
+        <!-- 9. AI配置管理 -->
+        <ellipse cx="350" cy="470" rx="80" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="350" y="475" text-anchor="middle" font-size="13">AI配置管理</text>
+        <line x1="100" y1="285" x2="270" y2="470" stroke="#333" stroke-width="1"/>
+    </svg>
+    <div class="diagram-title">图3-2 管理员用例图</div>
+</div>
+
+
+<!-- ==================== 图3-3 AI助手用例图 ==================== -->
+<div class="diagram-container">
+    <svg width="600" height="420" viewBox="0 0 600 420" xmlns="http://www.w3.org/2000/svg">
+        <!-- 系统边界框 -->
+        <rect x="140" y="20" width="320" height="380" fill="none" stroke="#333" stroke-width="2"/>
+        <text x="300" y="45" text-anchor="middle" font-size="15" font-weight="bold">Omnitrix AI智能助手</text>
+
+        <!-- 用户 stick figure (左侧) -->
+        <circle cx="60" cy="170" r="18" fill="none" stroke="#333" stroke-width="2"/>
+        <line x1="60" y1="188" x2="60" y2="250" stroke="#333" stroke-width="2"/>
+        <line x1="60" y1="210" x2="30" y2="235" stroke="#333" stroke-width="2"/>
+        <line x1="60" y1="210" x2="90" y2="235" stroke="#333" stroke-width="2"/>
+        <line x1="60" y1="250" x2="35" y2="290" stroke="#333" stroke-width="2"/>
+        <line x1="60" y1="250" x2="85" y2="290" stroke="#333" stroke-width="2"/>
+        <text x="60" y="315" text-anchor="middle" font-size="14" font-weight="bold">用户</text>
+
+        <!-- AI助手 stick figure (右侧) -->
+        <circle cx="540" cy="170" r="18" fill="none" stroke="#333" stroke-width="2"/>
+        <line x1="540" y1="188" x2="540" y2="250" stroke="#333" stroke-width="2"/>
+        <line x1="540" y1="210" x2="510" y2="235" stroke="#333" stroke-width="2"/>
+        <line x1="540" y1="210" x2="570" y2="235" stroke="#333" stroke-width="2"/>
+        <line x1="540" y1="250" x2="515" y2="290" stroke="#333" stroke-width="2"/>
+        <line x1="540" y1="250" x2="565" y2="290" stroke="#333" stroke-width="2"/>
+        <text x="540" y="315" text-anchor="middle" font-size="14" font-weight="bold">AI助手</text>
+
+        <!-- 用例椭圆 -->
+        <!-- 1. 非遗知识问答 -->
+        <ellipse cx="300" cy="80" rx="80" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="300" y="85" text-anchor="middle" font-size="13">非遗知识问答</text>
+        <line x1="90" y1="190" x2="220" y2="80" stroke="#333" stroke-width="1"/>
+        <line x1="510" y1="190" x2="380" y2="80" stroke="#333" stroke-width="1"/>
+
+        <!-- 2. 购物咨询 -->
+        <ellipse cx="300" cy="140" rx="80" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="300" y="145" text-anchor="middle" font-size="13">购物咨询</text>
+        <line x1="90" y1="200" x2="220" y2="140" stroke="#333" stroke-width="1"/>
+        <line x1="510" y1="200" x2="380" y2="140" stroke="#333" stroke-width="1"/>
+
+        <!-- 3. 个性化推荐 -->
+        <ellipse cx="300" cy="200" rx="80" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="300" y="205" text-anchor="middle" font-size="13">个性化推荐</text>
+        <line x1="90" y1="210" x2="220" y2="200" stroke="#333" stroke-width="1"/>
+        <line x1="510" y1="210" x2="380" y2="200" stroke="#333" stroke-width="1"/>
+
+        <!-- 4. 传承人介绍 -->
+        <ellipse cx="300" cy="260" rx="80" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="300" y="265" text-anchor="middle" font-size="13">传承人介绍</text>
+        <line x1="90" y1="220" x2="220" y2="260" stroke="#333" stroke-width="1"/>
+        <line x1="510" y1="220" x2="380" y2="260" stroke="#333" stroke-width="1"/>
+
+        <!-- 5. 活动推荐 -->
+        <ellipse cx="300" cy="320" rx="80" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="300" y="325" text-anchor="middle" font-size="13">活动推荐</text>
+        <line x1="90" y1="230" x2="220" y2="320" stroke="#333" stroke-width="1"/>
+        <line x1="510" y1="230" x2="380" y2="320" stroke="#333" stroke-width="1"/>
+
+        <!-- 6. 会话历史管理 -->
+        <ellipse cx="300" cy="375" rx="80" ry="22" fill="none" stroke="#333" stroke-width="1.5"/>
+        <text x="300" y="380" text-anchor="middle" font-size="13">会话历史管理</text>
+        <line x1="90" y1="240" x2="220" y2="375" stroke="#333" stroke-width="1"/>
+        <line x1="510" y1="240" x2="380" y2="375" stroke="#333" stroke-width="1"/>
+    </svg>
+    <div class="diagram-title">图3-3 AI助手用例图</div>
+</div>
+
+
+<!-- ==================== 图3-4 Omnitrix AI系统分层架构图 ==================== -->
+<div class="diagram-container">
+    <svg width="700" height="620" viewBox="0 0 700 620" xmlns="http://www.w3.org/2000/svg">
+        <!-- 标题 -->
+        <text x="350" y="25" text-anchor="middle" font-size="15" font-weight="bold">Omnitrix AI 系统分层架构</text>
+
+        <!-- 第1层: API层 -->
+        <rect x="100" y="45" width="500" height="55" fill="#f0f0f0" stroke="#333" stroke-width="2" rx="4"/>
+        <text x="350" y="68" text-anchor="middle" font-size="14" font-weight="bold">API层</text>
+        <text x="350" y="88" text-anchor="middle" font-size="12" fill="#555">AiChatController — HTTP接口暴露 / SSE流式推送</text>
+        <!-- 向下箭头 -->
+        <line x1="350" y1="100" x2="350" y2="115" stroke="#333" stroke-width="1.5"/>
+        <polygon points="345,112 355,112 350,120" fill="#333"/>
+
+        <!-- 第2层: 编排层 -->
+        <rect x="100" y="120" width="500" height="55" fill="#e8e8e8" stroke="#333" stroke-width="2" rx="4"/>
+        <text x="350" y="143" text-anchor="middle" font-size="14" font-weight="bold">编排层</text>
+        <text x="350" y="163" text-anchor="middle" font-size="12" fill="#555">OrchestratorService — 全流程协调 / 限流熔断 / PendingAction处理</text>
+        <line x1="350" y1="175" x2="350" y2="190" stroke="#333" stroke-width="1.5"/>
+        <polygon points="345,187 355,187 350,195" fill="#333"/>
+
+        <!-- 第3层: 大脑层 -->
+        <rect x="100" y="195" width="500" height="55" fill="#f0f0f0" stroke="#333" stroke-width="2" rx="4"/>
+        <text x="350" y="218" text-anchor="middle" font-size="14" font-weight="bold">大脑层</text>
+        <!-- 三个Brain框 -->
+        <rect x="120" y="228" width="140" height="18" fill="none" stroke="#666" stroke-width="1" rx="2"/>
+        <text x="190" y="240" text-anchor="middle" font-size="10">UserMasterBrain</text>
+        <rect x="280" y="228" width="140" height="18" fill="none" stroke="#666" stroke-width="1" rx="2"/>
+        <text x="350" y="240" text-anchor="middle" font-size="10">AdminMasterBrain</text>
+        <rect x="440" y="228" width="140" height="18" fill="none" stroke="#666" stroke-width="1" rx="2"/>
+        <text x="510" y="240" text-anchor="middle" font-size="10">UltraMasterBrain</text>
+        <line x1="350" y1="250" x2="350" y2="265" stroke="#333" stroke-width="1.5"/>
+        <polygon points="345,262 355,262 350,270" fill="#333"/>
+
+        <!-- 第4层: 工厂层 -->
+        <rect x="100" y="270" width="500" height="55" fill="#e8e8e8" stroke="#333" stroke-width="2" rx="4"/>
+        <text x="350" y="293" text-anchor="middle" font-size="14" font-weight="bold">工厂层</text>
+        <text x="350" y="313" text-anchor="middle" font-size="12" fill="#555">MasterBrainFactory — 动态构建Brain实例 / 注入工具集与对话记忆</text>
+        <line x1="350" y1="325" x2="350" y2="340" stroke="#333" stroke-width="1.5"/>
+        <polygon points="345,337 355,337 350,345" fill="#333"/>
+
+        <!-- 第5层: AI服务层 -->
+        <rect x="100" y="345" width="500" height="55" fill="#f0f0f0" stroke="#333" stroke-width="2" rx="4"/>
+        <text x="350" y="368" text-anchor="middle" font-size="14" font-weight="bold">AI服务层</text>
+        <text x="350" y="388" text-anchor="middle" font-size="12" fill="#555">LangChain4j AiService — Function Calling执行 / 多轮推理</text>
+        <line x1="350" y1="400" x2="350" y2="415" stroke="#333" stroke-width="1.5"/>
+        <polygon points="345,412 355,412 350,420" fill="#333"/>
+
+        <!-- 第6层: 工具层 -->
+        <rect x="100" y="420" width="500" height="65" fill="#e8e8e8" stroke="#333" stroke-width="2" rx="4"/>
+        <text x="350" y="440" text-anchor="middle" font-size="14" font-weight="bold">工具层</text>
+        <!-- 工具方框 -->
+        <rect x="115" y="448" width="82" height="16" fill="none" stroke="#666" stroke-width="1" rx="2"/>
+        <text x="156" y="459" text-anchor="middle" font-size="9">ContentTools</text>
+        <rect x="205" y="448" width="82" height="16" fill="none" stroke="#666" stroke-width="1" rx="2"/>
+        <text x="246" y="459" text-anchor="middle" font-size="9">CommerceTools</text>
+        <rect x="295" y="448" width="70" height="16" fill="none" stroke="#666" stroke-width="1" rx="2"/>
+        <text x="330" y="459" text-anchor="middle" font-size="9">UserTools</text>
+        <rect x="373" y="448" width="82" height="16" fill="none" stroke="#666" stroke-width="1" rx="2"/>
+        <text x="414" y="459" text-anchor="middle" font-size="9">KnowledgeTools</text>
+        <rect x="463" y="448" width="82" height="16" fill="none" stroke="#666" stroke-width="1" rx="2"/>
+        <text x="504" y="459" text-anchor="middle" font-size="9">AdminTools</text>
+        <!-- 第二行工具 -->
+        <rect x="115" y="468" width="82" height="16" fill="none" stroke="#666" stroke-width="1" rx="2"/>
+        <text x="156" y="479" text-anchor="middle" font-size="9">RecommendTools</text>
+        <rect x="205" y="468" width="82" height="16" fill="none" stroke="#666" stroke-width="1" rx="2"/>
+        <text x="246" y="479" text-anchor="middle" font-size="9">BrowseHistTools</text>
+        <rect x="295" y="468" width="70" height="16" fill="none" stroke="#666" stroke-width="1" rx="2"/>
+        <text x="330" y="479" text-anchor="middle" font-size="9">UltraTools</text>
+        <rect x="373" y="468" width="82" height="16" fill="none" stroke="#666" stroke-width="1" rx="2"/>
+        <text x="414" y="479" text-anchor="middle" font-size="9">SubBrainTools</text>
+
+        <line x1="350" y1="485" x2="350" y2="500" stroke="#333" stroke-width="1.5"/>
+        <polygon points="345,497 355,497 350,505" fill="#333"/>
+
+        <!-- 第7层: 子脑层 -->
+        <rect x="100" y="505" width="500" height="50" fill="#f0f0f0" stroke="#333" stroke-width="2" rx="4"/>
+        <text x="350" y="525" text-anchor="middle" font-size="14" font-weight="bold">子脑层</text>
+        <rect x="140" y="533" width="120" height="16" fill="none" stroke="#666" stroke-width="1" rx="2"/>
+        <text x="200" y="544" text-anchor="middle" font-size="10">UserSubBrain</text>
+        <rect x="290" y="533" width="120" height="16" fill="none" stroke="#666" stroke-width="1" rx="2"/>
+        <text x="350" y="544" text-anchor="middle" font-size="10">AdminSubBrain</text>
+        <rect x="440" y="533" width="120" height="16" fill="none" stroke="#666" stroke-width="1" rx="2"/>
+        <text x="500" y="544" text-anchor="middle" font-size="10">UltraSubBrain</text>
+
+        <line x1="350" y1="555" x2="350" y2="570" stroke="#333" stroke-width="1.5"/>
+        <polygon points="345,567 355,567 350,575" fill="#333"/>
+
+        <!-- 基础设施层 -->
+        <rect x="100" y="575" width="500" height="35" fill="#ddd" stroke="#333" stroke-width="2" rx="4"/>
+        <text x="350" y="597" text-anchor="middle" font-size="13" font-weight="bold">基础设施层：记忆存储(Redis/MySQL) | 安全过滤(Guardrails) | 监控追踪</text>
+
+    </svg>
+    <div class="diagram-title">图3-4 Omnitrix AI系统分层架构图</div>
+</div>
+
+<div class="note">提示：右键图表 → "另存为图片" 或使用截图工具保存各图</div>
+
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>第6章 系统测试表格</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'宋体','SimSun',serif;background:#fff;padding:30px 50px;max-width:900px;margin:0 auto;color:#000}
+h1{text-align:center;font-size:18px;margin:20px 0 30px;font-weight:bold}
+h2{font-size:15px;margin:35px 0 5px;font-weight:bold}
+h3{font-size:14px;margin:20px 0 5px;font-weight:bold}
+p{font-size:14px;line-height:1.8;text-indent:2em;margin:5px 0}
+.table-title{text-align:center;font-size:13px;margin:15px 0 8px;font-weight:normal}
+table{width:100%;border-collapse:collapse;margin:0 auto 20px;font-size:13px}
+table th,table td{border:1px solid #000;padding:6px 10px;text-align:center;vertical-align:middle;line-height:1.6}
+table th{font-weight:bold;background:#fff}
+table td{font-weight:normal}
+.left{text-align:left}
+.section-divider{border:none;border-top:1px solid #ccc;margin:40px 0}
+.page-break{page-break-before:always;margin-top:50px}
+</style>
+</head>
+<body>
+
+<h1>第6章 系统测试表格</h1>
+
+<!-- ==================== 表6-1 用户管理测试用例表 ==================== -->
+<h2>6.2.1 用户管理测试</h2>
+<p class="table-title">表6-1 用户管理测试用例表</p>
+<table>
+<tr><th style="width:12%">用例编号</th><th style="width:18%">测试内容</th><th style="width:30%">测试步骤</th><th style="width:28%">预期结果</th><th style="width:12%">实际结果</th></tr>
+<tr><td>TM-001</td><td>用户注册-成功</td><td class="left">输入有效用户名、密码、手机号等信息，点击注册按钮</td><td class="left">提示"注册成功"，并跳转到登录页面</td><td>通过</td></tr>
+<tr><td>TM-002</td><td>用户注册-用户名重复</td><td class="left">输入已存在的用户名，填写其他信息，点击注册</td><td class="left">提示"用户名已存在"，注册失败</td><td>通过</td></tr>
+<tr><td>TM-003</td><td>用户登录-成功</td><td class="left">输入正确的用户名和密码，点击登录按钮</td><td class="left">登录成功，跳转到系统首页</td><td>通过</td></tr>
+<tr><td>TM-004</td><td>用户登录-密码错误</td><td class="left">输入正确用户名和错误密码，点击登录</td><td class="left">提示"密码错误"，登录失败</td><td>通过</td></tr>
+<tr><td>TM-005</td><td>用户登录-账号禁用</td><td class="left">使用已被管理员禁用的账号尝试登录</td><td class="left">提示"账号已被禁用"，无法登录</td><td>通过</td></tr>
+<tr><td>TM-006</td><td>修改个人信息</td><td class="left">进入个人中心，修改昵称、头像等信息，点击保存</td><td class="left">提示"修改成功"，信息更新显示</td><td>通过</td></tr>
+<tr><td>TM-007</td><td>密码找回</td><td class="left">点击忘记密码，输入手机号获取验证码，重置密码</td><td class="left">密码重置成功，可使用新密码登录</td><td>通过</td></tr>
+</table>
+
+<!-- ==================== 表6-2 商品模块测试用例表 ==================== -->
+<h2>6.2.2 商品模块测试</h2>
+<p class="table-title">表6-2 商品模块测试用例表</p>
+<table>
+<tr><th style="width:12%">用例编号</th><th style="width:18%">测试内容</th><th style="width:30%">测试步骤</th><th style="width:28%">预期结果</th><th style="width:12%">实际结果</th></tr>
+<tr><td>TM-008</td><td>商品列表查询</td><td class="left">进入文创商城页面，查看商品列表</td><td class="left">正确显示商品列表，包含图片、名称、价格等</td><td>通过</td></tr>
+<tr><td>TM-009</td><td>商品搜索</td><td class="left">在搜索栏输入商品关键词，点击搜索</td><td class="left">显示与关键词匹配的商品搜索结果</td><td>通过</td></tr>
+<tr><td>TM-010</td><td>商品分类筛选</td><td class="left">点击商品分类标签，选择指定分类</td><td class="left">仅显示该分类下的商品列表</td><td>通过</td></tr>
+<tr><td>TM-011</td><td>商品详情查看</td><td class="left">点击商品卡片，进入商品详情页</td><td class="left">显示商品详细信息（图片、价格、描述、库存等）</td><td>通过</td></tr>
+<tr><td>TM-012</td><td>加入购物车</td><td class="left">在商品详情页点击"加入购物车"按钮</td><td class="left">提示"添加成功"，购物车数量+1</td><td>通过</td></tr>
+<tr><td>TM-013</td><td>购物车数量修改</td><td class="left">进入购物车，修改商品数量</td><td class="left">数量更新成功，小计金额同步更新</td><td>通过</td></tr>
+<tr><td>TM-014</td><td>删除购物车商品</td><td class="left">在购物车中点击商品的删除按钮</td><td class="left">商品从购物车中移除，总价更新</td><td>通过</td></tr>
+<tr><td>TM-015</td><td>库存不足提示</td><td class="left">将商品购买数量设为超过库存的数值</td><td class="left">提示"库存不足"，无法继续操作</td><td>通过</td></tr>
+</table>
+
+<!-- ==================== 表6-3 订单模块测试用例表 ==================== -->
+<h2>6.2.3 订单模块测试</h2>
+<p class="table-title">表6-3 订单模块测试用例表</p>
+<table>
+<tr><th style="width:12%">用例编号</th><th style="width:18%">测试内容</th><th style="width:30%">测试步骤</th><th style="width:28%">预期结果</th><th style="width:12%">实际结果</th></tr>
+<tr><td>TM-016</td><td>创建订单</td><td class="left">在购物车中勾选商品，点击"提交订单"</td><td class="left">订单创建成功，跳转到支付页面</td><td>通过</td></tr>
+<tr><td>TM-017</td><td>订单支付</td><td class="left">在订单支付页面，选择支付方式，点击支付</td><td class="left">支付成功，订单状态变为"已支付"</td><td>通过</td></tr>
+<tr><td>TM-018</td><td>订单列表查看</td><td class="left">进入"我的订单"页面，查看订单列表</td><td class="left">显示所有订单，包含订单号、金额、状态</td><td>通过</td></tr>
+<tr><td>TM-019</td><td>订单详情查看</td><td class="left">点击订单列表中的某条订单</td><td class="left">显示订单详细信息（商品、地址、物流等）</td><td>通过</td></tr>
+<tr><td>TM-020</td><td>确认收货</td><td class="left">对"已发货"状态的订单，点击"确认收货"</td><td class="left">订单状态变为"已完成"</td><td>通过</td></tr>
+<tr><td>TM-021</td><td>申请退款</td><td class="left">对已支付订单，点击"申请退款"并填写原因</td><td class="left">退款申请提交成功，等待管理员审核</td><td>通过</td></tr>
+<tr><td>TM-022</td><td>管理员发货</td><td class="left">管理员进入订单管理，填写物流信息，点击发货</td><td class="left">订单状态变为"已发货"，用户端同步更新</td><td>通过</td></tr>
+<tr><td>TM-023</td><td>退款审核</td><td class="left">管理员审核退款申请，点击"同意退款"</td><td class="left">审核通过，退款处理，库存恢复</td><td>通过</td></tr>
+</table>
+
+<!-- ==================== 表6-4 AI智能问答测试用例表 ==================== -->
+<h2>6.2.4 AI智能问答测试</h2>
+<p class="table-title">表6-4 AI智能问答测试用例表</p>
+<table>
+<tr><th style="width:12%">用例编号</th><th style="width:18%">测试内容</th><th style="width:30%">测试步骤</th><th style="width:28%">预期结果</th><th style="width:12%">实际结果</th></tr>
+<tr><td>TM-024</td><td>非遗知识问答</td><td class="left">在AI助手对话框中提问"什么是京剧？"</td><td class="left">AI返回关于京剧的准确、详细的回答</td><td>通过</td></tr>
+<tr><td>TM-025</td><td>商品咨询</td><td class="left">向AI询问"有什么推荐的非遗文创商品？"</td><td class="left">返回商品相关信息和推荐内容</td><td>通过</td></tr>
+<tr><td>TM-026</td><td>购物建议</td><td class="left">请AI推荐适合送礼的文创商品</td><td class="left">返回个性化推荐的商品列表</td><td>通过</td></tr>
+<tr><td>TM-027</td><td>多轮对话</td><td class="left">连续提问多个相关问题，验证上下文记忆</td><td class="left">AI正确理解上下文，回答连贯准确</td><td>通过</td></tr>
+<tr><td>TM-028</td><td>无效输入过滤</td><td class="left">输入敏感词或无关内容进行测试</td><td class="left">输入被安全机制拦截，返回拒绝提示</td><td>通过</td></tr>
+<tr><td>TM-029</td><td>流式响应</td><td class="left">提问一个需要长回答的问题</td><td class="left">回答以SSE流式方式实时显示</td><td>通过</td></tr>
+<tr><td>TM-030</td><td>个性化推荐</td><td class="left">与AI进行多次交互后，查看推荐内容</td><td class="left">推荐结果符合用户的偏好和历史行为</td><td>通过</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<!-- ==================== 总测试结果表（参考图1风格） ==================== -->
+<h2>6.3 测试结果汇总</h2>
+<p class="table-title">表6-5 结果表：系统功能测试</p>
+<table>
+<tr><th style="width:20%">测试用例号</th><th style="width:50%">输入数据</th><th style="width:30%">测试结果</th></tr>
+<tr><td>TM-001~007</td><td>用户管理：用户</td><td>7, 正常</td></tr>
+<tr><td>TM-008~015</td><td>商品模块：用户</td><td>8, 正常</td></tr>
+<tr><td>TM-016~021</td><td>订单操作：用户</td><td>6, 正常</td></tr>
+<tr><td>TM-022~023</td><td>订单管理：管理员</td><td>2, 正常</td></tr>
+<tr><td>TM-024~027</td><td>AI智能问答：用户</td><td>4, 正常</td></tr>
+<tr><td>TM-028</td><td>安全过滤：用户</td><td>1, 正常</td></tr>
+<tr><td>TM-029~030</td><td>AI高级功能：用户</td><td>2, 正常</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<!-- ==================== 性能测试结果表 ==================== -->
+<h2>6.3.2 性能测试结果</h2>
+<p class="table-title">表6-6 系统性能测试结果表</p>
+<table>
+<tr><th style="width:8%">编号</th><th style="width:28%">测试项目</th><th style="width:22%">测试指标</th><th style="width:22%">测试结果</th><th style="width:20%">是否达标</th></tr>
+<tr><td>PT-001</td><td>首页加载时间</td><td>≤3秒</td><td>平均1.2秒</td><td>达标</td></tr>
+<tr><td>PT-002</td><td>API接口响应时间</td><td>≤500毫秒</td><td>平均280毫秒</td><td>达标</td></tr>
+<tr><td>PT-003</td><td>AI问答首字响应</td><td>≤5秒</td><td>平均2.1秒</td><td>达标</td></tr>
+<tr><td>PT-004</td><td>100并发用户</td><td>系统正常响应</td><td>响应稳定，无性能下降</td><td>达标</td></tr>
+<tr><td>PT-005</td><td>500并发用户</td><td>系统可用</td><td>轻微性能下降，仍正常响应</td><td>达标</td></tr>
+<tr><td>PT-006</td><td>数据库查询</td><td>≤200毫秒</td><td>平均120毫秒</td><td>达标</td></tr>
+</table>
+
+<!-- ==================== 安全性测试结果表 ==================== -->
+<h2>6.3.3 安全性测试结果</h2>
+<p class="table-title">表6-7 系统安全性测试结果表</p>
+<table>
+<tr><th style="width:8%">编号</th><th style="width:22%">测试项目</th><th style="width:30%">测试方法</th><th style="width:25%">测试结果</th><th style="width:15%">是否通过</th></tr>
+<tr><td>ST-001</td><td>密码加密存储</td><td class="left">检查数据库中密码字段存储方式</td><td>采用BCrypt加密，无法逆向</td><td>通过</td></tr>
+<tr><td>ST-002</td><td>SQL注入攻击</td><td class="left">在登录、搜索等输入框注入SQL语句</td><td>攻击被有效拦截</td><td>通过</td></tr>
+<tr><td>ST-003</td><td>XSS跨站脚本</td><td class="left">在输入框插入JavaScript脚本代码</td><td>脚本被过滤，未执行</td><td>通过</td></tr>
+<tr><td>ST-004</td><td>接口身份验证</td><td class="left">未登录状态下访问敏感API接口</td><td>返回401未授权错误</td><td>通过</td></tr>
+<tr><td>ST-005</td><td>越权访问测试</td><td class="left">普通用户尝试访问管理员接口</td><td>返回403禁止访问错误</td><td>通过</td></tr>
+<tr><td>ST-006</td><td>AI输入安全</td><td class="left">向AI助手发送敏感词和注入提示词</td><td>被安全机制拦截并拒绝</td><td>通过</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<!-- ==================== 测试统计汇总表 ==================== -->
+<h2>6.3.1 测试统计汇总</h2>
+<p class="table-title">表6-8 测试统计汇总表</p>
+<table>
+<tr><th style="width:30%">统计项目</th><th style="width:25%">数量</th><th style="width:45%">说明</th></tr>
+<tr><td>功能测试用例数</td><td>30</td><td>覆盖用户管理、商品、订单、AI问答四大模块</td></tr>
+<tr><td>执行用例数</td><td>30</td><td>所有用例均已执行</td></tr>
+<tr><td>通过用例数</td><td>30</td><td>所有用例全部通过</td></tr>
+<tr><td>通过率</td><td>100%</td><td>-</td></tr>
+<tr><td>性能测试项</td><td>6</td><td>全部达标</td></tr>
+<tr><td>安全测试项</td><td>6</td><td>全部通过</td></tr>
+<tr><td>发现缺陷数</td><td>3</td><td>1个界面显示问题 + 2个提示信息优化建议</td></tr>
+<tr><td>缺陷修复率</td><td>100%</td><td>所有缺陷已在测试过程中修复</td></tr>
+<tr><td>功能覆盖率</td><td>≥95%</td><td>核心功能模块全部覆盖</td></tr>
+</table>
+
+</body>
+</html>

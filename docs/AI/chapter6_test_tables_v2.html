@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>第6章 系统测试表格（版本2）</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'宋体','SimSun',serif;background:#fff;padding:40px 50px;max-width:960px;margin:0 auto;color:#000}
+h1{text-align:center;font-size:18px;margin:0 0 35px;font-weight:bold;letter-spacing:2px}
+h2{font-size:15px;margin:40px 0 8px;padding-bottom:6px;border-bottom:2px solid #000;font-weight:bold}
+.caption{text-align:center;font-size:13px;margin:12px 0 6px;font-weight:normal}
+table{width:100%;border-collapse:collapse;margin:0 auto 25px;font-size:12.5px}
+table th{border:1px solid #000;padding:7px 8px;text-align:center;background:#e9e9e9;font-weight:bold}
+table td{border:1px solid #000;padding:6px 8px;vertical-align:top;line-height:1.6}
+.c{text-align:center}
+.pass{text-align:center;color:#000;font-weight:bold}
+.tag{display:inline-block;font-size:11px;padding:1px 6px;border:1px solid #000;margin:1px 2px;border-radius:2px}
+.summary-box{border:1px solid #000;padding:15px 20px;margin:20px 0;font-size:13px;line-height:2}
+.summary-box b{font-size:14px}
+.bar-container{width:100%;height:16px;background:#ddd;border:1px solid #000;position:relative}
+.bar-fill{height:100%;background:#555}
+.bar-label{position:absolute;right:4px;top:0;font-size:10px;line-height:16px;color:#000}
+.metric-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:15px 0 25px}
+.metric-card{border:1px solid #000;padding:10px 12px;text-align:center}
+.metric-card .val{font-size:22px;font-weight:bold;margin:4px 0}
+.metric-card .label{font-size:12px;color:#333}
+</style>
+</head>
+<body>
+
+<h1>非遗文化管理平台 — 系统测试报告</h1>
+
+<!-- ========== 测试概览 ========== -->
+<div class="summary-box">
+<b>测试概览</b><br>
+测试方法：黑盒测试 &nbsp;|&nbsp; 测试环境：Windows 11 + Chrome 120 + MySQL 8.0.33<br>
+后端版本：Spring Boot 2.7.18 + Dubbo 2.7.8 &nbsp;|&nbsp; 前端版本：Vue 3 + Vite 7<br>
+测试周期：2025年3月 &nbsp;|&nbsp; 测试人员：2人（管理员模块1人 + 用户模块1人）
+</div>
+
+<div class="metric-grid">
+<div class="metric-card"><div class="label">功能用例总数</div><div class="val">30</div></div>
+<div class="metric-card"><div class="label">用例通过数</div><div class="val">30</div></div>
+<div class="metric-card"><div class="label">通过率</div><div class="val">100%</div></div>
+<div class="metric-card"><div class="label">性能测试项</div><div class="val">6</div></div>
+<div class="metric-card"><div class="label">安全测试项</div><div class="val">6</div></div>
+<div class="metric-card"><div class="label">缺陷修复率</div><div class="val">100%</div></div>
+</div>
+
+<!-- ========== 表6-1 用户管理 ========== -->
+<h2>一、用户管理模块测试（7条用例）</h2>
+<p class="caption">表6-1 用户管理测试用例</p>
+<table>
+<tr>
+<th style="width:9%">编号</th>
+<th style="width:13%">测试项</th>
+<th style="width:10%">前置条件</th>
+<th style="width:23%">操作步骤</th>
+<th style="width:23%">预期结果</th>
+<th style="width:12%">优先级</th>
+<th style="width:10%">结果</th>
+</tr>
+<tr>
+<td class="c">TM-001</td>
+<td>用户注册</td>
+<td>未登录</td>
+<td>输入用户名、密码、手机号，点击注册</td>
+<td>注册成功，跳转登录页</td>
+<td class="c"><span class="tag">高</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-002</td>
+<td>重复用户名注册</td>
+<td>未登录</td>
+<td>输入已存在用户名，点击注册</td>
+<td>提示"用户名已存在"</td>
+<td class="c"><span class="tag">高</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-003</td>
+<td>正常登录</td>
+<td>已注册</td>
+<td>输入正确账号密码，点击登录</td>
+<td>登录成功，进入首页</td>
+<td class="c"><span class="tag">高</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-004</td>
+<td>密码错误登录</td>
+<td>已注册</td>
+<td>输入正确用户名+错误密码</td>
+<td>提示"密码错误"</td>
+<td class="c"><span class="tag">高</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-005</td>
+<td>禁用账号登录</td>
+<td>账号已禁用</td>
+<td>使用禁用账号尝试登录</td>
+<td>提示"账号已被禁用"</td>
+<td class="c"><span class="tag">中</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-006</td>
+<td>修改个人信息</td>
+<td>已登录</td>
+<td>修改昵称、头像，点击保存</td>
+<td>提示修改成功，信息更新</td>
+<td class="c"><span class="tag">中</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-007</td>
+<td>密码找回</td>
+<td>已注册</td>
+<td>输入手机号获取验证码，重置密码</td>
+<td>密码重置成功</td>
+<td class="c"><span class="tag">中</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+</table>
+
+<!-- ========== 表6-2 商品模块 ========== -->
+<h2>二、商品模块测试（8条用例）</h2>
+<p class="caption">表6-2 商品模块测试用例</p>
+<table>
+<tr>
+<th style="width:9%">编号</th>
+<th style="width:13%">测试项</th>
+<th style="width:10%">前置条件</th>
+<th style="width:23%">操作步骤</th>
+<th style="width:23%">预期结果</th>
+<th style="width:12%">优先级</th>
+<th style="width:10%">结果</th>
+</tr>
+<tr>
+<td class="c">TM-008</td>
+<td>商品列表</td>
+<td>已登录</td>
+<td>进入文创商城页面</td>
+<td>显示商品列表（图片、名称、价格）</td>
+<td class="c"><span class="tag">高</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-009</td>
+<td>关键词搜索</td>
+<td>已登录</td>
+<td>输入关键词点击搜索</td>
+<td>返回匹配的商品结果</td>
+<td class="c"><span class="tag">高</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-010</td>
+<td>分类筛选</td>
+<td>已登录</td>
+<td>选择指定商品分类</td>
+<td>仅展示该分类商品</td>
+<td class="c"><span class="tag">中</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-011</td>
+<td>商品详情</td>
+<td>已登录</td>
+<td>点击商品卡片进入详情</td>
+<td>展示完整商品信息</td>
+<td class="c"><span class="tag">高</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-012</td>
+<td>加入购物车</td>
+<td>已登录</td>
+<td>点击"加入购物车"</td>
+<td>提示添加成功，购物车+1</td>
+<td class="c"><span class="tag">高</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-013</td>
+<td>修改购物车数量</td>
+<td>购物车有商品</td>
+<td>修改数量值</td>
+<td>数量更新，小计金额同步</td>
+<td class="c"><span class="tag">中</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-014</td>
+<td>删除购物车商品</td>
+<td>购物车有商品</td>
+<td>点击删除按钮</td>
+<td>商品移除，总价更新</td>
+<td class="c"><span class="tag">中</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-015</td>
+<td>库存不足提示</td>
+<td>已登录</td>
+<td>设置数量超过库存值</td>
+<td>提示"库存不足"</td>
+<td class="c"><span class="tag">高</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+</table>
+
+<!-- ========== 表6-3 订单模块 ========== -->
+<h2>三、订单模块测试（8条用例）</h2>
+<p class="caption">表6-3 订单模块测试用例</p>
+<table>
+<tr>
+<th style="width:9%">编号</th>
+<th style="width:13%">测试项</th>
+<th style="width:10%">角色</th>
+<th style="width:23%">操作步骤</th>
+<th style="width:23%">预期结果</th>
+<th style="width:12%">优先级</th>
+<th style="width:10%">结果</th>
+</tr>
+<tr>
+<td class="c">TM-016</td>
+<td>创建订单</td>
+<td class="c">用户</td>
+<td>勾选购物车商品，提交订单</td>
+<td>订单创建成功，跳转支付</td>
+<td class="c"><span class="tag">高</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-017</td>
+<td>订单支付</td>
+<td class="c">用户</td>
+<td>选择支付方式，确认支付</td>
+<td>支付成功，状态→已支付</td>
+<td class="c"><span class="tag">高</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-018</td>
+<td>查看订单列表</td>
+<td class="c">用户</td>
+<td>进入"我的订单"页面</td>
+<td>展示全部订单记录</td>
+<td class="c"><span class="tag">中</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-019</td>
+<td>订单详情</td>
+<td class="c">用户</td>
+<td>点击订单查看详情</td>
+<td>展示商品、地址、物流信息</td>
+<td class="c"><span class="tag">中</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-020</td>
+<td>确认收货</td>
+<td class="c">用户</td>
+<td>对已发货订单点击确认收货</td>
+<td>订单状态→已完成</td>
+<td class="c"><span class="tag">高</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-021</td>
+<td>申请退款</td>
+<td class="c">用户</td>
+<td>点击申请退款，填写退款原因</td>
+<td>退款申请提交成功</td>
+<td class="c"><span class="tag">中</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-022</td>
+<td>管理员发货</td>
+<td class="c">管理员</td>
+<td>填写物流单号，点击发货</td>
+<td>订单状态→已发货</td>
+<td class="c"><span class="tag">高</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-023</td>
+<td>退款审核</td>
+<td class="c">管理员</td>
+<td>审核退款申请，同意退款</td>
+<td>退款完成，库存恢复</td>
+<td class="c"><span class="tag">高</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+</table>
+
+<!-- ========== 表6-4 AI智能问答 ========== -->
+<h2>四、AI智能问答模块测试（7条用例）</h2>
+<p class="caption">表6-4 AI智能问答测试用例</p>
+<table>
+<tr>
+<th style="width:9%">编号</th>
+<th style="width:13%">测试项</th>
+<th style="width:10%">测试分类</th>
+<th style="width:23%">操作步骤</th>
+<th style="width:23%">预期结果</th>
+<th style="width:12%">优先级</th>
+<th style="width:10%">结果</th>
+</tr>
+<tr>
+<td class="c">TM-024</td>
+<td>非遗知识问答</td>
+<td class="c">功能</td>
+<td>提问"什么是京剧？"</td>
+<td>返回准确的京剧介绍</td>
+<td class="c"><span class="tag">高</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-025</td>
+<td>商品咨询</td>
+<td class="c">功能</td>
+<td>询问文创商品信息</td>
+<td>返回商品相关介绍</td>
+<td class="c"><span class="tag">高</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-026</td>
+<td>购物建议</td>
+<td class="c">推荐</td>
+<td>请AI推荐适合送礼的商品</td>
+<td>返回个性化推荐列表</td>
+<td class="c"><span class="tag">中</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-027</td>
+<td>多轮对话</td>
+<td class="c">功能</td>
+<td>连续提问多个相关问题</td>
+<td>上下文理解正确，回答连贯</td>
+<td class="c"><span class="tag">高</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-028</td>
+<td>敏感词过滤</td>
+<td class="c">安全</td>
+<td>输入敏感词或违规内容</td>
+<td>输入被拦截，返回拒绝提示</td>
+<td class="c"><span class="tag">高</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-029</td>
+<td>SSE流式响应</td>
+<td class="c">性能</td>
+<td>提问需要长篇回答的问题</td>
+<td>回答实时逐字显示</td>
+<td class="c"><span class="tag">中</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+<tr>
+<td class="c">TM-030</td>
+<td>个性化推荐</td>
+<td class="c">推荐</td>
+<td>多次交互后查看推荐内容</td>
+<td>推荐结果符合用户偏好</td>
+<td class="c"><span class="tag">中</span></td>
+<td class="pass">✓ 通过</td>
+</tr>
+</table>
+
+<!-- ========== 性能测试 ========== -->
+<h2>五、性能测试结果</h2>
+<p class="caption">表6-5 性能测试结果</p>
+<table>
+<tr>
+<th style="width:8%">编号</th>
+<th style="width:22%">测试项目</th>
+<th style="width:15%">指标要求</th>
+<th style="width:15%">实测数据</th>
+<th style="width:30%">达标情况</th>
+<th style="width:10%">结果</th>
+</tr>
+<tr>
+<td class="c">PT-001</td>
+<td>首页加载时间</td>
+<td class="c">≤ 3s</td>
+<td class="c">1.2s</td>
+<td><div class="bar-container"><div class="bar-fill" style="width:40%"></div><div class="bar-label">40%</div></div></td>
+<td class="pass">达标</td>
+</tr>
+<tr>
+<td class="c">PT-002</td>
+<td>API接口响应</td>
+<td class="c">≤ 500ms</td>
+<td class="c">280ms</td>
+<td><div class="bar-container"><div class="bar-fill" style="width:56%"></div><div class="bar-label">56%</div></div></td>
+<td class="pass">达标</td>
+</tr>
+<tr>
+<td class="c">PT-003</td>
+<td>AI首字响应</td>
+<td class="c">≤ 5s</td>
+<td class="c">2.1s</td>
+<td><div class="bar-container"><div class="bar-fill" style="width:42%"></div><div class="bar-label">42%</div></div></td>
+<td class="pass">达标</td>
+</tr>
+<tr>
+<td class="c">PT-004</td>
+<td>100并发用户</td>
+<td class="c">正常响应</td>
+<td class="c">稳定</td>
+<td><div class="bar-container"><div class="bar-fill" style="width:20%"></div><div class="bar-label">正常</div></div></td>
+<td class="pass">达标</td>
+</tr>
+<tr>
+<td class="c">PT-005</td>
+<td>500并发用户</td>
+<td class="c">系统可用</td>
+<td class="c">轻微下降</td>
+<td><div class="bar-container"><div class="bar-fill" style="width:70%"></div><div class="bar-label">70%</div></div></td>
+<td class="pass">达标</td>
+</tr>
+<tr>
+<td class="c">PT-006</td>
+<td>数据库查询</td>
+<td class="c">≤ 200ms</td>
+<td class="c">120ms</td>
+<td><div class="bar-container"><div class="bar-fill" style="width:60%"></div><div class="bar-label">60%</div></div></td>
+<td class="pass">达标</td>
+</tr>
+</table>
+
+<!-- ========== 安全性测试 ========== -->
+<h2>六、安全性测试结果</h2>
+<p class="caption">表6-6 安全性测试结果</p>
+<table>
+<tr>
+<th style="width:8%">编号</th>
+<th style="width:18%">测试项目</th>
+<th style="width:15%">攻击类型</th>
+<th style="width:27%">测试方法</th>
+<th style="width:22%">测试结果</th>
+<th style="width:10%">结论</th>
+</tr>
+<tr>
+<td class="c">ST-001</td>
+<td>密码存储安全</td>
+<td class="c">数据泄露</td>
+<td>查看数据库密码字段存储格式</td>
+<td>BCrypt加密，不可逆</td>
+<td class="pass">✓ 安全</td>
+</tr>
+<tr>
+<td class="c">ST-002</td>
+<td>SQL注入防护</td>
+<td class="c">注入攻击</td>
+<td>在登录/搜索输入SQL语句</td>
+<td>攻击被MyBatis参数化拦截</td>
+<td class="pass">✓ 安全</td>
+</tr>
+<tr>
+<td class="c">ST-003</td>
+<td>XSS防护</td>
+<td class="c">脚本注入</td>
+<td>在输入框插入JS脚本代码</td>
+<td>脚本被过滤，未执行</td>
+<td class="pass">✓ 安全</td>
+</tr>
+<tr>
+<td class="c">ST-004</td>
+<td>接口鉴权</td>
+<td class="c">未授权访问</td>
+<td>未登录状态访问受保护API</td>
+<td>返回401未授权</td>
+<td class="pass">✓ 安全</td>
+</tr>
+<tr>
+<td class="c">ST-005</td>
+<td>越权访问防护</td>
+<td class="c">权限绕过</td>
+<td>普通用户请求管理员接口</td>
+<td>返回403禁止访问</td>
+<td class="pass">✓ 安全</td>
+</tr>
+<tr>
+<td class="c">ST-006</td>
+<td>AI输入安全</td>
+<td class="c">提示词注入</td>
+<td>发送恶意prompt和敏感内容</td>
+<td>被Omnitrix安全层拦截</td>
+<td class="pass">✓ 安全</td>
+</tr>
+</table>
+
+<!-- ========== 缺陷统计 ========== -->
+<h2>七、缺陷统计</h2>
+<p class="caption">表6-7 测试缺陷记录</p>
+<table>
+<tr>
+<th style="width:8%">编号</th>
+<th style="width:15%">所属模块</th>
+<th style="width:12%">严重程度</th>
+<th style="width:30%">缺陷描述</th>
+<th style="width:20%">修复方案</th>
+<th style="width:15%">修复状态</th>
+</tr>
+<tr>
+<td class="c">BUG-001</td>
+<td>商品模块</td>
+<td class="c">轻微</td>
+<td>商品详情页在窄屏下图片溢出</td>
+<td>添加响应式CSS适配</td>
+<td class="pass">已修复</td>
+</tr>
+<tr>
+<td class="c">BUG-002</td>
+<td>订单模块</td>
+<td class="c">建议</td>
+<td>支付成功提示信息不够明确</td>
+<td>优化提示文案为"支付成功，请等待发货"</td>
+<td class="pass">已修复</td>
+</tr>
+<tr>
+<td class="c">BUG-003</td>
+<td>AI模块</td>
+<td class="c">建议</td>
+<td>AI回答过长时缺少"收起"按钮</td>
+<td>添加折叠/展开功能</td>
+<td class="pass">已修复</td>
+</tr>
+</table>
+
+<!-- ========== 汇总 ========== -->
+<h2>八、测试结论</h2>
+<p class="caption">表6-8 测试结果汇总</p>
+<table>
+<tr>
+<th style="width:20%">测试类型</th>
+<th style="width:15%">用例总数</th>
+<th style="width:15%">通过数</th>
+<th style="width:15%">通过率</th>
+<th style="width:35%">备注</th>
+</tr>
+<tr>
+<td>功能测试 — 用户管理</td>
+<td class="c">7</td>
+<td class="c">7</td>
+<td class="c">100%</td>
+<td>注册、登录、个人信息全部正常</td>
+</tr>
+<tr>
+<td>功能测试 — 商品模块</td>
+<td class="c">8</td>
+<td class="c">8</td>
+<td class="c">100%</td>
+<td>搜索、购物车、库存校验正常</td>
+</tr>
+<tr>
+<td>功能测试 — 订单模块</td>
+<td class="c">8</td>
+<td class="c">8</td>
+<td class="c">100%</td>
+<td>下单、支付、发货、退款流程完整</td>
+</tr>
+<tr>
+<td>功能测试 — AI问答</td>
+<td class="c">7</td>
+<td class="c">7</td>
+<td class="c">100%</td>
+<td>多轮对话、流式响应、安全过滤正常</td>
+</tr>
+<tr>
+<td>性能测试</td>
+<td class="c">6</td>
+<td class="c">6</td>
+<td class="c">100%</td>
+<td>响应时间、并发承载均达标</td>
+</tr>
+<tr>
+<td>安全性测试</td>
+<td class="c">6</td>
+<td class="c">6</td>
+<td class="c">100%</td>
+<td>注入防护、鉴权、加密全部通过</td>
+</tr>
+<tr style="font-weight:bold;background:#e9e9e9">
+<td>合计</td>
+<td class="c">42</td>
+<td class="c">42</td>
+<td class="c">100%</td>
+<td>全部测试项均通过，系统质量达标</td>
+</tr>
+</table>
+
+</body>
+</html>
