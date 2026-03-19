@@ -1,117 +1,99 @@
 package com.hyang.ich.omnitrix.infrastructure.vector;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Data;
+import dev.langchain4j.model.embedding.Embedding;
+import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.embedding.oneturn.OneturnEmbeddingModel;
+import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
+import dev.langchain4j.model.output.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 向量化服务 - 将文本转换为向量
- * 支持多种Embedding模型
+ * 嵌入服务（Embedding Service）
+ * 负责将文本转换为向量表示，用于向量检索
  */
 @Slf4j
 @Component
-@ConditionalOnProperty(name = "omnitrix.vector.enabled", havingValue = "true")
 public class EmbeddingService {
 
     private final VectorProperties properties;
-    private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
+    private final EmbeddingModel embeddingModel;
 
     public EmbeddingService(VectorProperties properties) {
         this.properties = properties;
-        this.restTemplate = new RestTemplate();
-        this.objectMapper = new ObjectMapper();
+        this.embeddingModel = createEmbeddingModel();
     }
 
     /**
-     * 将文本向量化
+     * 创建 Embedding 模型
+     */
+    private EmbeddingModel createEmbeddingModel() {
+        VectorProperties.EmbeddingConfig config = properties.getEmbedding();
+
+        if (!config.isUseRemote()) {
+            throw new UnsupportedOperationException("本地Embedding模型暂不支持，请使用远程API");
+        }
+
+        String apiKey = config.getApiKey();
+        if (apiKey == null || apiKey.isEmpty()) {
+            throw new IllegalStateException("Embedding API Key 未配置！请在配置文件中设置 omnitrix.vector.embedding.api-key");
+        }
+
+        log.info("初始化远程Embedding模型: model={}, dimension={}, apiUrl={}",
+                config.getModel(), config.getDimension(), config.getApiUrl());
+
+        return OpenAiEmbeddingModel.builder()
+                .apiKey(apiKey)
+                .modelName(config.getModel())
+                .dimensions(config.getDimension())
+                .baseUrl(config.getApiUrl())
+                .build();
+    }
+
+    /**
+     * 单文本嵌入
+     *
+     * @param text 待嵌入文本
+     * @return 嵌入向量
      */
     public float[] embed(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            return new float[0];
+        }
+
         try {
-            VectorProperties.EmbeddingConfig config = properties.getEmbedding();
-            
-            // 构建请求
-            String requestBody = String.format(
-                "{\"input\": \"%s\", \"model\": \"%s\"}",
-                text.replace("\"", "\\\""),
-                config.getModel()
-            );
-            
-            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-            headers.set("Content-Type", "application/json");
-            headers.set("Authorization", "Bearer " + config.getApiKey());
-            
-            org.springframework.http.HttpEntity<String> entity = 
-                new org.springframework.http.HttpEntity<>(requestBody, headers);
-            
-            String url = config.getApiUrl();
-            org.springframework.http.ResponseEntity<String> response = 
-                restTemplate.postForEntity(url, entity, String.class);
-            
-            return parseEmbeddingResponse(response.getBody(), config.getDimension());
-            
+            Response<Embedding> response = embeddingModel.embed(text);
+            return response.content().vector();
         } catch (Exception e) {
-            log.error("向量化失败: {}", e.getMessage(), e);
-            throw new RuntimeException("向量化失败: " + e.getMessage(), e);
+            log.error("文本嵌入失败: {}", e.getMessage(), e);
+            return new float[0];
         }
     }
 
     /**
-     * 批量向量化
+     * 批量文本嵌入
+     *
+     * @param texts 待嵌入文本列表
+     * @return 嵌入向量列表
      */
-    public List<float[]> embedBatch(List<String> texts) {
+    public List<float[]> embedAll(List<String> texts) {
         List<float[]> results = new ArrayList<>();
+
+        if (texts == null || texts.isEmpty()) {
+            return results;
+        }
+
         for (String text : texts) {
-            results.add(embed(text));
-        }
-        return results;
-    }
-
-    /**
-     * 解析Embedding响应
-     */
-    private float[] parseEmbeddingResponse(String responseBody, int dimension) {
-        try {
-            JsonNode root = objectMapper.readTree(responseBody);
-            JsonNode data = root.get("data");
-            
-            if (data != null && data.isArray() && data.size() > 0) {
-                JsonNode embedding = data.get(0).get("embedding");
-                if (embedding != null) {
-                    float[] result = new float[embedding.size()];
-                    for (int i = 0; i < embedding.size(); i++) {
-                        result[i] = (float) embedding.get(i).asDouble();
-                    }
-                    return result;
-                }
+            float[] vector = embed(text);
+            if (vector.length > 0) {
+                results.add(vector);
             }
-            
-            // 如果解析失败，返回随机向量（用于测试）
-            log.warn("无法解析Embedding响应，返回随机向量");
-            return randomVector(dimension);
-            
-        } catch (Exception e) {
-            log.error("解析Embedding响应失败: {}", e.getMessage());
-            return randomVector(dimension);
         }
-    }
 
-    /**
-     * 生成随机向量（用于测试/降级）
-     */
-    private float[] randomVector(int dimension) {
-        float[] vector = new float[dimension];
-        for (int i = 0; i < dimension; i++) {
-            vector[i] = (float) (Math.random() * 2 - 1);
-        }
-        return vector;
+        return results;
     }
 
     /**
@@ -119,5 +101,29 @@ public class EmbeddingService {
      */
     public int getDimension() {
         return properties.getEmbedding().getDimension();
+    }
+
+    /**
+     * 获取 Embedding 模型名称
+     */
+    public String getModelName() {
+        return properties.getEmbedding().getModel();
+    }
+
+    /**
+     * 将文本列表转换为单个嵌入请求（LangChain4j格式）
+     */
+    public List<Embedding> embedForMemory(List<String> texts) {
+        if (texts == null || texts.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        try {
+            Response<List<Embedding>> response = embeddingModel.embedAll(texts);
+            return response.content();
+        } catch (Exception e) {
+            log.error("批量文本嵌入失败: {}", e.getMessage(), e);
+            return new ArrayList<>();
+        }
     }
 }

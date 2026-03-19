@@ -17,7 +17,7 @@
     <description>智能服务中台：提供非物质文化遗产管理相关AI能力</description>
 
     <properties>
-        <langchain4j.version>1.10.0-beta18</langchain4j.version>
+        <langchain4j.version>0.35.0</langchain4j.version>
     </properties>
 
     <dependencies>
@@ -86,9 +86,9 @@
             <version>2.4.1</version>
         </dependency>
         <dependency>
-            <groupId>com.alibaba.nacos</groupId>
-            <artifactId>nacos-spring-boot-starter</artifactId>
-            <version>0.3.3</version>
+            <groupId>com.alibaba.boot</groupId>
+            <artifactId>nacos-config-spring-boot-starter</artifactId>
+            <version>0.2.12</version>
         </dependency>
 
         <!-- LangChain4j 核心 -->
@@ -113,6 +113,20 @@
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-anthropic</artifactId>
             <version>${langchain4j.version}</version>
+        </dependency>
+
+        <!-- LangChain4j Embedding 嵌入支持 -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-embeddings</artifactId>
+            <version>${langchain4j.version}</version>
+        </dependency>
+
+        <!-- Qdrant 向量数据库 -->
+        <dependency>
+            <groupId>io.qdrant</groupId>
+            <artifactId>qdrant-client</artifactId>
+            <version>1.7.3</version>
         </dependency>
 
         <!-- Spring WebFlux（提供 WebClient） -->

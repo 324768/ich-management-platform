@@ -1,7 +1,8 @@
 package com.hyang.ich.omnitrix.infrastructure.llm;
 
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
-import dev.langchain4j.model.chat.StreamingResponseHandler;
+import dev.langchain4j.model.chat.StreamingChatResponseHandler;
+import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,8 +14,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Claude 流式模型适配器 - 实现 LangChain4j 的 StreamingChatLanguageModel 接口
@@ -34,14 +33,14 @@ public class ClaudeStreamingModel implements StreamingChatLanguageModel {
     }
 
     @Override
-    public void chat(String userMessage, StreamingResponseHandler handler) {
+    public void chat(String userMessage, StreamingChatResponseHandler handler) {
         chat(userMessage, null, handler);
     }
 
     /**
      * 流式聊天 - 支持指定模型
      */
-    public void chat(String userMessage, String modelCode, StreamingResponseHandler handler) {
+    public void chat(String userMessage, String modelCode, StreamingChatResponseHandler handler) {
         LlmProperties.ClaudeConfig config = getEffectiveConfig(modelCode);
 
         if (!config.isConfigured()) {
@@ -84,7 +83,7 @@ public class ClaudeStreamingModel implements StreamingChatLanguageModel {
      */
     private void sendStreamingRequest(LlmProperties.ClaudeConfig config,
                                        String userMessage,
-                                       StreamingResponseHandler handler) {
+                                       StreamingChatResponseHandler handler) {
         // 构建请求体
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("model", config.getModel());
@@ -132,8 +131,8 @@ public class ClaudeStreamingModel implements StreamingChatLanguageModel {
                 parseAndStreamResponse(responseBody, handler);
             }
 
-            // 完成响应
-            handler.onComplete(Response.from(""));
+            // 完成响应 - 使用 0.35.0 API
+            handler.onCompleteResponse(Response.from(""));
 
         } catch (Exception e) {
             log.error("Claude 流式请求失败: {}", e.getMessage(), e);
@@ -148,7 +147,7 @@ public class ClaudeStreamingModel implements StreamingChatLanguageModel {
      * data: {"type":"message_delta","index":0,"delta":{"text":"","stop_reason":"end_turn"}}
      * data: {"type":"message_stop"}
      */
-    private void parseAndStreamResponse(String responseBody, StreamingResponseHandler handler) {
+    private void parseAndStreamResponse(String responseBody, StreamingChatResponseHandler handler) {
         try {
             // 简单的按句子/段落分割（实际应该解析 SSE 格式）
             // 这里做一个简化处理：把响应按字符流式发送
@@ -173,7 +172,8 @@ public class ClaudeStreamingModel implements StreamingChatLanguageModel {
                             if (delta.has("text")) {
                                 String text = delta.get("text").asText();
                                 if (!text.isEmpty()) {
-                                    handler.onNext(text, null);
+                                    // 使用 0.35.0 的 API
+                                    handler.onPartialResponse(text);
                                 }
                             }
                         }
@@ -182,8 +182,8 @@ public class ClaudeStreamingModel implements StreamingChatLanguageModel {
             }
         } catch (Exception e) {
             log.warn("解析 Claude 响应失败，使用整体发送: {}", e.getMessage());
-            // 降级：整体发送
-            handler.onNext(responseBody, null);
+            // 降级：整体发送 - 使用 0.35.0 的 API
+            handler.onPartialResponse(responseBody);
         }
     }
 }

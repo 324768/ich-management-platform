@@ -55,10 +55,10 @@ dubbo:
 omnitrix:
   llm:
     # 向后兼容：顶层配置 = primary 模型
-    # 所有密钥必须通过环境变量配置，禁止硬编码！
-    api-url: ${SILICONFLOW_API_URL:https://api.siliconflow.cn/v1/chat/completions}
-    model: ${SILICONFLOW_MODEL:deepseek-ai/DeepSeek-V3}
-    api-key: ${SILICONFLOW_API_KEY:}
+    # SiliconFlow API配置
+    api-url: https://api.siliconflow.cn/v1/chat/completions
+    model: deepseek-ai/DeepSeek-V3
+    api-key: sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  # 替换为你的SiliconFlow API Key
     timeout-seconds: 60
     max-tokens: 4096
     temperature: 0.7
@@ -71,10 +71,10 @@ omnitrix:
     max-context-tokens: 200000
     # ---- Claude API 配置（多模态 + 大上下文）----
     claude:
-      enabled: ${CLAUDE_ENABLED:false}
-      api-url: ${CLAUDE_API_URL:https://api.anthropic.com/v1/messages}
-      model: ${CLAUDE_MODEL:claude-sonnet-4-20250514}
-      api-key: ${CLAUDE_API_KEY:}
+      enabled: false
+      api-url: https://api.anthropic.com/v1/messages
+      model: claude-sonnet-4-20250514
+      api-key: sk-ant-api03-xxxxxxxxxxxxxxxxxxxxxxxx  # 替换为你的Claude API Key
       timeout-seconds: 180
       max-tokens: 8192
       temperature: 0.7
@@ -86,22 +86,44 @@ omnitrix:
     summary-trigger-ratio: 0.8
   # ---- 联网搜索配置 ----
   search:
-    enabled: ${SEARCH_ENABLED:false}
-    provider: ${SEARCH_PROVIDER:bing}
-    bing-api-key: ${BING_API_KEY:}
+    enabled: false
+    provider: bing
+    bing-api-key:  # 替换为你的Bing API Key
     bing-endpoint: https://api.bing.microsoft.com/v7.0/search
-    google-api-key: ${GOOGLE_API_KEY:}
-    google-cse-id: ${GOOGLE_CSE_ID:}
+    google-api-key:  # 替换为你的Google API Key
+    google-cse-id:  # 替换为你的Google CSE ID
     max-results: 10
     timeout-ms: 10000
   # ---- 向量数据库配置 (Qdrant) ----
   vector:
-    enabled: ${VECTOR_ENABLED:false}
-    provider: ${VECTOR_PROVIDER:qdrant}
-    url: ${QDRANT_URL:http://localhost:6333}
-    api-key: ${QDRANT_API_KEY:}
-    collection-name: ${QDRANT_COLLECTION:ich-knowledge}
-    dimension: ${VECTOR_DIMENSION:1536}
+    enabled: true
+    provider: qdrant
+    host: localhost
+    port: 6333
+    grpc-port: 6334
+    api-key:  # 如果使用Qdrant Cloud则填写API Key
+    collection-name: ich-knowledge
+    # Embedding 模型配置
+    embedding:
+      model: BAAI/bge-large-zh-v1.5
+      dimension: 1024
+      api-url: https://api.siliconflow.cn/v1
+      api-key: sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  # 替换为你的SiliconFlow API Key
+      use-remote: true
+    # 检索配置
+    search:
+      top-k: 5
+      score-threshold: 0.7
+
+  # ---- 多模态配置（图片理解）----
+  multimodal:
+    enabled: false
+    provider: anthropic
+    model: claude-sonnet-4-20250514
+    api-key: sk-ant-api03-xxxxxxxxxxxxxxxxxxxxxxxx  # 替换为你的Claude API Key
+    timeout-seconds: 180
+    max-tokens: 4096
+    temperature: 0.7
   evaluation:
     enabled: true
     async: true

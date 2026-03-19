@@ -133,14 +133,6 @@ public class SubBrainTools {
             "商品管理（商品查询、订单发货）、知识库管理、通知发布等管理运营任务。" +
             "参数：管理操作的查询内容")
     public String callAdminAI(String input) {
-        // ===== 输入验证（增强安全） =====
-        ToolInputValidator.ValidationResult validation = ToolInputValidator.validateSubBrainInput(input);
-        if (!validation.isValid()) {
-            AiRequestContext.recordToolFailure();
-            return ToolResultWrapper.error(validation.getErrorMessage())
-                    .withErrorHint().toXml();
-        }
-
         // 调用预算检查
         int callCount = CALL_COUNTER.get() + 1;
         CALL_COUNTER.set(callCount);
@@ -197,14 +189,6 @@ public class SubBrainTools {
             "AI控制（禁用/启用用户AI）、Skill管理（启用/禁用Skill）等。" +
             "参数：管理操作查询内容")
     public String callUltraAI(String input) {
-        // ===== 输入验证（增强安全） =====
-        ToolInputValidator.ValidationResult validation = ToolInputValidator.validateSubBrainInput(input);
-        if (!validation.isValid()) {
-            AiRequestContext.recordToolFailure();
-            return ToolResultWrapper.error(validation.getErrorMessage())
-                    .withErrorHint().toXml();
-        }
-
         // 调用预算检查
         int callCount = CALL_COUNTER.get() + 1;
         CALL_COUNTER.set(callCount);

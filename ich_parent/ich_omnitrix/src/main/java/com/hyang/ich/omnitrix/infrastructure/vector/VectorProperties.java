@@ -1,81 +1,92 @@
 package com.hyang.ich.omnitrix.infrastructure.vector;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 /**
- * 向量数据库配置属性
- * 支持 Qdrant、Milvus 等主流向量数据库
+ * Qdrant 向量数据库配置属性
+ *
+ * 配置示例（application.yml）：
+ *
+ * omnitrix:
+ *   vector:
+ *     enabled: true
+ *     host: localhost
+ *     port: 6333
+ *     grpc-port: 6334
+ *     api-key: your-qdrant-api-key (可选)
+ *     collection-name: ich_knowledge
+ *     embedding:
+ *       model: BAAI/bge-large-zh-v1.5
+ *       dimension: 1024
+ *     search:
+ *       top-k: 5
+ *       score-threshold: 0.7
  */
+@Slf4j
 @Data
 @Component
 @ConfigurationProperties(prefix = "omnitrix.vector")
 public class VectorProperties {
 
-    /** 是否启用向量数据库 */
+    /** 是否启用向量检索功能 */
     private boolean enabled = false;
 
-    /** 向量数据库类型: qdrant, milvus */
-    private String provider = "qdrant";
+    /** Qdrant 服务地址（HTTP） */
+    private String host = "localhost";
 
-    /** Qdrant 配置 */
-    private QdrantConfig qdrant = new QdrantConfig();
+    /** Qdrant HTTP 端口 */
+    private int port = 6333;
 
-    /** Milvus 配置 */
-    private MilvusConfig milvus = new MilvusConfig();
+    /** Qdrant gRPC 端口 */
+    private int grpcPort = 6334;
+
+    /** Qdrant API Key（可选，Qdrant Cloud 需要） */
+    private String apiKey;
+
+    /** 默认集合名称 */
+    private String collectionName = "ich_knowledge";
 
     /** Embedding 模型配置 */
     private EmbeddingConfig embedding = new EmbeddingConfig();
 
-    /** 是否已配置 */
-    public boolean isConfigured() {
-        return enabled && (provider.equalsIgnoreCase("qdrant") 
-            || provider.equalsIgnoreCase("milvus"));
-    }
-
-    @Data
-    public static class QdrantConfig {
-        /** Qdrant 服务地址 */
-        private String url = "http://localhost:6333";
-        /** API Key (可选) */
-        private String apiKey = "";
-        /** Collection 名称 */
-        private String collectionName = "ich-knowledge";
-        /** 向量维度 */
-        private int dimension = 1536;
-        /** 距离度量方式: Cosine, Euclid, Dot */
-        private String distance = "Cosine";
-    }
-
-    @Data
-    public static class MilvusConfig {
-        /** Milvus 服务地址 */
-        private String host = "localhost";
-        private int port = 19530;
-        /** Collection 名称 */
-        private String collectionName = "ich-knowledge";
-        /** 向量维度 */
-        private int dimension = 1536;
-        /** 索引类型: IVF_FLAT, HNSW */
-        private String indexType = "IVF_FLAT";
-        /** 距离度量: L2, IP, COSINE */
-        private String metricType = "L2";
-    }
+    /** 向量检索配置 */
+    private SearchConfig search = new SearchConfig();
 
     @Data
     public static class EmbeddingConfig {
-        /** Embedding 模型提供商: openai, siliconflow, dashscope */
-        private String provider = "siliconflow";
-        /** 模型名称 */
+        /** Embedding 模型名称 */
         private String model = "BAAI/bge-large-zh-v1.5";
-        /** API URL */
-        private String apiUrl = "https://api.siliconflow.cn/v1/embeddings";
-        /** API Key */
-        private String apiKey = "";
+
         /** 向量维度 */
-        private int dimension = 1536;
-        /** 最大输入长度 */
-        private int maxInputLength = 512;
+        private int dimension = 1024;
+
+        /** Embedding API URL（使用 SiliconFlow） */
+        private String apiUrl = "https://api.siliconflow.cn/v1";
+
+        /** Embedding API Key */
+        private String apiKey;
+
+        /** 是否使用远程模型（true=调用API，false=本地模型） */
+        private boolean useRemote = true;
+    }
+
+    @Data
+    public static class SearchConfig {
+        /** 搜索返回结果数量 */
+        private int topK = 5;
+
+        /** 相似度阈值（0-1），低于此分数的结果将被过滤 */
+        private Double scoreThreshold = 0.7;
+    }
+
+    public String getUrl() {
+        return "http://" + host + ":" + port;
+    }
+
+    public boolean isConfigured() {
+        return enabled && host != null && !host.isEmpty();
     }
 }

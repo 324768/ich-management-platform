@@ -62,13 +62,16 @@ public class LlmProperties {
     // ---- Claude API 配置（多模态 + 大上下文） ----
     private ClaudeConfig claude;
 
+    // ---- 多模态配置（图片理解） ----
+    private MultimodalConfig multimodal;
+
     @PostConstruct
     public void init() {
         // 校验必需配置
         if (apiKey == null || apiKey.trim().isEmpty()) {
             throw new IllegalStateException("❌ LLM API Key 未配置！请设置环境变量 SILICONFLOW_API_KEY");
         }
-        
+
         // 如果未配置 apiUrl，使用默认值
         if (apiUrl == null || apiUrl.trim().isEmpty()) {
             apiUrl = "https://api.siliconflow.cn/v1/chat/completions";
@@ -76,7 +79,7 @@ public class LlmProperties {
         if (model == null || model.trim().isEmpty()) {
             model = "deepseek-ai/DeepSeek-V3";
         }
-        
+
         // 如果未配置 primary，从顶层字段构建（向后兼容）
         if (primary == null) {
             primary = new ModelConfig();
@@ -87,7 +90,7 @@ public class LlmProperties {
             primary.setMaxTokens(maxTokens);
             primary.setTemperature(temperature);
         }
-        
+
         // 如果未配置 auxiliary，复用 primary（辅助任务使用相同模型）
         if (auxiliary == null) {
             auxiliary = new ModelConfig();
@@ -98,29 +101,29 @@ public class LlmProperties {
             auxiliary.setMaxTokens(Math.min(primary.getMaxTokens(), 1024));
             auxiliary.setTemperature(0.3);
         }
-        
+
         // 初始化 Claude 配置
         if (claude == null) {
             claude = new ClaudeConfig();
         }
-        
-        log.info("✅ LLM 配置初始化完成: model={}, maxTokens={}, maxContextTokens={}", 
+
+        // 初始化多模态配置
+        if (multimodal == null) {
+            multimodal = new MultimodalConfig();
+        }
+
+        log.info("✅ LLM 配置初始化完成: model={}, maxTokens={}, maxContextTokens={}",
                 primary.getModel(), primary.getMaxTokens(), maxContextTokens);
-    }
-
-    /** 获取主模型配置（主聊天） */
-    public ModelConfig getPrimaryConfig() {
-        return primary;
-    }
-
-    /** 获取辅助模型配置（评分/标题/意图/摘要） */
-    public ModelConfig getAuxiliaryConfig() {
-        return auxiliary;
     }
 
     /** 获取 Claude 配置（多模态 + 大上下文） */
     public ClaudeConfig getClaudeConfig() {
         return claude;
+    }
+
+    /** 获取多模态配置 */
+    public MultimodalConfig getMultimodal() {
+        return multimodal;
     }
 
     /**
@@ -135,6 +138,38 @@ public class LlmProperties {
         private int timeoutSeconds = 180;
         private int maxTokens = 8192;
         private int maxOutputTokens = 8192;
+        private double temperature = 0.7;
+
+        /** 是否已配置 */
+        public boolean isConfigured() {
+            return enabled && apiKey != null && !apiKey.trim().isEmpty();
+        }
+    }
+
+    /**
+     * 多模态模型配置（图片理解）
+     */
+    @Data
+    public static class MultimodalConfig {
+        /** 是否启用多模态 */
+        private boolean enabled = false;
+
+        /** 模型提供商：anthropic / openai */
+        private String provider = "anthropic";
+
+        /** 模型名称 */
+        private String model = "claude-sonnet-4-20250514";
+
+        /** API Key */
+        private String apiKey;
+
+        /** 超时时间（秒） */
+        private int timeoutSeconds = 180;
+
+        /** 最大输出 tokens */
+        private int maxTokens = 4096;
+
+        /** 温度参数 */
         private double temperature = 0.7;
 
         /** 是否已配置 */
