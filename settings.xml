@@ -5,14 +5,9 @@
   <localRepository>D:/soft/apache-maven-3.9.9/repo</localRepository>
   <mirrors>
     <mirror>
-      <id>aliyun-central</id>
-      <mirrorOf>central</mirrorOf>
-      <name>Aliyun Central</name>
-      <url>https://maven.aliyun.com/repository/public</url>
-    </mirror>
-    <mirror>
       <id>central-maven-org</id>
       <mirrorOf>*</mirrorOf>
+      <name>Maven Central</name>
       <url>https://repo1.maven.org/maven2</url>
     </mirror>
   </mirrors>

@@ -13,6 +13,11 @@ import dev.langchain4j.service.V;
  * 然后基于工具返回结果生成最终回答。
  * <p>
  * 通过 MasterBrainFactory 动态构建实例，注入角色对应的 Tool 集合和 Skill Prompt。
+ *
+ * 【Prompt Cache 优化】
+ * SystemMessage 仅包含静态内容（角色定义、工具规则、回答规范），
+ * 动态内容（skills、userProfile）移至 UserMessage，
+ * 确保 SystemMessage 可被 Claude Prompt Cache 命中，降低90%输入token费用。
  */
 public interface UserMasterBrain {
 
@@ -43,12 +48,10 @@ public interface UserMasterBrain {
             【多步任务处理】
             - 如果用户请求包含多个步骤（如"搜索剪纸活动并报名"），先完成第一步，再根据结果执行下一步
             - 每一步都要等工具返回结果后再继续
-
-            {{skills}}
-
-            {{userProfile}}
             """)
-    Result<String> chat(@UserMessage String userMessage, @V("skills") String skills, @V("userProfile") String userProfile);
+    Result<String> chat(@UserMessage String userMessage,
+                        @V("skills") String skills,
+                        @V("userProfile") String userProfile);
 
     @SystemMessage("""
             你是「非遗智能助手」，一个专业、友好的AI助手，服务于非物质文化遗产管理平台的用户。
@@ -77,10 +80,8 @@ public interface UserMasterBrain {
             【多步任务处理】
             - 如果用户请求包含多个步骤（如"搜索剪纸活动并报名"），先完成第一步，再根据结果执行下一步
             - 每一步都要等工具返回结果后再继续
-
-            {{skills}}
-
-            {{userProfile}}
             """)
-    TokenStream chatStream(@UserMessage String userMessage, @V("skills") String skills, @V("userProfile") String userProfile);
+    TokenStream chatStream(@UserMessage String userMessage,
+                            @V("skills") String skills,
+                            @V("userProfile") String userProfile);
 }

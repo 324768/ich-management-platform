@@ -79,6 +79,10 @@ omnitrix:
       max-tokens: 8192
       temperature: 0.7
       max-output-tokens: 8192
+      # Prompt Cache 配置（仅 Claude 支持）
+      # 注意：需要确保 SystemMessage 静态化（无动态变量），缓存才能命中
+      cache-system-messages: true  # 启用系统消息缓存（默认开启）
+      cache-tools: false            # 关闭工具缓存（有已知bug）
   memory:
     max-messages: 50
     redis-ttl-hours: 168
@@ -124,6 +128,31 @@ omnitrix:
     timeout-seconds: 180
     max-tokens: 4096
     temperature: 0.7
+  # ---- Graphiti 时序知识图谱配置（Neo4j）----
+  graphiti:
+    enabled: false
+    uri: bolt://localhost:7687
+    username: neo4j
+    password: password
+    fact-ttl-days: 90
+  # ---- MCP 客户端配置（外部工具集成）----
+  mcp:
+    enabled: false  # 需手动启用
+    servers:
+      # Brave Search 示例
+      # - name: brave-search
+      #   type: streamable-http
+      #   url: https://api.brave.com/mcp
+      #   log-requests: false
+      #   log-responses: false
+      # STDIO 示例
+      # - name: filesystem
+      #   type: stdio
+      #   command: npx
+      #   args:
+      #     - "-y"
+      #     - "@modelcontextprotocol/server-filesystem"
+      #     - "/Users/username/Documents"
   evaluation:
     enabled: true
     async: true

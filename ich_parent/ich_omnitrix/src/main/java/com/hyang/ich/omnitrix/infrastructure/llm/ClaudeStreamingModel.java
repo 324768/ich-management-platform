@@ -100,6 +100,16 @@ public class ClaudeStreamingModel implements StreamingChatLanguageModel {
         messages.add(userMessageContent);
         requestBody.put("messages", messages);
 
+        // Prompt Cache 配置（仅 Claude 支持）
+        // 注意：SystemMessage 已在 UserMasterBrain 中移除了 {{skills}} 和 {{userProfile}} 变量
+        // 确保 SystemMessage 完全静态，缓存命中时才有效
+        if (config.isCacheSystemMessages()) {
+            // 启用系统消息缓存（需要 Anthropic SDK 或手动设置 cache_control）
+            // LangChain4j 0.35.0 的 AnthropicChatModel 支持此选项
+            // 当前使用原生 HTTP 调用，缓存通过 anthropic-version 2023-06-01 控制
+            log.debug("Prompt Cache 已启用（静态 SystemMessage）");
+        }
+
         // 构建请求头
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

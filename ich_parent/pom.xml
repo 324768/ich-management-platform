@@ -100,6 +100,15 @@
         </dependencies>
     </dependencyManagement>
 
+    <!-- Maven Central 仓库（用于 langchain4j 1.x 等依赖） -->
+    <repositories>
+        <repository>
+            <id>central</id>
+            <name>Maven Central</name>
+            <url>https://repo1.maven.org/maven2/</url>
+        </repository>
+    </repositories>
+
     <build>
         <pluginManagement>
             <plugins>

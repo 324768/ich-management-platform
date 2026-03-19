@@ -17,7 +17,7 @@
     <description>智能服务中台：提供非物质文化遗产管理相关AI能力</description>
 
     <properties>
-        <langchain4j.version>0.35.0</langchain4j.version>
+        <langchain4j.version>1.0.1</langchain4j.version>
     </properties>
 
     <dependencies>
@@ -95,38 +95,52 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j</artifactId>
-            <version>${langchain4j.version}</version>
+            <version>1.0.1</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-open-ai</artifactId>
-            <version>${langchain4j.version}</version>
+            <version>1.0.1</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-spring-boot-starter</artifactId>
-            <version>${langchain4j.version}</version>
+            <version>1.0.1</version>
         </dependency>
 
         <!-- LangChain4j Anthropic Claude 支持 -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-anthropic</artifactId>
-            <version>${langchain4j.version}</version>
+            <version>1.0.1</version>
         </dependency>
 
         <!-- LangChain4j Embedding 嵌入支持 -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-embeddings</artifactId>
-            <version>${langchain4j.version}</version>
+            <version>1.0.1</version>
+        </dependency>
+
+        <!-- Neo4j 图数据库（Graphiti 时序知识图谱） -->
+        <dependency>
+            <groupId>org.neo4j.driver</groupId>
+            <artifactId>neo4j-java-driver</artifactId>
+            <version>5.15.0</version>
+        </dependency>
+
+        <!-- LangChain4j MCP Client（MCP 外部工具集成） -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-mcp</artifactId>
+            <version>1.0.1-beta6</version>
         </dependency>
 
         <!-- Qdrant 向量数据库 -->
         <dependency>
             <groupId>io.qdrant</groupId>
-            <artifactId>qdrant-client</artifactId>
-            <version>1.7.3</version>
+            <artifactId>client</artifactId>
+            <version>1.11.0</version>
         </dependency>
 
         <!-- Spring WebFlux（提供 WebClient） -->

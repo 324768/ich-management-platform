@@ -1,5 +1,7 @@
 package com.hyang.ich.omnitrix.infrastructure.vector;
 
+import com.hyang.ich.omnitrix.infrastructure.context.ContextCompressor;
+import com.hyang.ich.omnitrix.infrastructure.context.ContextStrategy;
 import com.hyang.ich.omnitrix.infrastructure.llm.LlmProperties;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
@@ -24,14 +26,29 @@ public class VectorRagService {
     private final EmbeddingService embeddingService;
     private final ChatLanguageModel chatModel;
     private final VectorProperties properties;
+    private final ContextCompressor contextCompressor;
+    private final ContextStrategy contextStrategy;
+    private final QueryRewriter queryRewriter;
+    private final RelevanceEvaluator relevanceEvaluator;
+    private final HallucinationChecker hallucinationChecker;
 
     public VectorRagService(QdrantVectorStore vectorStore,
                            EmbeddingService embeddingService,
                            VectorProperties properties,
-                           LlmProperties llmProperties) {
+                           LlmProperties llmProperties,
+                           ContextCompressor contextCompressor,
+                           ContextStrategy contextStrategy,
+                           QueryRewriter queryRewriter,
+                           RelevanceEvaluator relevanceEvaluator,
+                           HallucinationChecker hallucinationChecker) {
         this.vectorStore = vectorStore;
         this.embeddingService = embeddingService;
         this.properties = properties;
+        this.contextCompressor = contextCompressor;
+        this.contextStrategy = contextStrategy;
+        this.queryRewriter = queryRewriter;
+        this.relevanceEvaluator = relevanceEvaluator;
+        this.hallucinationChecker = hallucinationChecker;
 
         // 创建用于RAG的Chat模型（使用主模型配置）
         String apiKey = llmProperties.getPrimaryConfig().getApiKey();
@@ -224,16 +241,6 @@ public class VectorRagService {
 
     @lombok.Data
     @lombok.Builder
-    public static class RagResult {
-        /** LLM生成的回答 */
-        private String answer;
-
-        /** 检索到的来源 */
-        private List<Source> sources;
-    }
-
-    @lombok.Data
-    @lombok.Builder
     public static class Source {
         /** 文档ID */
         private String id;
@@ -246,5 +253,190 @@ public class VectorRagService {
 
         /** 元数据 */
         private Map<String, Object> metadata;
+    }
+
+    @lombok.Data
+    @lombok.Builder
+    public static class RagResult {
+        /** LLM生成的回答 */
+        private String answer;
+
+        /** 检索到的来源 */
+        private List<Source> sources;
+    }
+
+    // ========== Agentic RAG（智能RAG）==========
+    // 使用循环：检索 -> 评估相关性 -> 改写 -> 扩展 -> 最终生成
+
+    private static final int MAX_ITERATIONS = 3;
+
+    /**
+     * Agentic RAG - 智能检索增强生成
+     * 通过多轮循环：检索 -> 评估相关性 -> 改写查询 -> 扩展检索 -> 生成回答
+     *
+     * @param query 用户问题
+     * @param language 目标语言
+     * @return Agentic RAG 回答结果
+     */
+    public AgenticRagResult answerAgentic(String query, String language) {
+        if (query == null || query.trim().isEmpty()) {
+            return AgenticRagResult.builder()
+                    .answer("请提供有效的问题")
+                    .sources(Collections.emptyList())
+                    .iterations(0)
+                    .build();
+        }
+
+        log.info("Agentic RAG 开始: query={}", query);
+
+        String currentQuery = query;
+        List<QdrantVectorStore.SearchResult> allResults = new ArrayList<>();
+        int iterations = 0;
+
+        // 循环：检索 -> 评估 -> 改写
+        while (iterations < MAX_ITERATIONS) {
+            iterations++;
+            log.debug("Agentic RAG 第{}轮: query={}", iterations, currentQuery);
+
+            // 1. 检索
+            List<QdrantVectorStore.SearchResult> results = vectorStore.search(
+                    currentQuery,
+                    properties.getSearch().getTopK(),
+                    properties.getSearch().getScoreThreshold()
+            );
+
+            if (!results.isEmpty()) {
+                allResults.addAll(results);
+            }
+
+            // 2. 评估相关性
+            if (relevanceEvaluator.needsRewrite(currentQuery, results)) {
+                // 改写查询
+                currentQuery = queryRewriter.rewrite(currentQuery, language);
+                log.debug("查询改写: -> {}", currentQuery);
+                continue;
+            }
+
+            if (!relevanceEvaluator.needsExpansion(currentQuery, results)) {
+                // 相关性足够，退出循环
+                break;
+            }
+
+            // 3. 扩展检索（生成多个子查询）
+            String expandedQuery = expandQuery(currentQuery);
+            if (!expandedQuery.equals(currentQuery)) {
+                currentQuery = expandedQuery;
+                log.debug("查询扩展: -> {}", currentQuery);
+            } else {
+                break;
+            }
+        }
+
+        // 去重
+        Set<String> seenIds = new HashSet<>();
+        List<QdrantVectorStore.SearchResult> deduplicatedResults = allResults.stream()
+                .filter(r -> seenIds.add(r.getId()))
+                .sorted(Comparator.comparingDouble(QdrantVectorStore.SearchResult::getScore).reversed())
+                .limit(properties.getSearch().getTopK())
+                .collect(Collectors.toList());
+
+        if (deduplicatedResults.isEmpty()) {
+            return AgenticRagResult.builder()
+                    .answer("抱歉，知识库中没有找到与您问题相关的内容。")
+                    .sources(Collections.emptyList())
+                    .iterations(iterations)
+                    .build();
+        }
+
+        // 4. 压缩上下文
+        String context = deduplicatedResults.stream()
+                .map(QdrantVectorStore.SearchResult::getText)
+                .map(text -> contextCompressor.compress(text, "search_result"))
+                .collect(Collectors.joining("\n\n"));
+
+        // 5. 构建Prompt并生成回答
+        String prompt = buildPrompt(query, context);
+        String answer;
+        try {
+            answer = chatModel.chat(prompt);
+        } catch (Exception e) {
+            log.error("Agentic RAG 生成失败: {}", e.getMessage());
+            answer = "抱歉，处理您的问题时出现错误。请稍后重试。";
+        }
+
+        // 6. 幻觉检测
+        HallucinationChecker.HallucinationResult hallucinationResult =
+                hallucinationChecker.check(answer, context);
+
+        if (hallucinationResult.isHasHallucination()) {
+            log.warn("检测到幻觉: {}", hallucinationResult.getFeedback());
+        }
+
+        // 7. 构建来源
+        List<Source> sources = deduplicatedResults.stream()
+                .map(r -> Source.builder()
+                        .id(r.getId())
+                        .text(r.getText())
+                        .score(r.getScore())
+                        .metadata(r.getMetadata())
+                        .build())
+                .collect(Collectors.toList());
+
+        log.info("Agentic RAG 完成: iterations={}, sources={}, hallucination={}",
+                iterations, sources.size(), hallucinationResult.isHasHallucination());
+
+        return AgenticRagResult.builder()
+                .answer(answer)
+                .sources(sources)
+                .iterations(iterations)
+                .hallucinationDetected(hallucinationResult.isHasHallucination())
+                .hallucinationFeedback(hallucinationResult.getFeedback())
+                .build();
+    }
+
+    /**
+     * 扩展查询（生成多个子查询）
+     */
+    private String expandQuery(String query) {
+        String prompt = String.format("""
+                请将以下查询分解为2-3个更具体的子查询。
+
+                原始查询：%s
+
+                要求：
+                1. 每个子查询应该是原始查询的一个方面或具体问题
+                2. 使用不同的关键词表达
+                3. 用" OR "分隔每个子查询
+
+                只返回子查询，用空格分隔，不要其他内容。
+                """, query);
+
+        try {
+            return chatModel.chat(prompt).trim();
+        } catch (Exception e) {
+            log.warn("查询扩展失败: {}", e.getMessage());
+            return query;
+        }
+    }
+
+    // ========== Agentic RAG 结果类 ==========
+
+    @lombok.Data
+    @lombok.Builder
+    public static class AgenticRagResult {
+        /** LLM生成的回答 */
+        private String answer;
+
+        /** 检索到的来源 */
+        private List<Source> sources;
+
+        /** 迭代次数 */
+        private int iterations;
+
+        /** 是否检测到幻觉 */
+        private boolean hallucinationDetected;
+
+        /** 幻觉检测反馈 */
+        private String hallucinationFeedback;
     }
 }

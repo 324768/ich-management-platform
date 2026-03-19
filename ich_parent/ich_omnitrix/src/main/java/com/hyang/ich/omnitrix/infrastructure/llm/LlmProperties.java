@@ -139,6 +139,10 @@ public class LlmProperties {
         private int maxTokens = 8192;
         private int maxOutputTokens = 8192;
         private double temperature = 0.7;
+        /** 是否启用 SystemMessage Cache（仅Claude支持，建议开启） */
+        private boolean cacheSystemMessages = true;
+        /** 是否启用 Tools Cache（默认关闭，有已知bug） */
+        private boolean cacheTools = false;
 
         /** 是否已配置 */
         public boolean isConfigured() {
